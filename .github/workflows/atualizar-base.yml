@@ -5,6 +5,8 @@ on:
   schedule:
     # GitHub Actions usa UTC: 09h e 15h = 06h e 12h em São Paulo.
     - cron: "0 9,15 * * *"
+    # 21h30 UTC = 18h30 em São Paulo.
+    - cron: "30 21 * * *"
 
 concurrency:
   group: atualizar-base-metalforte
