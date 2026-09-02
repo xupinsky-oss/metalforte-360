@@ -2,8 +2,10 @@
 
 import json
 import os
+import base64
 from pathlib import Path
 from urllib.parse import quote
+from urllib.parse import urlparse
 
 import requests
 
@@ -47,9 +49,62 @@ def download_bytes(timeout=120):
 def upload_file(local_path, timeout=180):
     if not is_configured():
         return False
-    with Path(local_path).open("rb") as source:
-        response = requests.post(_object_url(), headers=_headers("application/gzip"), data=source, timeout=timeout)
-    response.raise_for_status()
+    source_path = Path(local_path)
+    base_url, api_key, bucket, object_path = _settings()
+    project_host = urlparse(base_url).hostname or ""
+    project_ref = project_host.split(".", 1)[0]
+    tus_url = f"https://{project_ref}.storage.supabase.co/storage/v1/upload/resumable"
+
+    def encoded(value):
+        return base64.b64encode(value.encode("utf-8")).decode("ascii")
+
+    create_headers = {
+        "Authorization": f"Bearer {api_key}",
+        "apikey": api_key,
+        "Tus-Resumable": "1.0.0",
+        "Upload-Length": str(source_path.stat().st_size),
+        "Upload-Metadata": ",".join(
+            [
+                f"bucketName {encoded(bucket)}",
+                f"objectName {encoded(object_path)}",
+                f"contentType {encoded('application/gzip')}",
+                f"cacheControl {encoded('no-cache')}",
+            ]
+        ),
+        "x-upsert": "true",
+    }
+    response = requests.post(tus_url, headers=create_headers, timeout=timeout)
+    if response.status_code not in (201, 204):
+        raise RuntimeError(
+            f"Supabase não iniciou o upload ({response.status_code}): {response.text[:500]}"
+        )
+
+    upload_url = response.headers.get("Location")
+    if not upload_url:
+        raise RuntimeError("Supabase não retornou a URL do upload resumível.")
+    if upload_url.startswith("/"):
+        upload_url = f"https://{project_ref}.storage.supabase.co{upload_url}"
+
+    offset = 0
+    chunk_size = 6 * 1024 * 1024
+    with source_path.open("rb") as source:
+        while chunk := source.read(chunk_size):
+            patch_headers = {
+                "Authorization": f"Bearer {api_key}",
+                "apikey": api_key,
+                "Tus-Resumable": "1.0.0",
+                "Upload-Offset": str(offset),
+                "Content-Type": "application/offset+octet-stream",
+            }
+            response = requests.patch(
+                upload_url, headers=patch_headers, data=chunk, timeout=timeout
+            )
+            if response.status_code != 204:
+                raise RuntimeError(
+                    f"Supabase interrompeu o upload ({response.status_code}): "
+                    f"{response.text[:500]}"
+                )
+            offset = int(response.headers.get("Upload-Offset", offset + len(chunk)))
     return True
 
 
@@ -62,3 +117,4 @@ def upload_status(status, timeout=30):
     response = requests.post(_object_url(status_path), headers=_headers("application/json; charset=utf-8"), data=payload, timeout=timeout)
     response.raise_for_status()
     return True
+
