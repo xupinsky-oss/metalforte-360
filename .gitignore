@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Streamlit secrets and local credentials
+.streamlit/secrets.toml
+.streamlit/gooddata_credential.bin
+.streamlit/gooddata_credential.xml
+*.credential.bin
+*.credential.xml
+
+# Commercial data and refresh artifacts
+data/*.csv
+data/*.csv.gz
+data/raw/
+data/backup/
+data/auditoria.txt
+logs/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Editors and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
