@@ -10,12 +10,12 @@ from src.assistant import answer
 from src.totvs import TotvsGoodDataConnector,from_streamlit_secrets,REPORTS
 
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
-px.defaults.template="plotly_dark"
+px.defaults.template="plotly_white"
 px.defaults.color_discrete_sequence=["#F36A2D","#2F8FD8","#34B27B","#F2B84B","#A78BFA","#EC6F91"]
 def brl(v): return (f"R$ {v:,.0f}").replace(",",".")
 def brl2(v): return brl(v)
-def pct(v): return f"{v*100:.1f}%".replace(".",",")
-def pp(v): return f"{v:+.1f}".replace(".",",")+" p.p."
+def pct(v): return f"{v*100:.2f}%".replace(".",",")
+def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 @st.cache_data(show_spinner="Carregando Metalforte 360...")
 def get_data(): return load_data()
 def _is_fraction_percent(name):
@@ -32,7 +32,7 @@ def _numeric_column_config(data):
     for col in data.columns:
         if not pd.api.types.is_numeric_dtype(data[col]): continue
         name=str(col).lower()
-        if "p.p." in name or "delta_margem_pp" in name: fmt="%.1f p.p."
+        if "p.p." in name or "delta_margem_pp" in name: fmt="%.2f p.p."
         elif "desvio_%" in name: fmt="%.2f%%"
         elif _is_fraction_percent(name): fmt="%.2f%%"
         elif _is_money_column(name): fmt="R$ %.0f"
@@ -50,45 +50,54 @@ def show_table(data,**kwargs):
     inferred.update(kwargs.pop("column_config",{}) or {})
     return st.dataframe(display,column_config=inferred,**kwargs)
 def show_chart(fig,**kwargs):
-    fig.update_layout(font=dict(size=14,color="#F5F7FA"),title_font=dict(size=18,color="#FFFFFF"),legend_font=dict(size=13,color="#F5F7FA"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#121923",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(font_size=14))
-    fig.update_xaxes(tickfont=dict(size=12,color="#E7EDF5"),title_font=dict(size=14,color="#F5F7FA"),gridcolor="#2A3442",zerolinecolor="#3B4655")
-    fig.update_yaxes(tickfont=dict(size=12,color="#E7EDF5"),title_font=dict(size=14,color="#F5F7FA"),gridcolor="#2A3442",zerolinecolor="#3B4655")
+    fig.update_layout(font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(font_size=14))
+    fig.update_xaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
+    fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
         axis=getattr(fig.layout,axis_name,None); title=((axis.title.text if axis and axis.title else "") or "").lower()
         if "desvio_%" in title: axis.update(tickformat=",.1f",ticksuffix="%")
-        elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".1%")
+        elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".2%")
         elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.0f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
     return st.plotly_chart(fig,width="stretch",**kwargs)
 df=get_data(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
 today=pd.Timestamp.today().date(); month_start=today.replace(day=1)
 default_start=month_start if base_min<=month_start<=base_max else base_max.replace(day=1)
-st.title("🏭 Metalforte 360"); st.caption(f"Faturamento • margem • geografia • portfólio • preço • planejamento • IA • integração TOTVS  |  Última atualização: {last_update}")
+logo_path=Path(__file__).parent/'LOGO_METALFORTE.jpg'
+head_logo,head_title=st.columns([.16,.84],vertical_alignment="center")
+with head_logo:
+    if logo_path.exists(): st.image(str(logo_path),width=190)
+with head_title:
+    st.title("METALFORTE 360")
+    st.caption(f"Command Center Comercial • carteira • preço • planejamento • IA  |  Última atualização: {last_update}")
 st.markdown("""<style>
-html,body,[class*="css"]{font-size:16px;color:#F5F7FA}
+html,body,[class*="css"]{font-size:16px;color:#172033}
+.stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
 .block-container{padding-top:1.6rem;padding-bottom:3rem;max-width:1800px}
 h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!important} h3{font-size:1.28rem!important}
-[data-testid="stCaptionContainer"]{font-size:.92rem;color:#BFC9D8}
-[data-testid="stSidebar"]{background:#111821;border-right:1px solid #2A3442}
-[data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#E7EDF5!important}
-[data-testid="stMetric"]{background:#171F2B;border:1px solid #2D3948;border-radius:12px;padding:1rem 1.05rem;min-height:116px}
-[data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#C8D2E0!important}
-[data-testid="stMetricValue"]{font-size:clamp(1.3rem,1.7vw,2rem)!important;font-weight:750;color:#FFFFFF}
+[data-testid="stCaptionContainer"]{font-size:.92rem;color:#5B6B80}
+[data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid #DCE3EC}
+[data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#27364A!important}
+[data-testid="stMetric"]{background:#FFFFFF;border:1px solid #DCE3EC;border-radius:12px;padding:1rem 1.05rem;min-height:116px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
+[data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#52647A!important}
+[data-testid="stMetricValue"]{font-size:clamp(1.3rem,1.7vw,2rem)!important;font-weight:750;color:#172033}
 [data-testid="stMetricDelta"]{font-size:.88rem!important}
 [data-baseweb="tab-list"]{gap:.3rem;overflow-x:auto}
-[data-baseweb="tab"]{min-height:46px;padding:.7rem .9rem;font-size:.92rem;font-weight:650;color:#C8D2E0;white-space:nowrap}
-[aria-selected="true"][data-baseweb="tab"]{color:#FFFFFF;background:#1D2734;border-radius:9px 9px 0 0}
-.mf-status{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .8rem;border:1px solid #347A55;border-radius:999px;font-size:.9rem;font-weight:700;background:#15251D;color:#DDF8E8}
+[data-baseweb="tab"]{min-height:46px;padding:.7rem .9rem;font-size:.92rem;font-weight:650;color:#52647A;white-space:nowrap}
+[aria-selected="true"][data-baseweb="tab"]{color:#C54112;background:#FFF1EA;border-radius:9px 9px 0 0}
+.mf-status{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .8rem;border:1px solid #9AD5B5;border-radius:999px;font-size:.9rem;font-weight:700;background:#EEF9F3;color:#176B43}
 .mf-dot{width:.58rem;height:.58rem;border-radius:50%;display:inline-block;background:#35C77B;box-shadow:0 0 0 4px #35C77B25}
-.mf-alert{border-left:5px solid #E3A62F;padding:.9rem 1rem;margin:.55rem 0;background:#282314;color:#FFF4CF;border-radius:0 .55rem .55rem 0;font-size:.98rem;line-height:1.45}
-.mf-alert small{font-size:.88rem;color:#E8DFBF}.mf-critical{border-left-color:#F05B63;background:#2A181B;color:#FFE4E6}.mf-critical small{color:#F0C4C8}.mf-info{border-left-color:#419BE0;background:#142434;color:#DDEFFF}.mf-info small{color:#BDD8EF}
-.mw-strip{display:flex;gap:.65rem;overflow-x:auto;padding:.25rem 0 .8rem}.mw-quote{min-width:210px;background:#121923;border:1px solid #2D3948;border-radius:9px;padding:.7rem .8rem}.mw-name{font-size:.78rem;color:#AEBAC9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mw-value{font-size:1rem;font-weight:750;color:#FFF;margin-top:.2rem}.mw-up{color:#62C894}.mw-down{color:#F18A68}.mw-flat{color:#C5CEDA}
-[data-testid="stDataFrame"]{border:1px solid #2D3948;border-radius:10px;overflow:hidden}
+.mf-alert{border-left:5px solid #D89A20;padding:.9rem 1rem;margin:.55rem 0;background:#FFF8E6;color:#664B0B;border-radius:0 .55rem .55rem 0;font-size:.98rem;line-height:1.45}
+.mf-alert small{font-size:.88rem;color:#755F2B}.mf-critical{border-left-color:#DC4C58;background:#FFF0F1;color:#81252C}.mf-critical small{color:#8C4750}.mf-info{border-left-color:#3289CF;background:#EEF7FF;color:#18577E}.mf-info small{color:#3F6F8C}
+.mw-strip{display:flex;gap:.65rem;overflow-x:auto;padding:.25rem 0 .8rem}.mw-quote{min-width:210px;background:#FFFFFF;border:1px solid #DCE3EC;border-radius:9px;padding:.7rem .8rem;box-shadow:0 2px 10px rgba(23,32,51,.04)}.mw-name{font-size:.78rem;color:#607086;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mw-value{font-size:1rem;font-weight:750;color:#172033;margin-top:.2rem}.mw-up{color:#168653}.mw-down{color:#C74426}.mw-flat{color:#637287}
+[data-testid="stDataFrame"]{border:1px solid #DCE3EC;border-radius:10px;overflow:hidden}
+.mf-funnel-note{padding:.85rem 1rem;background:#FFF4EE;border:1px solid #FFD5C2;border-radius:10px;color:#71371E;margin:.5rem 0 1rem}
 button,input,[role="combobox"]{font-size:.95rem!important}
 @media(max-width:900px){.block-container{padding-left:1rem;padding-right:1rem}[data-testid="stMetric"]{min-height:104px;padding:.8rem}[data-testid="stMetricValue"]{font-size:1.35rem!important}}
 </style>""",unsafe_allow_html=True)
 
 with st.sidebar:
+    if logo_path.exists(): st.image(str(logo_path),width=220)
     st.header("Filtros")
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Atualizada em {last_update}</span>',unsafe_allow_html=True)
     st.subheader("Período")
@@ -108,7 +117,7 @@ monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
-tabs=st.tabs(["Command Center","Market Watch","Resumo","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Assistente IA","Integrações","Auditoria"])
+tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Resumo","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Assistente IA","Integrações","Auditoria"])
 with tabs[0]:
     s=monitoring_snapshot(monitor_scope)
     asof=s['as_of'].strftime('%d/%m/%Y') if pd.notna(s['as_of']) else 'sem dados'
@@ -155,7 +164,7 @@ with tabs[0]:
         products=command['products'].head(25)
         if not products.empty:
             products=products.copy(); products['volume_visual']=products['faturamento_atual'].clip(lower=0)+1
-            fig=px.scatter(products,x='delta_faturamento',y='delta_margem_pp',size='volume_visual',color='sinal',hover_name='Grupo Produto',hover_data={'faturamento_atual':':,.0f','margem_pct_atual':':.1%','volume_visual':False},title='Sinais de mix: crescimento × qualidade de margem',labels={'delta_faturamento':'Δ Faturamento','delta_margem_pp':'Δ Margem p.p.','sinal':'Sinal'},color_discrete_map={'Crescimento rentável':'#2F8FD8','Crescimento com pressão':'#F2B84B','Queda com margem protegida':'#A78BFA','Queda com pressão':'#F36A2D'})
+            fig=px.scatter(products,x='delta_faturamento',y='delta_margem_pp',size='volume_visual',color='sinal',hover_name='Grupo Produto',hover_data={'faturamento_atual':':,.0f','margem_pct_atual':':.2%','volume_visual':False},title='Sinais de mix: crescimento × qualidade de margem',labels={'delta_faturamento':'Δ Faturamento','delta_margem_pp':'Δ Margem p.p.','sinal':'Sinal'},color_discrete_map={'Crescimento rentável':'#2F8FD8','Crescimento com pressão':'#F2B84B','Queda com margem protegida':'#A78BFA','Queda com pressão':'#F36A2D'})
             fig.add_hline(y=0,line_color='#94A3B8',line_width=1); fig.add_vline(x=0,line_color='#94A3B8',line_width=1); fig.update_yaxes(ticksuffix=' p.p.'); show_chart(fig)
     with c2:
         risk=command['clients']; risk_total=risk['valor_em_risco'].sum() if not risk.empty else 0; falling=int((risk['delta_faturamento']<0).sum()) if not risk.empty else 0; margin_pressure=int((risk['delta_margem_pp']<0).sum()) if not risk.empty else 0
@@ -184,7 +193,7 @@ with tabs[0]:
     c1,c2=st.columns([1.35,1])
     with c1:
         if not s['monthly'].empty:
-            fig=go.Figure(); fig.add_bar(x=[names[x] for x in s['monthly'].mes],y=s['monthly'].faturamento,name='Faturamento',marker_color='#184a78'); fig.add_scatter(x=[names[x] for x in s['monthly'].mes],y=s['monthly'].margem_pct*100,name='Margem %',yaxis='y2',line=dict(color='#e0a100',width=3)); fig.update_layout(title='Pulso mensal',yaxis2=dict(overlaying='y',side='right',ticksuffix='%'),legend=dict(orientation='h')); show_chart(fig)
+            fig=go.Figure(); fig.add_bar(x=[names[x] for x in s['monthly'].mes],y=s['monthly'].faturamento,name='Faturamento',marker_color='#184a78'); fig.add_scatter(x=[names[x] for x in s['monthly'].mes],y=s['monthly'].margem_pct*100,name='Margem %',yaxis='y2',line=dict(color='#e0a100',width=3)); fig.update_layout(title='Pulso mensal',yaxis2=dict(overlaying='y',side='right',tickformat='.2f',ticksuffix='%'),legend=dict(orientation='h')); show_chart(fig)
     with c2:
         if not s['sellers'].empty:
             show_chart(px.bar(s['sellers'].sort_values('faturamento'),x='faturamento',y='Vendedor',orientation='h',color='margem_pct',color_continuous_scale='RdYlGn',title='Vendedores: receita e qualidade de margem'))
@@ -219,7 +228,7 @@ with tabs[1]:
     with c2:
         if not shown.empty:
             chart=shown.sort_values('delta_faturamento').copy(); chart['Sinal']=chart['delta_faturamento'].map(lambda v:'Alta' if v>0 else 'Queda' if v<0 else 'Estável')
-            fig=px.bar(chart,x='delta_faturamento',y=watch_dim,orientation='h',color='Sinal',title=f'Movimentações por {watch_dim.lower()}',labels={'delta_faturamento':'Δ Faturamento'},color_discrete_map={'Alta':'#2F8FD8','Queda':'#F36A2D','Estável':'#94A3B8'},hover_data={'faturamento_atual':':,.0f','margem_pct_atual':':.1%','delta_margem_pp':':.1f'}); fig.add_vline(x=0,line_color='#CBD5E1',line_width=1); show_chart(fig)
+            fig=px.bar(chart,x='delta_faturamento',y=watch_dim,orientation='h',color='Sinal',title=f'Movimentações por {watch_dim.lower()}',labels={'delta_faturamento':'Δ Faturamento'},color_discrete_map={'Alta':'#2F8FD8','Queda':'#F36A2D','Estável':'#94A3B8'},hover_data={'faturamento_atual':':,.0f','margem_pct_atual':':.2%','delta_margem_pp':':.2f'}); fig.add_vline(x=0,line_color='#CBD5E1',line_width=1); show_chart(fig)
     st.markdown('### Quadro de movimentações')
     board=shown.rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem %','delta_margem_pp':'Δ Margem p.p.','movimento':'Movimento','impacto':'Impacto'})
     if not board.empty: show_table(board[[watch_dim,'Movimento','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem %','Δ Margem p.p.','Impacto']],height=420,width='stretch')
@@ -239,13 +248,91 @@ with tabs[1]:
         dk=st.columns(5); dk[0].metric('Faturamento',brl(dm['revenue']),delta=f"{dvar:+.1%}".replace('.',',')); dk[1].metric('Margem',brl(dm['margin'])); dk[2].metric('Margem %',pct(dm['margin_pct']),delta=pp((dm['margin_pct']-dp['margin_pct'])*100)); dk[3].metric('Clientes',f"{dm['clients']:,}".replace(',','.')); dk[4].metric('Produtos',f"{dm['products']:,}".replace(',','.'))
         if not cur_drill.empty:
             daily=cur_drill.groupby(cur_drill.Data.dt.normalize()).agg(Faturamento=('Faturamento','sum'),Margem=('Margem','sum'),Clientes=('Cliente','nunique'),Produtos=('Produto','nunique')).reset_index(names='Data'); daily['Margem %']=daily.Margem/daily.Faturamento.replace(0,pd.NA)
-            fig=go.Figure(); fig.add_bar(x=daily.Data,y=daily.Faturamento,name='Faturamento',marker_color='#2F8FD8'); fig.add_scatter(x=daily.Data,y=daily['Margem %']*100,name='Margem %',yaxis='y2',line=dict(color='#F2B84B',width=3)); fig.update_layout(title='Movimentação diária do recorte',yaxis=dict(title='Faturamento'),yaxis2=dict(overlaying='y',side='right',ticksuffix='%'),legend=dict(orientation='h')); show_chart(fig)
+            fig=go.Figure(); fig.add_bar(x=daily.Data,y=daily.Faturamento,name='Faturamento',marker_color='#2F8FD8'); fig.add_scatter(x=daily.Data,y=daily['Margem %']*100,name='Margem %',yaxis='y2',line=dict(color='#F2B84B',width=3)); fig.update_layout(title='Movimentação diária do recorte',yaxis=dict(title='Faturamento'),yaxis2=dict(overlaying='y',side='right',tickformat='.2f',ticksuffix='%'),legend=dict(orientation='h')); show_chart(fig)
             with st.expander('Abrir transações e notas do recorte',expanded=False):
                 detail_cols=[c for c in ['Data','NF','Vendedor','Cliente','Produto','Grupo Produto','Tipo Produto','UF','Município','Faturamento','Margem','Margem %','Peso','Preço Real Kg'] if c in cur_drill.columns]
                 tx=cur_drill[detail_cols].sort_values(['Data','Faturamento'],ascending=[False,False]); show_table(tx,height=560,width='stretch',column_config={'Data':st.column_config.DateColumn(format='DD/MM/YYYY')})
                 st.download_button('Baixar detalhe em CSV',tx.to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig'),file_name=f"market_watch_{watch_dim.lower()}_{start_date}_{end_date}.csv",mime='text/csv')
         else: st.info('A seleção não possui movimentação no período atual; consulte o período anterior no quadro acima.')
 with tabs[2]:
+    st.subheader('Performance do Dia • Funil de Vendas')
+    available_days=sorted(monitor_scope['Data'].dropna().dt.normalize().unique(),reverse=True)
+    if not available_days:
+        st.warning('Não há dias com movimento para os filtros globais selecionados.')
+    else:
+        day_options=[pd.Timestamp(day) for day in available_days]
+        selected_day=st.selectbox('Dia analisado',day_options,index=0,format_func=lambda value:value.strftime('%d/%m/%Y'),key='daily_day')
+        day_pos=day_options.index(selected_day); previous_day=day_options[day_pos+1] if day_pos+1<len(day_options) else None
+        day_data=monitor_scope[monitor_scope['Data'].dt.normalize()==selected_day].copy()
+        previous_data=monitor_scope[monitor_scope['Data'].dt.normalize()==previous_day].copy() if previous_day is not None else monitor_scope.iloc[0:0].copy()
+        dm,pm=metrics(day_data),metrics(previous_data)
+        revenue_change=(dm['revenue']/pm['revenue']-1) if pm['revenue'] else 0
+        margin_change=(dm['margin_pct']-pm['margin_pct'])*100
+        compare_label=f"vs. {previous_day.strftime('%d/%m/%Y')}" if previous_day is not None else 'sem dia anterior'
+        st.caption(f"Último movimento disponível no recorte: {day_options[0].strftime('%d/%m/%Y')} • comparação {compare_label} • filtros comerciais globais aplicados")
+
+        k=st.columns(6)
+        k[0].metric('Faturamento do dia',brl(dm['revenue']),delta=f"{revenue_change:+.2%}".replace('.',',') if pm['revenue'] else None)
+        k[1].metric('Margem %',pct(dm['margin_pct']),delta=pp(margin_change) if previous_day is not None else None)
+        k[2].metric('Margem',brl(dm['margin']))
+        k[3].metric('Notas fiscais',f"{dm['invoices']:,}".replace(',','.'))
+        k[4].metric('Clientes',f"{dm['clients']:,}".replace(',','.'))
+        k[5].metric('Ticket médio / NF',brl(dm['ticket']))
+
+        client_day=day_data.groupby('Cliente',dropna=False).agg(Faturamento=('Faturamento','sum'),Margem=('Margem','sum')).reset_index()
+        client_day['Margem %']=client_day['Margem']/client_day['Faturamento'].replace(0,pd.NA)
+        positive=set(client_day.loc[(client_day['Faturamento']>0)&(client_day['Margem']>0),'Cliente'])
+        benchmark_rows=day_data[(day_data['Cliente'].isin(positive))&(day_data['Benchmark Grupo']>0)&(day_data['Peso']>0)].copy()
+        if not benchmark_rows.empty:
+            benchmark_rows['Benchmark ponderado']=benchmark_rows['Benchmark Grupo']*benchmark_rows['Peso']
+            price_clients=benchmark_rows.groupby('Cliente',dropna=False).agg(Faturamento=('Faturamento','sum'),Peso=('Peso','sum'),Benchmark=('Benchmark ponderado','sum')).reset_index()
+            price_clients['Preço realizado']=price_clients['Faturamento']/price_clients['Peso'].replace(0,pd.NA)
+            price_clients['Preço benchmark']=price_clients['Benchmark']/price_clients['Peso'].replace(0,pd.NA)
+            healthy=set(price_clients.loc[price_clients['Preço realizado']>=price_clients['Preço benchmark'],'Cliente'])
+        else:
+            price_clients=pd.DataFrame(columns=['Cliente','Preço realizado','Preço benchmark']); healthy=set()
+        active=set(client_day.loc[client_day['Faturamento']>0,'Cliente'])
+        benchmarked=set(price_clients['Cliente'])
+        funnel=pd.DataFrame({'Etapa':['Clientes faturados','Com margem positiva','Com benchmark disponível','Preço no/acima do benchmark'],'Clientes':[len(active),len(positive),len(benchmarked),len(healthy)]})
+        funnel['Conversão %']=funnel['Clientes']/max(funnel['Clientes'].iloc[0],1)
+
+        c1,c2=st.columns([1.25,1])
+        with c1:
+            fig=go.Figure(go.Funnel(y=funnel['Etapa'],x=funnel['Clientes'],textinfo='value+percent initial',marker={'color':['#F36A2D','#F28B59','#2F8FD8','#34B27B']}))
+            fig.update_layout(title='Funil de qualidade das vendas faturadas')
+            show_chart(fig)
+        with c2:
+            st.markdown("<div class='mf-funnel-note'><b>Como ler o funil</b><br>As etapas usam clientes com faturamento positivo e avançam por margem positiva, cobertura de benchmark e preço realizado saudável. A origem é faturamento TOTVS; etapas de proposta e negociação exigem uma futura conexão com CRM.</div>",unsafe_allow_html=True)
+            show_table(funnel,width='stretch',hide_index=True)
+
+        st.markdown('### Movimentações do dia')
+        dc1,dc2=st.columns([1,1])
+        daily_dim=dc1.selectbox('Analisar por',['Vendedor','Cliente','Produto'],key='daily_dim')
+        daily_top=dc2.slider('Itens no ranking',5,30,15,key='daily_top')
+        current_group=group_metrics(day_data,daily_dim).set_index(daily_dim)
+        previous_group=group_metrics(previous_data,daily_dim).set_index(daily_dim) if not previous_data.empty else pd.DataFrame(columns=['faturamento','margem','peso','clientes','produtos','nfs','margem_pct','preco_kg'])
+        daily_compare=current_group[['faturamento','margem','margem_pct','nfs']].join(previous_group[['faturamento']],how='outer',lsuffix='_atual',rsuffix='_anterior').fillna(0).reset_index()
+        daily_compare['delta_faturamento']=daily_compare['faturamento_atual']-daily_compare['faturamento_anterior']
+        daily_compare['var_faturamento']=daily_compare['delta_faturamento']/daily_compare['faturamento_anterior'].replace(0,pd.NA)
+        daily_compare=daily_compare.sort_values('faturamento_atual',ascending=False)
+        top=daily_compare.head(daily_top).sort_values('faturamento_atual')
+        fig=px.bar(top,x='faturamento_atual',y=daily_dim,orientation='h',color='margem_pct',color_continuous_scale='RdYlGn',title=f'Faturamento diário por {daily_dim.lower()}',labels={'faturamento_atual':'Faturamento','margem_pct':'Margem %'},hover_data={'delta_faturamento':':,.0f','margem_pct':':.2%'})
+        show_chart(fig)
+        board=daily_compare.head(daily_top).rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem':'Margem','margem_pct':'Margem %','nfs':'Notas fiscais'})
+        show_table(board[[daily_dim,'Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem','Margem %','Notas fiscais']],height=450,width='stretch')
+
+        st.markdown('### Drill-down do dia')
+        entity_options=daily_compare.loc[daily_compare['faturamento_atual']!=0,daily_dim].dropna().astype(str).tolist()
+        if entity_options:
+            entity=st.selectbox(f'Selecione {daily_dim.lower()}',entity_options,key='daily_entity')
+            detail=day_data[day_data[daily_dim].astype(str)==entity].copy()
+            detail_cols=[col for col in ['Data','NF','Vendedor','Cliente','Produto','Grupo Produto','Tipo Produto','UF','Município','Faturamento','Margem','Margem %','Peso','Preço Real Kg','Benchmark Grupo','Desvio Benchmark %'] if col in detail.columns]
+            detail=detail[detail_cols].sort_values('Faturamento',ascending=False)
+            show_table(detail,height=560,width='stretch',column_config={'Data':st.column_config.DateColumn(format='DD/MM/YYYY')})
+            st.download_button('Baixar detalhe do dia em CSV',detail.to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig'),file_name=f"performance_dia_{daily_dim.lower()}_{selected_day.strftime('%Y-%m-%d')}.csv",mime='text/csv')
+        else:
+            st.info('Não há entidades faturadas no dia escolhido.')
+with tabs[3]:
     m=metrics(f); summary_metrics=[("Faturamento",brl(m["revenue"])),("Margem",brl(m["margin"])),("Margem %",pct(m["margin_pct"])),("Peso",f"{m['weight']/1e6:.0f} mi kg"),("Clientes",f"{m['clients']:,}".replace(',','.')),("Produtos",f"{m['products']:,}".replace(',','.'))]
     for start in (0,3):
         cols=st.columns(3)
@@ -256,7 +343,7 @@ with tabs[2]:
         t=group_metrics(f,"Cliente").nlargest(15,"faturamento"); show_chart(px.bar(t.sort_values("faturamento"),x="faturamento",y="Cliente",orientation="h",title="Top clientes"))
     with c2:
         t=group_metrics(f,"Produto").nlargest(15,"faturamento"); show_chart(px.bar(t.sort_values("faturamento"),x="faturamento",y="Produto",orientation="h",title="Top produtos"))
-with tabs[3]:
+with tabs[4]:
     st.subheader('Diagnóstico interativo')
     st.caption('Compara o calendário selecionado com o período imediatamente anterior de mesma duração, respeitando os demais filtros.')
     c1,c2,c3=st.columns([1.2,1,1])
@@ -280,7 +367,7 @@ with tabs[3]:
     st.markdown(f"**Leitura executiva:** o faturamento variou **{brl(rev_delta)} ({rev_growth:+.1%})**. Maiores contribuições: {pos_txt or '—'}. Maiores pressões: {neg_txt or '—'}.")
     with st.expander('Ver tabela detalhada dos drivers'):
         show_table(ranked[[insight_dim,'faturamento_atual','faturamento_anterior','delta_faturamento','var_faturamento','margem_pct_atual','delta_margem_pp']].rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'}),width='stretch',height=450)
-with tabs[4]:
+with tabs[5]:
     st.subheader('Performance da carteira do vendedor')
     st.caption('Visão integrada de resultado, mix, clientes, margem, tendência e evolução. A comparação usa o período anterior de mesma duração.')
     seller_options=sorted(monitor_scope['Vendedor'].dropna().astype(str).unique().tolist())
@@ -300,12 +387,12 @@ with tabs[4]:
             st.warning('Este vendedor não possui faturamento no período selecionado. A tendência histórica permanece disponível abaixo.')
         trend=seller_history.copy(); trend=trend[trend['Data']>=pd.Timestamp(base_max)-pd.DateOffset(months=18)]
         trend=trend.groupby(trend['Data'].dt.to_period('M').astype(str)).agg(Faturamento=('Faturamento','sum'),Margem=('Margem','sum'),Clientes=('Cliente','nunique')).reset_index(names='Mês'); trend['Margem %']=trend['Margem']/trend['Faturamento'].replace(0,pd.NA); trend['Média móvel 3M']=trend['Faturamento'].rolling(3,min_periods=1).mean()
-        fig=go.Figure(); fig.add_bar(x=trend['Mês'],y=trend['Faturamento'],name='Faturamento',marker_color='#2F8FD8'); fig.add_scatter(x=trend['Mês'],y=trend['Média móvel 3M'],name='Tendência 3M',line=dict(color='#F2B84B',width=3)); fig.add_scatter(x=trend['Mês'],y=trend['Margem %']*100,name='Margem %',yaxis='y2',line=dict(color='#34B27B',width=2)); fig.update_layout(title='Tendência e evolução da carteira — últimos 18 meses',yaxis2=dict(overlaying='y',side='right',ticksuffix='%')); show_chart(fig)
+        fig=go.Figure(); fig.add_bar(x=trend['Mês'],y=trend['Faturamento'],name='Faturamento',marker_color='#2F8FD8'); fig.add_scatter(x=trend['Mês'],y=trend['Média móvel 3M'],name='Tendência 3M',line=dict(color='#F2B84B',width=3)); fig.add_scatter(x=trend['Mês'],y=trend['Margem %']*100,name='Margem %',yaxis='y2',line=dict(color='#34B27B',width=2)); fig.update_layout(title='Tendência e evolução da carteira — últimos 18 meses',yaxis2=dict(overlaying='y',side='right',tickformat='.2f',ticksuffix='%')); show_chart(fig)
         c1,c2=st.columns(2)
         with c1:
             mix=group_metrics(seller_period,'Grupo Produto').sort_values('faturamento',ascending=False).head(15) if not seller_period.empty else pd.DataFrame()
             if not mix.empty:
-                mix['share']=mix['faturamento']/mix['faturamento'].sum(); show_chart(px.bar(mix.sort_values('faturamento'),x='faturamento',y='Grupo Produto',orientation='h',color='margem_pct',color_continuous_scale='RdYlGn',title='Mix de produtos: receita e margem',hover_data={'share':':.1%','margem_pct':':.1%'}))
+                mix['share']=mix['faturamento']/mix['faturamento'].sum(); show_chart(px.bar(mix.sort_values('faturamento'),x='faturamento',y='Grupo Produto',orientation='h',color='margem_pct',color_continuous_scale='RdYlGn',title='Mix de produtos: receita e margem',hover_data={'share':':.2%','margem_pct':':.2%'}))
             else: st.info('Sem mix de produtos no período.')
         with c2:
             clients=group_metrics(seller_period,'Cliente').sort_values('faturamento',ascending=False) if not seller_period.empty else pd.DataFrame()
@@ -321,7 +408,7 @@ with tabs[4]:
             with st.expander('Detalhamento da carteira de clientes'):
                 detail=portfolio_cmp['comparison'].sort_values('faturamento_atual',ascending=False).rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'})
                 show_table(detail[['Cliente','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Δ Margem p.p.']],width='stretch',height=500)
-with tabs[5]:
+with tabs[6]:
     st.subheader('Clientes 360')
     st.caption('Segmentação de valor, recência, frequência, rentabilidade e responsável comercial no contexto filtrado.')
     cc=client_classification(f); k=st.columns(5)
@@ -339,24 +426,24 @@ with tabs[5]:
         if owner_filter: detail=detail[detail.vendedor.astype(str).isin(owner_filter)]
         show_table(detail[["abc","status","Cliente","UF","municipio","vendedor","faturamento","margem_pct","nfs","meses","ultima_compra","dias_sem_compra","ticket_nf"]],height=600,width='stretch',column_config={'ultima_compra':st.column_config.DateColumn(format='DD/MM/YYYY')})
     else: st.info('Sem clientes no período selecionado.')
-with tabs[6]:
+with tabs[7]:
     g=group_metrics(f,"Grupo Produto").sort_values('faturamento',ascending=False); t=group_metrics(f,"Tipo Produto").sort_values('faturamento',ascending=False); e=group_metrics(f,"Espessura").sort_values('faturamento',ascending=False); c1,c2=st.columns(2)
     with c1: show_chart(px.bar(g.head(20),x='Grupo Produto',y='faturamento',title='Faturamento por grupo'))
     with c2: show_chart(px.bar(g.head(20),x='Grupo Produto',y='margem',title='Margem por grupo'))
     c1,c2=st.columns(2)
     with c1: show_chart(px.bar(t.head(20),x='Tipo Produto',y='faturamento',title='Tipo de produto'))
     with c2: show_chart(px.bar(e.head(20),x='Espessura',y='faturamento',title='Espessura'))
-with tabs[7]:
+with tabs[8]:
     mapped=f[f.UF!='Não mapeado']; u=group_metrics(mapped,'UF').sort_values('faturamento',ascending=False); cities=group_metrics(mapped,'Município').sort_values('faturamento',ascending=False); c1,c2=st.columns(2)
     with c1: show_chart(px.bar(u,x='UF',y='faturamento',title='Faturamento por UF'))
     with c2: show_chart(px.bar(u,x='UF',y='margem',title='Margem por UF'))
     show_chart(px.bar(cities.head(30).sort_values('faturamento'),x='faturamento',y='Município',orientation='h',title='Top municípios'))
-with tabs[8]:
+with tabs[9]:
     pv=price_analysis(f,'Vendedor',1000); pc=price_analysis(f,'Cliente',5000)
     if not pv.empty: pv['desvio_%']=pv.desvio_pct*100; show_chart(px.bar(pv.sort_values('desvio_%'),x='desvio_%',y='Vendedor',orientation='h',title='Desvio de preço por vendedor'))
     if not pc.empty: pc['desvio_%']=pc.desvio_pct*100; show_table(pc.sort_values('desvio_%'),height=450)
     neg=group_metrics(f,'Produto'); st.subheader('Produtos com margem negativa'); show_table(neg[neg.margem<0].sort_values('margem').head(100))
-with tabs[9]:
+with tabs[10]:
     st.subheader('Forecast & Oportunidades')
     c1,c2,c3=st.columns(3); method=c1.selectbox('Método',['hybrid','seasonal','lastyear','runrate'],format_func=lambda x:{'hybrid':'Híbrido','seasonal':'Sazonalidade','lastyear':'Curva último ano','runrate':'Run-rate'}[x]); scenario=c2.selectbox('Cenário',['base','conservative','aggressive'],format_func=lambda x:{'base':'Base','conservative':'Conservador','aggressive':'Agressivo'}[x]); growth=c3.number_input('Meta crescimento vs ano anterior (%)',value=10.0,step=1.0); fc=forecast_year(monitor_scope,method,scenario); target=fc['prev_full']*(1+growth/100); k=st.columns(4); k[0].metric('Realizado YTD',brl(fc['actual_ytd'])); k[1].metric('Fechamento projetado',brl(fc['projected'])); k[2].metric('Meta anual',brl(target)); k[3].metric('Gap vs meta',brl(target-fc['projected'])); mdf=fc['months']; fig=go.Figure(); fig.add_bar(x=[names[x] for x in mdf.mes],y=mdf.actual,name='Realizado',marker_color='#2F8FD8'); fig.add_bar(x=[names[x] for x in mdf.mes],y=mdf.forecast,name='Realizado + projetado',marker_color='#A78BFA'); fig.update_layout(title='Curva anual: realizado e projeção',yaxis=dict(title='Faturamento')); show_chart(fig)
     st.markdown('### Oportunidades comerciais priorizadas')
@@ -373,7 +460,7 @@ with tabs[9]:
             summary=opp.groupby('acao',as_index=False).agg(Oportunidades=('Cliente','size'),Faturamento=('faturamento','sum')); show_chart(px.bar(summary,x='acao',y='Oportunidades',text='Oportunidades',title='Oportunidades por ação',labels={'acao':'Ação'})) if not summary.empty else st.info('Nenhuma oportunidade acima do score selecionado.')
         with c2:
             cols=['score','acao','Vendedor','Cliente','Produto','faturamento','margem_pct','nfs','meses','ultima','dias']; show_table(opp[cols].head(500),height=520,width='stretch',column_config={'ultima':st.column_config.DateColumn(format='DD/MM/YYYY')})
-with tabs[10]:
+with tabs[11]:
     st.subheader('Assistente IA analítica')
     st.info('Análise local e segura. A assistente cruza o período selecionado com o histórico completo sem enviar a base para serviços externos.')
     st.caption(f'Contexto ativo: {start_date.strftime("%d/%m/%Y")} a {end_date.strftime("%d/%m/%Y")} • {len(f):,.0f} registros • filtros globais aplicados'.replace(',','.'))
@@ -388,7 +475,7 @@ with tabs[10]:
     typed=st.chat_input('Ex.: por que o faturamento caiu por vendedor?')
     if typed: q=typed
     if q: st.session_state.chat.append(('user',q)); st.session_state.chat.append(('assistant',answer(q,f,monitor_scope,start_date,end_date))); st.rerun()
-with tabs[11]:
+with tabs[12]:
     st.subheader('Integrações'); st.markdown('**Atualização manual:** carregue uma nova base consolidada para validar sem substituir a base instalada.'); up=st.file_uploader('Base .csv ou .csv.gz',type=['csv','gz'])
     if up:
         try: tmp=pd.read_csv(up,low_memory=False,compression='infer'); st.success(f'Arquivo lido: {len(tmp):,} linhas'.replace(',','.')); show_table(tmp.head(20))
@@ -400,5 +487,5 @@ with tabs[11]:
             try: TotvsGoodDataConnector(**cfg).renew_token(); st.success('Conexão TOTVS/GoodData validada.')
             except Exception as e: st.error(f'Falha: {e}')
     st.caption('Relatórios prontos no conector: '+', '.join(f'{k}={v}' for k,v in REPORTS.items()))
-with tabs[12]:
+with tabs[13]:
     p=Path(__file__).parent/'data'/'auditoria.txt'; st.subheader('Auditoria da base v06'); st.code(p.read_text(encoding='utf-8') if p.exists() else 'Auditoria não encontrada'); st.write('Linhas filtradas:',len(f)); st.write('Período:',f.Data.min(),'→',f.Data.max())
