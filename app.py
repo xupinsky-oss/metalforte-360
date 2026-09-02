@@ -75,12 +75,12 @@ html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
 .block-container{padding-top:1.6rem;padding-bottom:3rem;max-width:1800px}
 h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!important} h3{font-size:1.28rem!important}
-[data-testid="stCaptionContainer"]{font-size:.92rem;color:#5B6B80}
+[data-testid="stCaptionContainer"]{font-size:.92rem;color:#52647A!important;opacity:1!important}
 [data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid #DCE3EC}
 [data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#27364A!important}
 [data-testid="stMetric"]{background:#FFFFFF;border:1px solid #DCE3EC;border-radius:12px;padding:1rem 1.05rem;min-height:116px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
-[data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#52647A!important}
-[data-testid="stMetricValue"]{font-size:clamp(1.3rem,1.7vw,2rem)!important;font-weight:750;color:#172033}
+[data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#52647A!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+[data-testid="stMetricValue"]{font-size:clamp(1.25rem,1.55vw,1.9rem)!important;font-weight:750;color:#172033;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 [data-testid="stMetricDelta"]{font-size:.88rem!important}
 [data-baseweb="tab-list"]{gap:.3rem;overflow-x:auto}
 [data-baseweb="tab"]{min-height:46px;padding:.7rem .9rem;font-size:.92rem;font-weight:650;color:#52647A;white-space:nowrap}
@@ -125,13 +125,14 @@ with tabs[0]:
     st.subheader('Command Center Comercial')
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Base atualizada até {asof} • calendário: {start_date.strftime("%d/%m/%Y")} a {end_date.strftime("%d/%m/%Y")}</span>',unsafe_allow_html=True)
     st.caption(f"Comparativo automático: {command['period']['prev_start'].strftime('%d/%m/%Y')} a {command['period']['prev_end'].strftime('%d/%m/%Y')} • todos os filtros globais aplicados")
-    k=st.columns(6)
+    k=st.columns(3)
     k[0].metric('Faturamento',brl(cm['revenue']),delta=f"{command['revenue_growth']:+.1%}".replace('.',','))
     k[1].metric('Margem',brl(cm['margin']),delta=pp(command['margin_pp']))
     k[2].metric('Margem %',pct(cm['margin_pct']))
-    k[3].metric('Clientes ativos',f"{cm['clients']:,}".replace(',','.'),delta=f"{cm['clients']-pm['clients']:+d}")
-    k[4].metric('Produtos ativos',f"{cm['products']:,}".replace(',','.'),delta=f"{cm['products']-pm['products']:+d}")
-    k[5].metric('Ticket médio',brl(cm['ticket']))
+    k=st.columns(3)
+    k[0].metric('Clientes ativos',f"{cm['clients']:,}".replace(',','.'),delta=f"{cm['clients']-pm['clients']:+d}")
+    k[1].metric('Produtos ativos',f"{cm['products']:,}".replace(',','.'),delta=f"{cm['products']-pm['products']:+d}")
+    k[2].metric('Ticket médio',brl(cm['ticket']))
 
     c1,c2=st.columns([1.35,1])
     with c1:
@@ -219,8 +220,9 @@ with tabs[1]:
         cls='mw-up' if r.delta_faturamento>0 else 'mw-down' if r.delta_faturamento<0 else 'mw-flat'; arrow='▲' if r.delta_faturamento>0 else '▼' if r.delta_faturamento<0 else '●'; variation=f"{r.var_faturamento:+.1%}" if pd.notna(r.var_faturamento) else 'novo/sem base'
         quotes.append(f"<div class='mw-quote'><div class='mw-name'>{html.escape(str(r[watch_dim]))}</div><div class='mw-value'>{brl(r.faturamento_atual)}</div><div class='{cls}'>{arrow} {variation.replace('.',',')} • {brl(r.delta_faturamento)}</div></div>")
     if quotes: st.markdown("<div class='mw-strip'>"+''.join(quotes)+"</div>",unsafe_allow_html=True)
-    k=st.columns(6); revenue_delta=wm['revenue']-wp['revenue']; revenue_var=revenue_delta/wp['revenue'] if wp['revenue'] else 0
-    k[0].metric('Faturamento do período',brl(wm['revenue']),delta=f"{revenue_var:+.1%}".replace('.',',')); k[1].metric('Movimento líquido',brl(revenue_delta)); k[2].metric('Margem %',pct(wm['margin_pct']),delta=pp((wm['margin_pct']-wp['margin_pct'])*100)); k[3].metric('Em alta',f"{(movers.movimento=='Alta').sum():,}".replace(',','.')); k[4].metric('Em queda',f"{(movers.movimento=='Queda').sum():,}".replace(',','.')); k[5].metric('Entidades ativas',f"{(movers.faturamento_atual!=0).sum():,}".replace(',','.'))
+    revenue_delta=wm['revenue']-wp['revenue']; revenue_var=revenue_delta/wp['revenue'] if wp['revenue'] else 0
+    k=st.columns(3); k[0].metric('Faturamento do período',brl(wm['revenue']),delta=f"{revenue_var:+.1%}".replace('.',',')); k[1].metric('Movimento líquido',brl(revenue_delta)); k[2].metric('Margem %',pct(wm['margin_pct']),delta=pp((wm['margin_pct']-wp['margin_pct'])*100))
+    k=st.columns(3); k[0].metric('Em alta',f"{(movers.movimento=='Alta').sum():,}".replace(',','.')); k[1].metric('Em queda',f"{(movers.movimento=='Queda').sum():,}".replace(',','.')); k[2].metric('Entidades ativas',f"{(movers.faturamento_atual!=0).sum():,}".replace(',','.'))
     c1,c2=st.columns([1.2,1])
     with c1:
         if not watch['tape'].empty:
@@ -271,13 +273,14 @@ with tabs[2]:
         compare_label=f"vs. {previous_day.strftime('%d/%m/%Y')}" if previous_day is not None else 'sem dia anterior'
         st.caption(f"Último movimento disponível no recorte: {day_options[0].strftime('%d/%m/%Y')} • comparação {compare_label} • filtros comerciais globais aplicados")
 
-        k=st.columns(6)
+        k=st.columns(3)
         k[0].metric('Faturamento do dia',brl(dm['revenue']),delta=f"{revenue_change:+.2%}".replace('.',',') if pm['revenue'] else None)
         k[1].metric('Margem %',pct(dm['margin_pct']),delta=pp(margin_change) if previous_day is not None else None)
         k[2].metric('Margem',brl(dm['margin']))
-        k[3].metric('Notas fiscais',f"{dm['invoices']:,}".replace(',','.'))
-        k[4].metric('Clientes',f"{dm['clients']:,}".replace(',','.'))
-        k[5].metric('Ticket médio / NF',brl(dm['ticket']))
+        k=st.columns(3)
+        k[0].metric('Notas fiscais',f"{dm['invoices']:,}".replace(',','.'))
+        k[1].metric('Clientes',f"{dm['clients']:,}".replace(',','.'))
+        k[2].metric('Ticket médio / NF',brl(dm['ticket']))
 
         client_day=day_data.groupby('Cliente',dropna=False).agg(Faturamento=('Faturamento','sum'),Margem=('Margem','sum')).reset_index()
         client_day['Margem %']=client_day['Margem']/client_day['Faturamento'].replace(0,pd.NA)
