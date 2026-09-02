@@ -1,0 +1,36 @@
+name: Atualizar base comercial
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions usa UTC: 09h e 15h = 06h e 12h em São Paulo.
+    - cron: "0 9,15 * * *"
+
+concurrency:
+  group: atualizar-base-metalforte
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TOTVS_LOGIN: ${{ secrets.TOTVS_LOGIN }}
+      TOTVS_PASSWORD: ${{ secrets.TOTVS_PASSWORD }}
+      TOTVS_BASE_URL: https://analytics.totvs.com.br
+      TOTVS_WORKSPACE: sltez8zoyskp9vazf6jomo5askrbntnl
+      TOTVS_DASHBOARD: "11078478"
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      SUPABASE_BUCKET: metalforte-private
+      SUPABASE_DATA_PATH: bases/metalforte_base.csv.gz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+      - name: Atualizar, validar e publicar a base
+        run: python atualizar_gooddata.py
