@@ -409,6 +409,46 @@ with tabs[3]:
 with tabs[4]:
     st.subheader('Visão por Vendedor')
     st.caption('Resultado individual do vendedor no período selecionado. Os deltas comparam uma janela anterior de mesma duração e respeitam todos os filtros globais.')
+    team_cmp=compare_periods(monitor_scope,start_date,end_date,'Vendedor',1000)
+    team_current=group_metrics(team_cmp['current'],'Vendedor').rename(columns={'faturamento':'Faturamento','margem':'Margem','margem_pct':'Margem %','peso':'Peso faturado (kg)','preco_kg':'Preço médio / kg','clientes':'Clientes compradores','produtos':'Produtos','nfs':'Notas fiscais'})
+    team_previous=group_metrics(team_cmp['previous'],'Vendedor')[['Vendedor','faturamento','margem_pct']].rename(columns={'faturamento':'Faturamento anterior','margem_pct':'Margem % anterior'}) if not team_cmp['previous'].empty else pd.DataFrame(columns=['Vendedor','Faturamento anterior','Margem % anterior'])
+    historical_clients=monitor_scope.groupby('Vendedor',dropna=False)['Cliente'].nunique().reset_index(name='Carteira histórica')
+    team=historical_clients.merge(team_current,on='Vendedor',how='left').merge(team_previous,on='Vendedor',how='left')
+    team_numeric=['Faturamento','Margem','Margem %','Peso faturado (kg)','Preço médio / kg','Clientes compradores','Produtos','Notas fiscais','Faturamento anterior','Margem % anterior']
+    team[team_numeric]=team[team_numeric].fillna(0)
+    total_team_revenue=team['Faturamento'].sum()
+    team['Participação %']=team['Faturamento']/total_team_revenue if total_team_revenue else 0
+    team['Variação faturamento %']=(team['Faturamento']-team['Faturamento anterior'])/team['Faturamento anterior'].replace(0,pd.NA)
+    team['Δ Margem p.p.']=(team['Margem %']-team['Margem % anterior'])*100
+    team['Aproveitamento %']=team['Clientes compradores']/team['Carteira histórica'].replace(0,pd.NA)
+    team['Volume visual']=team['Faturamento'].clip(lower=0)+1
+    team['Performance']='Estável'
+    team.loc[(team['Variação faturamento %']>=0)&(team['Δ Margem p.p.']>=0),'Performance']='Crescimento rentável'
+    team.loc[(team['Variação faturamento %']>=0)&(team['Δ Margem p.p.']<0),'Performance']='Crescimento com pressão'
+    team.loc[(team['Variação faturamento %']<0)&(team['Δ Margem p.p.']>=0),'Performance']='Queda com margem protegida'
+    team.loc[(team['Variação faturamento %']<0)&(team['Δ Margem p.p.']<0),'Performance']='Queda com pressão'
+    team.loc[(team['Faturamento anterior']==0)&(team['Faturamento']>0),'Performance']='Novo no período'
+    team=team.sort_values('Faturamento',ascending=False)
+    st.markdown('### Visão consolidada da equipe')
+    st.caption('Participação = faturamento do vendedor ÷ faturamento da equipe. Aproveitamento = clientes compradores no período ÷ clientes históricos da carteira do vendedor.')
+    tk=st.columns(4)
+    tk[0].metric('Vendedores com vendas',f"{(team['Faturamento']!=0).sum():,}".replace(',','.'))
+    tk[1].metric('Faturamento da equipe',brl(total_team_revenue))
+    tk[2].metric('Crescimento rentável',f"{(team['Performance']=='Crescimento rentável').sum():,}".replace(',','.'))
+    tk[3].metric('Aproveitamento médio',pct(team['Aproveitamento %'].mean() if not team.empty else 0))
+    tc1,tc2=st.columns([1.2,1])
+    with tc1:
+        if not team.empty:
+            show_chart(px.bar(team.sort_values('Participação %'),x='Participação %',y='Vendedor',orientation='h',color='Margem %',color_continuous_scale='RdYlGn',title='Participação dos vendedores no faturamento',hover_data={'Faturamento':':,.0f','Clientes compradores':':,.0f','Aproveitamento %':':.2%'}))
+    with tc2:
+        if not team.empty:
+            performance_fig=px.scatter(team,x='Variação faturamento %',y='Δ Margem p.p.',size='Volume visual',color='Performance',hover_name='Vendedor',hover_data={'Faturamento':':,.0f','Participação %':':.2%','Aproveitamento %':':.2%','Clientes compradores':':,.0f','Volume visual':False},title='Performance: crescimento × margem',color_discrete_map={'Crescimento rentável':'#34B27B','Crescimento com pressão':'#F2B84B','Queda com margem protegida':'#2F8FD8','Queda com pressão':'#DC4C58','Novo no período':'#A78BFA','Estável':'#94A3B8'})
+            performance_fig.add_hline(y=0,line_color='#94A3B8',line_width=1); performance_fig.add_vline(x=0,line_color='#94A3B8',line_width=1); performance_fig.update_xaxes(tickformat='.0%'); performance_fig.update_yaxes(ticksuffix=' p.p.'); show_chart(performance_fig)
+    team_columns=['Vendedor','Performance','Faturamento','Participação %','Variação faturamento %','Margem','Margem %','Δ Margem p.p.','Clientes compradores','Carteira histórica','Aproveitamento %','Preço médio / kg','Peso faturado (kg)']
+    show_table(team[team_columns],height=520,width='stretch',hide_index=True)
+    st.download_button('Exportar performance de todos os vendedores',team[team_columns].to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig'),file_name=f"performance_vendedores_{start_date}_{end_date}.csv",mime='text/csv',width='stretch')
+    st.divider()
+    st.markdown('### Detalhamento individual')
     seller_options=sorted(monitor_scope['Vendedor'].dropna().astype(str).unique().tolist())
     if not seller_options:
         st.warning('Nenhum vendedor disponível com os filtros atuais.')
