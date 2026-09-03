@@ -65,6 +65,34 @@ def show_chart(fig,**kwargs):
         elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.0f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
     return st.plotly_chart(fig,width="stretch",**kwargs)
+
+def yoy_comparison(current,previous,dimension):
+    """Compara dois períodos equivalentes no grão comercial selecionado."""
+    columns=[dimension,'Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem atual','Margem anterior','Margem % atual','Margem % anterior','Δ Margem p.p.','Clientes atuais','Clientes anteriores','Produtos atuais','Produtos anteriores','Situação']
+    if current.empty and previous.empty: return pd.DataFrame(columns=columns)
+    def aggregate(data,suffix):
+        if data.empty: return pd.DataFrame(columns=[dimension,f'Faturamento {suffix}',f'Margem {suffix}',f'Clientes {suffix}',f'Produtos {suffix}'])
+        return data.groupby(dimension,dropna=False).agg(**{
+            f'Faturamento {suffix}':('Faturamento','sum'),
+            f'Margem {suffix}':('Margem','sum'),
+            f'Clientes {suffix}':('Cliente','nunique'),
+            f'Produtos {suffix}':('Produto','nunique'),
+        }).reset_index()
+    result=aggregate(current,'atual').merge(aggregate(previous,'anterior'),on=dimension,how='outer')
+    numeric=[col for col in result.columns if col!=dimension]
+    result[numeric]=result[numeric].fillna(0)
+    result['Δ Faturamento']=result['Faturamento atual']-result['Faturamento anterior']
+    result['Variação %']=result['Δ Faturamento']/result['Faturamento anterior'].replace(0,pd.NA)
+    result['Margem % atual']=result['Margem atual']/result['Faturamento atual'].replace(0,pd.NA)
+    result['Margem % anterior']=result['Margem anterior']/result['Faturamento anterior'].replace(0,pd.NA)
+    result['Δ Margem p.p.']=(result['Margem % atual']-result['Margem % anterior'])*100
+    result['Situação']='Estável'
+    result.loc[(result['Faturamento anterior']==0)&(result['Faturamento atual']>0),'Situação']='Novo'
+    result.loc[(result['Faturamento atual']==0)&(result['Faturamento anterior']>0),'Situação']='Perdido'
+    result.loc[(result['Faturamento anterior']>0)&(result['Variação %']>=.02),'Situação']='Crescimento'
+    result.loc[(result['Faturamento anterior']>0)&(result['Variação %']<=-.02),'Situação']='Retração'
+    return result[columns].sort_values('Δ Faturamento',ascending=False)
+
 df=get_data(); load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
 load_timestamp=pd.to_datetime(load_status.get('atualizado_em'),errors='coerce')
 if pd.notna(load_timestamp):
@@ -128,7 +156,7 @@ monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
-tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Tabela Dinâmica","Assistente IA"])
+tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Tabela Dinâmica","Comparativo YoY","Assistente IA"])
 with tabs[0]:
     s=monitoring_snapshot(monitor_scope)
     asof=s['as_of'].strftime('%d/%m/%Y') if pd.notna(s['as_of']) else 'sem dados'
@@ -512,6 +540,62 @@ with tabs[10]:
         export_data=pivot_view.to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig')
         st.download_button('Exportar tabela dinâmica em CSV',export_data,file_name=f"metalforte_tabela_dinamica_{start_date}_{end_date}.csv",mime='text/csv',width='stretch')
 with tabs[11]:
+    previous_start=(pd.Timestamp(start_date)-pd.DateOffset(years=1)).date()
+    previous_end=(pd.Timestamp(end_date)-pd.DateOffset(years=1)).date()
+    previous=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,grupo=grupo,tipo=tipo,espessura=esp,cliente_text=ct,produto_text=pt,start_date=previous_start,end_date=previous_end)
+    st.subheader('Performance versus o mesmo período do ano anterior')
+    st.caption(f"Atual: {start_date.strftime('%d/%m/%Y')} a {end_date.strftime('%d/%m/%Y')} • Comparação: {previous_start.strftime('%d/%m/%Y')} a {previous_end.strftime('%d/%m/%Y')} • filtros globais aplicados")
+    current_revenue=f['Faturamento'].sum(); previous_revenue=previous['Faturamento'].sum(); revenue_delta=current_revenue-previous_revenue
+    current_margin=f['Margem'].sum(); previous_margin=previous['Margem'].sum()
+    current_margin_pct=current_margin/current_revenue if current_revenue else 0; previous_margin_pct=previous_margin/previous_revenue if previous_revenue else 0
+    revenue_yoy=revenue_delta/previous_revenue if previous_revenue else pd.NA
+    k=st.columns(4)
+    k[0].metric('Faturamento atual',brl(current_revenue),delta=(f"{revenue_yoy:+.2%} YoY".replace('.',',') if pd.notna(revenue_yoy) else 'Sem base anterior'))
+    k[1].metric('Faturamento anterior',brl(previous_revenue),delta=brl(revenue_delta))
+    k[2].metric('Margem % atual',pct(current_margin_pct),delta=pp((current_margin_pct-previous_margin_pct)*100))
+    k[3].metric('Clientes ativos',f"{f['Cliente'].nunique():,}".replace(',','.'),delta=f"{f['Cliente'].nunique()-previous['Cliente'].nunique():+d}")
+
+    current_daily=f.groupby('Data',as_index=False)['Faturamento'].sum().sort_values('Data'); previous_daily=previous.groupby('Data',as_index=False)['Faturamento'].sum().sort_values('Data')
+    current_daily['Dia do período']=range(1,len(current_daily)+1); previous_daily['Dia do período']=range(1,len(previous_daily)+1)
+    current_daily['Acumulado']=current_daily['Faturamento'].cumsum(); previous_daily['Acumulado']=previous_daily['Faturamento'].cumsum()
+    trend=go.Figure()
+    trend.add_scatter(x=current_daily['Dia do período'],y=current_daily['Acumulado'],name='Período atual',line=dict(color='#F36A2D',width=3))
+    trend.add_scatter(x=previous_daily['Dia do período'],y=previous_daily['Acumulado'],name='Ano anterior',line=dict(color='#2F8FD8',width=3,dash='dot'))
+    trend.update_layout(title='Faturamento acumulado em períodos equivalentes',xaxis_title='Dias com movimento',yaxis_title='Faturamento',legend=dict(orientation='h'))
+    show_chart(trend)
+
+    dimension_labels={'Vendedor':'Vendedor','Cliente':'Cliente','Grupo Produto':'Grupo / segmento de produto','Produto':'Produto','UF':'Estado','Município':'Município','Filial':'Filial'}
+    yc1,yc2,yc3=st.columns([1.25,1,1])
+    yoy_dimension=yc1.selectbox('Analisar por',list(dimension_labels),format_func=lambda value:dimension_labels[value],key='yoy_dimension')
+    situation_filter=yc2.multiselect('Situação',['Crescimento','Retração','Novo','Perdido','Estável'],default=['Crescimento','Retração','Novo','Perdido'],key='yoy_situation')
+    minimum_revenue=yc3.number_input('Faturamento mínimo no período (R$)',min_value=0.0,value=0.0,step=10000.0,key='yoy_minimum')
+    comparison=yoy_comparison(f,previous,yoy_dimension)
+    visible=comparison[(comparison['Faturamento atual'].abs()>=minimum_revenue)|(comparison['Faturamento anterior'].abs()>=minimum_revenue)]
+    if situation_filter: visible=visible[visible['Situação'].isin(situation_filter)]
+    if visible.empty: st.info('Nenhuma movimentação encontrada para os critérios selecionados.')
+    else:
+        gains=visible.nlargest(12,'Δ Faturamento').sort_values('Δ Faturamento'); losses=visible.nsmallest(12,'Δ Faturamento').sort_values('Δ Faturamento')
+        c1,c2=st.columns(2)
+        with c1:
+            show_chart(px.bar(gains,x='Δ Faturamento',y=yoy_dimension,orientation='h',color='Situação',title='Maiores contribuições para o crescimento',hover_data={'Faturamento atual':':,.0f','Faturamento anterior':':,.0f','Variação %':':.2%'},color_discrete_map={'Crescimento':'#2F8FD8','Novo':'#34B27B','Estável':'#94A3B8','Retração':'#F2B84B','Perdido':'#DC4C58'}))
+        with c2:
+            show_chart(px.bar(losses,x='Δ Faturamento',y=yoy_dimension,orientation='h',color='Situação',title='Maiores impactos negativos',hover_data={'Faturamento atual':':,.0f','Faturamento anterior':':,.0f','Variação %':':.2%'},color_discrete_map={'Crescimento':'#2F8FD8','Novo':'#34B27B','Estável':'#94A3B8','Retração':'#F2B84B','Perdido':'#DC4C58'}))
+        st.markdown('### Detalhamento comparativo')
+        table_columns=[yoy_dimension,'Situação','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Margem % anterior','Δ Margem p.p.','Clientes atuais','Clientes anteriores','Produtos atuais','Produtos anteriores']
+        show_table(visible[table_columns],height=560,width='stretch',hide_index=True)
+        export_yoy=visible[table_columns].to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig')
+        st.download_button('Exportar comparativo YoY em CSV',export_yoy,file_name=f"metalforte_yoy_{yoy_dimension}_{start_date}_{end_date}.csv",mime='text/csv',width='stretch')
+
+        st.markdown('### Drill-down da movimentação')
+        entity=st.selectbox('Selecione um item para detalhar',visible[yoy_dimension].astype(str).tolist(),key='yoy_entity')
+        current_entity=f[f[yoy_dimension].astype(str)==entity]; previous_entity=previous[previous[yoy_dimension].astype(str)==entity]
+        drill_dimension='Produto' if yoy_dimension in ['Vendedor','Cliente','UF','Município','Filial'] else 'Cliente'
+        drill=yoy_comparison(current_entity,previous_entity,drill_dimension)
+        if drill.empty: st.info('Sem detalhe adicional para o item selecionado.')
+        else:
+            show_table(drill[[drill_dimension,'Situação','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Δ Margem p.p.','Clientes atuais','Produtos atuais']].head(500),height=500,width='stretch',hide_index=True)
+
+with tabs[12]:
     st.subheader('Assistente IA analítica')
     st.info('Análise local e segura. A assistente cruza o período selecionado com o histórico completo sem enviar a base para serviços externos.')
     st.caption(f'Contexto ativo: {start_date.strftime("%d/%m/%Y")} a {end_date.strftime("%d/%m/%Y")} • {len(f):,.0f} registros • filtros globais aplicados'.replace(',','.'))
