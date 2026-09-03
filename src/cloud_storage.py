@@ -46,6 +46,19 @@ def download_bytes(timeout=120):
     return response.content
 
 
+def download_status(timeout=30):
+    """Retorna os metadados da última carga publicada junto com a base."""
+    if not is_configured():
+        return {}
+    _, _, _, object_path = _settings()
+    status_path = str(Path(object_path).with_name("status.json")).replace("\\", "/")
+    response = requests.get(_object_url(status_path), headers=_headers(), timeout=timeout)
+    if response.status_code == 404:
+        return {}
+    response.raise_for_status()
+    return response.json()
+
+
 def upload_file(local_path, timeout=180):
     if not is_configured():
         return False
@@ -117,4 +130,3 @@ def upload_status(status, timeout=30):
     response = requests.post(_object_url(status_path), headers=_headers("application/json; charset=utf-8"), data=payload, timeout=timeout)
     response.raise_for_status()
     return True
-
