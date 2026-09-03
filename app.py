@@ -17,7 +17,7 @@ def brl(v): return (f"R$ {v:,.0f}").replace(",",".")
 def brl2(v): return brl(v)
 def pct(v): return f"{v*100:.2f}%".replace(".",",")
 def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
-@st.cache_data(show_spinner="Carregando Metalforte 360...")
+@st.cache_data(ttl=300,show_spinner="Carregando Metalforte 360...")
 def get_data(): return load_data()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_load_status():
