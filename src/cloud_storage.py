@@ -108,6 +108,10 @@ def upload_file(local_path, timeout=180):
                 "Tus-Resumable": "1.0.0",
                 "Upload-Offset": str(offset),
                 "Content-Type": "application/offset+octet-stream",
+                # O Supabase exige o upsert também nas requisições PATCH do
+                # protocolo TUS; sem este cabeçalho a substituição termina em
+                # 409 quando o objeto já existe.
+                "x-upsert": "true",
             }
             response = requests.patch(
                 upload_url, headers=patch_headers, data=chunk, timeout=timeout
