@@ -78,7 +78,10 @@ def yoy_comparison(current,previous,dimension):
             f'Clientes {suffix}':('Cliente','nunique'),
             f'Produtos {suffix}':('Produto','nunique'),
         }).reset_index()
-    result=aggregate(current,'atual').merge(aggregate(previous,'anterior'),on=dimension,how='outer')
+    result=aggregate(current,'atual').merge(aggregate(previous,'anterior'),on=dimension,how='outer').rename(columns={
+        'Clientes atual':'Clientes atuais','Clientes anterior':'Clientes anteriores',
+        'Produtos atual':'Produtos atuais','Produtos anterior':'Produtos anteriores',
+    })
     numeric=[col for col in result.columns if col!=dimension]
     result[numeric]=result[numeric].fillna(0)
     result['Δ Faturamento']=result['Faturamento atual']-result['Faturamento anterior']
