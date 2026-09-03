@@ -469,9 +469,16 @@ with tabs[6]:
     with c2: show_chart(px.bar(e.head(20),x='Espessura',y='faturamento',title='Espessura'))
 with tabs[7]:
     st.subheader('Distribuição geográfica')
-    mapped=f[f.UF!='Não mapeado']; u=group_metrics(mapped,'UF').sort_values('faturamento',ascending=False); cities=group_metrics(mapped,'Município').sort_values('faturamento',ascending=False)
+    mapped=f[f.UF!='Não mapeado']; active_states=group_metrics(mapped,'UF').sort_values('faturamento',ascending=False); cities=group_metrics(mapped,'Município').sort_values('faturamento',ascending=False)
     uf_codes={'RO':'11','AC':'12','AM':'13','RR':'14','PA':'15','AP':'16','TO':'17','MA':'21','PI':'22','CE':'23','RN':'24','PB':'25','PE':'26','AL':'27','SE':'28','BA':'29','MG':'31','ES':'32','RJ':'33','SP':'35','PR':'41','SC':'42','RS':'43','MS':'50','MT':'51','GO':'52','DF':'53'}
-    u['codarea']=u['UF'].map(uf_codes); u['Margem %']=u['margem']/u['faturamento'].replace(0,pd.NA)
+    # Mantém os 27 estados no mapa mesmo quando o período selecionado possui
+    # vendas em poucas UFs. Estados sem movimento ficam com faturamento zero.
+    state_index=pd.DataFrame({'UF':list(uf_codes.keys()),'codarea':list(uf_codes.values())})
+    u=state_index.merge(active_states,on='UF',how='left')
+    geo_numeric=['faturamento','margem','clientes','produtos','nfs','peso','preco_kg']
+    for column in geo_numeric:
+        if column in u: u[column]=u[column].fillna(0)
+    u['Margem %']=u['margem']/u['faturamento'].replace(0,pd.NA)
     map_metric=st.selectbox('Colorir o mapa por',['Faturamento','Margem','Margem %','Clientes'],key='geo_map_metric')
     metric_column={'Faturamento':'faturamento','Margem':'margem','Margem %':'Margem %','Clientes':'clientes'}[map_metric]
     geojson_path=Path(__file__).parent/'br_estados.geojson'
@@ -480,12 +487,17 @@ with tabs[7]:
         if geojson_path.exists() and not u.empty:
             brazil_geojson=json.loads(geojson_path.read_text(encoding='utf-8'))
             scale='RdYlGn' if map_metric=='Margem %' else 'Oranges'
-            fig=px.choropleth(u.dropna(subset=['codarea']),geojson=brazil_geojson,locations='codarea',featureidkey='properties.codarea',color=metric_column,hover_name='UF',hover_data={'faturamento':':,.0f','margem':':,.0f','Margem %':':.2%','clientes':':,.0f','codarea':False},color_continuous_scale=scale,title=f'Mapa de calor do Brasil • {map_metric}')
+            fig=px.choropleth(u,geojson=brazil_geojson,locations='codarea',featureidkey='properties.codarea',color=metric_column,hover_name='UF',hover_data={'faturamento':':,.0f','margem':':,.0f','Margem %':':.2%','clientes':':,.0f','codarea':False},color_continuous_scale=scale,title=f'Mapa de calor do Brasil • {map_metric}')
             fig.update_geos(fitbounds='locations',visible=False); fig.update_layout(height=620,coloraxis_colorbar_title=map_metric)
             show_chart(fig)
         else: st.info('Mapa indisponível para o recorte atual.')
     with c2:
-        show_chart(px.bar(u.head(15).sort_values('faturamento'),x='faturamento',y='UF',orientation='h',color='Margem %',color_continuous_scale='RdYlGn',title='Resultado por UF',labels={'faturamento':'Faturamento'},hover_data={'Margem %':':.2%','clientes':':,.0f'})) if not u.empty else st.info('Sem estados no período.')
+        if active_states.empty:
+            st.info('Sem estados com movimento no período.')
+        else:
+            state_bar=active_states.head(15).sort_values('faturamento').copy()
+            state_bar['Margem %']=state_bar['margem']/state_bar['faturamento'].replace(0,pd.NA)
+            show_chart(px.bar(state_bar,x='faturamento',y='UF',orientation='h',color='Margem %',color_continuous_scale='RdYlGn',title='Resultado por UF',labels={'faturamento':'Faturamento'},hover_data={'Margem %':':.2%','clientes':':,.0f'}))
     st.markdown('### Municípios com maior faturamento')
     show_table(cities.head(50).rename(columns={'faturamento':'Faturamento','margem':'Margem','margem_pct':'Margem %','clientes':'Clientes','produtos':'Produtos','nfs':'Notas fiscais','peso':'Peso','preco_kg':'Preço / kg'}),height=520,width='stretch')
 with tabs[8]:
