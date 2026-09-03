@@ -3,11 +3,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import html
+import json
 from pathlib import Path
 from src.data import load_data,apply_filters
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
-from src.totvs import TotvsGoodDataConnector,from_streamlit_secrets,REPORTS
+from src.cloud_storage import download_status
 
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
 px.defaults.template="plotly_white"
@@ -18,6 +19,10 @@ def pct(v): return f"{v*100:.2f}%".replace(".",",")
 def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 @st.cache_data(show_spinner="Carregando Metalforte 360...")
 def get_data(): return load_data()
+@st.cache_data(ttl=300,show_spinner=False)
+def get_load_status():
+    try: return download_status()
+    except Exception: return {}
 def _is_fraction_percent(name):
     name=str(name).lower()
     return ("_pct" in name or "margem %" in name or name.endswith(" %") or any(term in name for term in ("variação %","variacao %","share","participação","participacao","cobertura","atingimento"))) and "desvio_%" not in name
@@ -60,7 +65,13 @@ def show_chart(fig,**kwargs):
         elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.0f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
     return st.plotly_chart(fig,width="stretch",**kwargs)
-df=get_data(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
+df=get_data(); load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
+load_timestamp=pd.to_datetime(load_status.get('atualizado_em'),errors='coerce')
+if pd.notna(load_timestamp):
+    if load_timestamp.tzinfo is None: load_timestamp=load_timestamp.tz_localize('UTC')
+    load_timestamp=load_timestamp.tz_convert('America/Sao_Paulo')
+    last_load=load_timestamp.strftime('%d/%m/%Y às %H:%M')
+else: last_load=f'{last_update} (horário indisponível)'
 today=pd.Timestamp.today().date(); month_start=today.replace(day=1)
 default_start=month_start if base_min<=month_start<=base_max else base_max.replace(day=1)
 logo_path=Path(__file__).parent/'LOGO_METALFORTE.jpg'
@@ -69,7 +80,7 @@ with head_logo:
     if logo_path.exists(): st.image(str(logo_path),width=190)
 with head_title:
     st.title("METALFORTE 360")
-    st.caption(f"Command Center Comercial • carteira • preço • planejamento • IA  |  Última atualização: {last_update}")
+    st.caption(f"Command Center Comercial • carteira • preço • planejamento • IA  |  Última carga: {last_load}")
 st.markdown("""<style>
 html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
@@ -99,7 +110,7 @@ button,input,[role="combobox"]{font-size:.95rem!important}
 with st.sidebar:
     if logo_path.exists(): st.image(str(logo_path),width=220)
     st.header("Filtros")
-    st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Atualizada em {last_update}</span>',unsafe_allow_html=True)
+    st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Última carga: {last_load}</span>',unsafe_allow_html=True)
     st.subheader("Período")
     selected_dates=st.date_input("Selecione no calendário",value=(default_start,base_max),min_value=base_min,max_value=base_max,format="DD/MM/YYYY",help="O mês atual já vem selecionado. Clique para escolher outro intervalo.")
     if isinstance(selected_dates,(tuple,list)) and len(selected_dates)==2: start_date,end_date=selected_dates
@@ -117,13 +128,13 @@ monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
-tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Resumo","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Assistente IA","Integrações","Auditoria"])
+tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Tabela Dinâmica","Assistente IA"])
 with tabs[0]:
     s=monitoring_snapshot(monitor_scope)
     asof=s['as_of'].strftime('%d/%m/%Y') if pd.notna(s['as_of']) else 'sem dados'
     command=commercial_command_center(monitor_scope,start_date,end_date); cm=command['current']; pm=command['previous']
     st.subheader('Command Center Comercial')
-    st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Base atualizada até {asof} • calendário: {start_date.strftime("%d/%m/%Y")} a {end_date.strftime("%d/%m/%Y")}</span>',unsafe_allow_html=True)
+    st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Base até {asof} • carga em {last_load} • calendário: {start_date.strftime("%d/%m/%Y")} a {end_date.strftime("%d/%m/%Y")}</span>',unsafe_allow_html=True)
     st.caption(f"Comparativo automático: {command['period']['prev_start'].strftime('%d/%m/%Y')} a {command['period']['prev_end'].strftime('%d/%m/%Y')} • todos os filtros globais aplicados")
     k=st.columns(3)
     k[0].metric('Faturamento',brl(cm['revenue']),delta=f"{command['revenue_growth']:+.1%}".replace('.',','))
@@ -336,17 +347,6 @@ with tabs[2]:
         else:
             st.info('Não há entidades faturadas no dia escolhido.')
 with tabs[3]:
-    m=metrics(f); summary_metrics=[("Faturamento",brl(m["revenue"])),("Margem",brl(m["margin"])),("Margem %",pct(m["margin_pct"])),("Peso",f"{m['weight']/1e6:.0f} mi kg"),("Clientes",f"{m['clients']:,}".replace(',','.')),("Produtos",f"{m['products']:,}".replace(',','.'))]
-    for start in (0,3):
-        cols=st.columns(3)
-        for c,(lab,val) in zip(cols,summary_metrics[start:start+3]): c.metric(lab,val)
-    mon=f.groupby("Mes",as_index=False).agg(Faturamento=("Faturamento","sum"),Margem=("Margem","sum")); show_chart(px.bar(mon,x="Mes",y="Faturamento",title="Faturamento mensal"))
-    c1,c2=st.columns(2)
-    with c1:
-        t=group_metrics(f,"Cliente").nlargest(15,"faturamento"); show_chart(px.bar(t.sort_values("faturamento"),x="faturamento",y="Cliente",orientation="h",title="Top clientes"))
-    with c2:
-        t=group_metrics(f,"Produto").nlargest(15,"faturamento"); show_chart(px.bar(t.sort_values("faturamento"),x="faturamento",y="Produto",orientation="h",title="Top produtos"))
-with tabs[4]:
     st.subheader('Diagnóstico interativo')
     st.caption('Compara o calendário selecionado com o período imediatamente anterior de mesma duração, respeitando os demais filtros.')
     c1,c2,c3=st.columns([1.2,1,1])
@@ -370,7 +370,7 @@ with tabs[4]:
     st.markdown(f"**Leitura executiva:** o faturamento variou **{brl(rev_delta)} ({rev_growth:+.1%})**. Maiores contribuições: {pos_txt or '—'}. Maiores pressões: {neg_txt or '—'}.")
     with st.expander('Ver tabela detalhada dos drivers'):
         show_table(ranked[[insight_dim,'faturamento_atual','faturamento_anterior','delta_faturamento','var_faturamento','margem_pct_atual','delta_margem_pp']].rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'}),width='stretch',height=450)
-with tabs[5]:
+with tabs[4]:
     st.subheader('Performance da carteira do vendedor')
     st.caption('Visão integrada de resultado, mix, clientes, margem, tendência e evolução. A comparação usa o período anterior de mesma duração.')
     seller_options=sorted(monitor_scope['Vendedor'].dropna().astype(str).unique().tolist())
@@ -411,7 +411,7 @@ with tabs[5]:
             with st.expander('Detalhamento da carteira de clientes'):
                 detail=portfolio_cmp['comparison'].sort_values('faturamento_atual',ascending=False).rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'})
                 show_table(detail[['Cliente','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Δ Margem p.p.']],width='stretch',height=500)
-with tabs[6]:
+with tabs[5]:
     st.subheader('Clientes 360')
     st.caption('Segmentação de valor, recência, frequência, rentabilidade e responsável comercial no contexto filtrado.')
     cc=client_classification(f); k=st.columns(5)
@@ -429,24 +429,40 @@ with tabs[6]:
         if owner_filter: detail=detail[detail.vendedor.astype(str).isin(owner_filter)]
         show_table(detail[["abc","status","Cliente","UF","municipio","vendedor","faturamento","margem_pct","nfs","meses","ultima_compra","dias_sem_compra","ticket_nf"]],height=600,width='stretch',column_config={'ultima_compra':st.column_config.DateColumn(format='DD/MM/YYYY')})
     else: st.info('Sem clientes no período selecionado.')
-with tabs[7]:
+with tabs[6]:
     g=group_metrics(f,"Grupo Produto").sort_values('faturamento',ascending=False); t=group_metrics(f,"Tipo Produto").sort_values('faturamento',ascending=False); e=group_metrics(f,"Espessura").sort_values('faturamento',ascending=False); c1,c2=st.columns(2)
     with c1: show_chart(px.bar(g.head(20),x='Grupo Produto',y='faturamento',title='Faturamento por grupo'))
     with c2: show_chart(px.bar(g.head(20),x='Grupo Produto',y='margem',title='Margem por grupo'))
     c1,c2=st.columns(2)
     with c1: show_chart(px.bar(t.head(20),x='Tipo Produto',y='faturamento',title='Tipo de produto'))
     with c2: show_chart(px.bar(e.head(20),x='Espessura',y='faturamento',title='Espessura'))
+with tabs[7]:
+    st.subheader('Distribuição geográfica')
+    mapped=f[f.UF!='Não mapeado']; u=group_metrics(mapped,'UF').sort_values('faturamento',ascending=False); cities=group_metrics(mapped,'Município').sort_values('faturamento',ascending=False)
+    uf_codes={'RO':'11','AC':'12','AM':'13','RR':'14','PA':'15','AP':'16','TO':'17','MA':'21','PI':'22','CE':'23','RN':'24','PB':'25','PE':'26','AL':'27','SE':'28','BA':'29','MG':'31','ES':'32','RJ':'33','SP':'35','PR':'41','SC':'42','RS':'43','MS':'50','MT':'51','GO':'52','DF':'53'}
+    u['codarea']=u['UF'].map(uf_codes); u['Margem %']=u['margem']/u['faturamento'].replace(0,pd.NA)
+    map_metric=st.selectbox('Colorir o mapa por',['Faturamento','Margem','Margem %','Clientes'],key='geo_map_metric')
+    metric_column={'Faturamento':'faturamento','Margem':'margem','Margem %':'Margem %','Clientes':'clientes'}[map_metric]
+    geojson_path=Path(__file__).parent/'br_estados.geojson'
+    c1,c2=st.columns([1.45,1])
+    with c1:
+        if geojson_path.exists() and not u.empty:
+            brazil_geojson=json.loads(geojson_path.read_text(encoding='utf-8'))
+            scale='RdYlGn' if map_metric=='Margem %' else 'Oranges'
+            fig=px.choropleth(u.dropna(subset=['codarea']),geojson=brazil_geojson,locations='codarea',featureidkey='properties.codarea',color=metric_column,hover_name='UF',hover_data={'faturamento':':,.0f','margem':':,.0f','Margem %':':.2%','clientes':':,.0f','codarea':False},color_continuous_scale=scale,title=f'Mapa de calor do Brasil • {map_metric}')
+            fig.update_geos(fitbounds='locations',visible=False); fig.update_layout(height=620,coloraxis_colorbar_title=map_metric)
+            show_chart(fig)
+        else: st.info('Mapa indisponível para o recorte atual.')
+    with c2:
+        show_chart(px.bar(u.head(15).sort_values('faturamento'),x='faturamento',y='UF',orientation='h',color='Margem %',color_continuous_scale='RdYlGn',title='Resultado por UF',labels={'faturamento':'Faturamento'},hover_data={'Margem %':':.2%','clientes':':,.0f'})) if not u.empty else st.info('Sem estados no período.')
+    st.markdown('### Municípios com maior faturamento')
+    show_table(cities.head(50).rename(columns={'faturamento':'Faturamento','margem':'Margem','margem_pct':'Margem %','clientes':'Clientes','produtos':'Produtos','nfs':'Notas fiscais','peso':'Peso','preco_kg':'Preço / kg'}),height=520,width='stretch')
 with tabs[8]:
-    mapped=f[f.UF!='Não mapeado']; u=group_metrics(mapped,'UF').sort_values('faturamento',ascending=False); cities=group_metrics(mapped,'Município').sort_values('faturamento',ascending=False); c1,c2=st.columns(2)
-    with c1: show_chart(px.bar(u,x='UF',y='faturamento',title='Faturamento por UF'))
-    with c2: show_chart(px.bar(u,x='UF',y='margem',title='Margem por UF'))
-    show_chart(px.bar(cities.head(30).sort_values('faturamento'),x='faturamento',y='Município',orientation='h',title='Top municípios'))
-with tabs[9]:
     pv=price_analysis(f,'Vendedor',1000); pc=price_analysis(f,'Cliente',5000)
     if not pv.empty: pv['desvio_%']=pv.desvio_pct*100; show_chart(px.bar(pv.sort_values('desvio_%'),x='desvio_%',y='Vendedor',orientation='h',title='Desvio de preço por vendedor'))
     if not pc.empty: pc['desvio_%']=pc.desvio_pct*100; show_table(pc.sort_values('desvio_%'),height=450)
     neg=group_metrics(f,'Produto'); st.subheader('Produtos com margem negativa'); show_table(neg[neg.margem<0].sort_values('margem').head(100))
-with tabs[10]:
+with tabs[9]:
     st.subheader('Forecast & Oportunidades')
     c1,c2,c3=st.columns(3); method=c1.selectbox('Método',['hybrid','seasonal','lastyear','runrate'],format_func=lambda x:{'hybrid':'Híbrido','seasonal':'Sazonalidade','lastyear':'Curva último ano','runrate':'Run-rate'}[x]); scenario=c2.selectbox('Cenário',['base','conservative','aggressive'],format_func=lambda x:{'base':'Base','conservative':'Conservador','aggressive':'Agressivo'}[x]); growth=c3.number_input('Meta crescimento vs ano anterior (%)',value=10.0,step=1.0); fc=forecast_year(monitor_scope,method,scenario); target=fc['prev_full']*(1+growth/100); k=st.columns(4); k[0].metric('Realizado YTD',brl(fc['actual_ytd'])); k[1].metric('Fechamento projetado',brl(fc['projected'])); k[2].metric('Meta anual',brl(target)); k[3].metric('Gap vs meta',brl(target-fc['projected'])); mdf=fc['months']; fig=go.Figure(); fig.add_bar(x=[names[x] for x in mdf.mes],y=mdf.actual,name='Realizado',marker_color='#2F8FD8'); fig.add_bar(x=[names[x] for x in mdf.mes],y=mdf.forecast,name='Realizado + projetado',marker_color='#A78BFA'); fig.update_layout(title='Curva anual: realizado e projeção',yaxis=dict(title='Faturamento')); show_chart(fig)
     st.markdown('### Oportunidades comerciais priorizadas')
@@ -463,6 +479,38 @@ with tabs[10]:
             summary=opp.groupby('acao',as_index=False).agg(Oportunidades=('Cliente','size'),Faturamento=('faturamento','sum')); show_chart(px.bar(summary,x='acao',y='Oportunidades',text='Oportunidades',title='Oportunidades por ação',labels={'acao':'Ação'})) if not summary.empty else st.info('Nenhuma oportunidade acima do score selecionado.')
         with c2:
             cols=['score','acao','Vendedor','Cliente','Produto','faturamento','margem_pct','nfs','meses','ultima','dias']; show_table(opp[cols].head(500),height=520,width='stretch',column_config={'ultima':st.column_config.DateColumn(format='DD/MM/YYYY')})
+with tabs[10]:
+    st.subheader('Tabela Dinâmica Comercial')
+    st.caption('Monte sua visão com as dimensões e indicadores abaixo. A tabela e o arquivo exportado respeitam o período e todos os filtros globais.')
+    dimensions=[col for col in ['Vendedor','Cliente','Grupo Produto','Tipo Produto','Produto','Filial','UF','Município','Ano','Mes'] if col in f.columns]
+    pc1,pc2=st.columns([1.4,1])
+    row_dimensions=pc1.multiselect('Linhas',dimensions,default=['Vendedor'] if 'Vendedor' in dimensions else dimensions[:1],key='pivot_rows')
+    column_options=['Nenhuma']+[dim for dim in dimensions if dim not in row_dimensions]
+    column_dimension=pc2.selectbox('Colunas',column_options,key='pivot_columns')
+    measure_options=['Faturamento','Margem','Margem %','Peso','Clientes','Produtos','Notas fiscais','Preço médio / kg']
+    selected_measures=st.multiselect('Valores',measure_options,default=['Faturamento','Margem %','Clientes'],key='pivot_measures')
+    if not row_dimensions:
+        st.warning('Selecione pelo menos uma dimensão em Linhas.')
+    elif not selected_measures:
+        st.warning('Selecione pelo menos um indicador em Valores.')
+    elif f.empty:
+        st.info('Não há registros no período e filtros selecionados.')
+    else:
+        group_columns=row_dimensions+([] if column_dimension=='Nenhuma' else [column_dimension])
+        pivot_source=f.groupby(group_columns,dropna=False).agg(Faturamento=('Faturamento','sum'),Margem=('Margem','sum'),Peso=('Peso','sum'),Clientes=('Cliente','nunique'),Produtos=('Produto','nunique'),**{'Notas fiscais':('NF','nunique')}).reset_index()
+        pivot_source['Margem %']=pivot_source['Margem']/pivot_source['Faturamento'].replace(0,pd.NA)
+        pivot_source['Preço médio / kg']=pivot_source['Faturamento']/pivot_source['Peso'].replace(0,pd.NA)
+        if column_dimension=='Nenhuma':
+            pivot_view=pivot_source[row_dimensions+selected_measures].sort_values(selected_measures[0],ascending=False)
+        else:
+            pivot_view=pivot_source.pivot_table(index=row_dimensions,columns=column_dimension,values=selected_measures,aggfunc='first',fill_value=0).reset_index()
+            pivot_view.columns=[' | '.join(str(part) for part in col if str(part)) if isinstance(col,tuple) else str(col) for col in pivot_view.columns]
+        total_rows=len(pivot_view)
+        st.caption(f'{total_rows:,.0f} linhas na visão montada'.replace(',','.'))
+        if total_rows>5000: st.info('A prévia mostra as primeiras 5.000 linhas; o arquivo exportado contém a visão completa.')
+        show_table(pivot_view.head(5000),height=650,width='stretch',hide_index=True)
+        export_data=pivot_view.to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig')
+        st.download_button('Exportar tabela dinâmica em CSV',export_data,file_name=f"metalforte_tabela_dinamica_{start_date}_{end_date}.csv",mime='text/csv',width='stretch')
 with tabs[11]:
     st.subheader('Assistente IA analítica')
     st.info('Análise local e segura. A assistente cruza o período selecionado com o histórico completo sem enviar a base para serviços externos.')
@@ -478,17 +526,3 @@ with tabs[11]:
     typed=st.chat_input('Ex.: por que o faturamento caiu por vendedor?')
     if typed: q=typed
     if q: st.session_state.chat.append(('user',q)); st.session_state.chat.append(('assistant',answer(q,f,monitor_scope,start_date,end_date))); st.rerun()
-with tabs[12]:
-    st.subheader('Integrações'); st.markdown('**Atualização manual:** carregue uma nova base consolidada para validar sem substituir a base instalada.'); up=st.file_uploader('Base .csv ou .csv.gz',type=['csv','gz'])
-    if up:
-        try: tmp=pd.read_csv(up,low_memory=False,compression='infer'); st.success(f'Arquivo lido: {len(tmp):,} linhas'.replace(',','.')); show_table(tmp.head(20))
-        except Exception as e: st.error(str(e))
-    st.divider(); st.markdown('**TOTVS Analytics / GoodData**'); cfg=from_streamlit_secrets(st); st.json({'base_url':cfg.get('base_url'),'workspace_configurado':bool(cfg.get('workspace')),'dashboard_configurado':bool(cfg.get('dashboard')),'sessao_configurada':bool(cfg.get('cookie'))});
-    if st.button('Testar conexão TOTVS'):
-        if not all([cfg.get('workspace'),cfg.get('dashboard'),cfg.get('cookie')]): st.warning('Configure .streamlit/secrets.toml usando o arquivo de exemplo.')
-        else:
-            try: TotvsGoodDataConnector(**cfg).renew_token(); st.success('Conexão TOTVS/GoodData validada.')
-            except Exception as e: st.error(f'Falha: {e}')
-    st.caption('Relatórios prontos no conector: '+', '.join(f'{k}={v}' for k,v in REPORTS.items()))
-with tabs[13]:
-    p=Path(__file__).parent/'data'/'auditoria.txt'; st.subheader('Auditoria da base v06'); st.code(p.read_text(encoding='utf-8') if p.exists() else 'Auditoria não encontrada'); st.write('Linhas filtradas:',len(f)); st.write('Período:',f.Data.min(),'→',f.Data.max())
