@@ -488,7 +488,10 @@ with tabs[7]:
             brazil_geojson=json.loads(geojson_path.read_text(encoding='utf-8'))
             scale='RdYlGn' if map_metric=='Margem %' else 'Oranges'
             fig=px.choropleth(u,geojson=brazil_geojson,locations='codarea',featureidkey='properties.codarea',color=metric_column,hover_name='UF',hover_data={'faturamento':':,.0f','margem':':,.0f','Margem %':':.2%','clientes':':,.0f','codarea':False},color_continuous_scale=scale,title=f'Mapa de calor do Brasil • {map_metric}')
-            fig.update_geos(fitbounds='locations',visible=False); fig.update_layout(height=620,coloraxis_colorbar_title=map_metric)
+            # Limites fixos evitam que períodos com poucas UFs ou valores zero
+            # façam o Plotly ampliar um único estado ou reduzir o país a um ponto.
+            fig.update_geos(projection_type='mercator',center=dict(lat=-14.5,lon=-52.5),lataxis_range=[-35,6],lonaxis_range=[-75,-33],visible=False,showcoastlines=False,showcountries=False)
+            fig.update_layout(height=620,coloraxis_colorbar_title=map_metric)
             show_chart(fig)
         else: st.info('Mapa indisponível para o recorte atual.')
     with c2:
