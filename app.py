@@ -486,6 +486,14 @@ with tabs[7]:
     with c1:
         if geojson_path.exists() and not u.empty:
             brazil_geojson=json.loads(geojson_path.read_text(encoding='utf-8'))
+            # O arquivo usa a orientação oposta à esperada pelo d3/Plotly.
+            # Sem normalização, cada estado vira um recorte no retângulo do mapa.
+            for feature in brazil_geojson.get('features',[]):
+                geometry=feature.get('geometry',{}); coordinates=geometry.get('coordinates',[])
+                if geometry.get('type')=='Polygon':
+                    geometry['coordinates']=[ring[::-1] for ring in coordinates]
+                elif geometry.get('type')=='MultiPolygon':
+                    geometry['coordinates']=[[ring[::-1] for ring in polygon] for polygon in coordinates]
             scale='RdYlGn' if map_metric=='Margem %' else 'Oranges'
             fig=px.choropleth(u,geojson=brazil_geojson,locations='codarea',featureidkey='properties.codarea',color=metric_column,hover_name='UF',hover_data={'faturamento':':,.0f','margem':':,.0f','Margem %':':.2%','clientes':':,.0f','codarea':False},color_continuous_scale=scale,title=f'Mapa de calor do Brasil • {map_metric}')
             # Limites fixos evitam que períodos com poucas UFs ou valores zero
