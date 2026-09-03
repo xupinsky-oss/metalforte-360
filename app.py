@@ -164,7 +164,7 @@ monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
-tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Drivers & Tendências","Carteira do Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Tabela Dinâmica","Comparativo YoY","Assistente IA"])
+tabs=st.tabs(["Command Center","Market Watch","Performance do Dia","Drivers & Tendências","Visão por Vendedor","Clientes 360","Portfólio","Geografia","Preço & Margem","Forecast & Oportunidades","Tabela Dinâmica","Comparativo YoY","Assistente IA"])
 with tabs[0]:
     s=monitoring_snapshot(monitor_scope)
     asof=s['as_of'].strftime('%d/%m/%Y') if pd.notna(s['as_of']) else 'sem dados'
@@ -407,8 +407,8 @@ with tabs[3]:
     with st.expander('Ver tabela detalhada dos drivers'):
         show_table(ranked[[insight_dim,'faturamento_atual','faturamento_anterior','delta_faturamento','var_faturamento','margem_pct_atual','delta_margem_pp']].rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'}),width='stretch',height=450)
 with tabs[4]:
-    st.subheader('Performance da carteira do vendedor')
-    st.caption('Visão integrada de resultado, mix, clientes, margem, tendência e evolução. A comparação usa o período anterior de mesma duração.')
+    st.subheader('Visão por Vendedor')
+    st.caption('Resultado individual do vendedor no período selecionado. Os deltas comparam uma janela anterior de mesma duração e respeitam todos os filtros globais.')
     seller_options=sorted(monitor_scope['Vendedor'].dropna().astype(str).unique().tolist())
     if not seller_options:
         st.warning('Nenhum vendedor disponível com os filtros atuais.')
@@ -419,9 +419,10 @@ with tabs[4]:
         seller_history=monitor_scope[monitor_scope['Vendedor'].astype(str)==seller]
         seller_period=f[f['Vendedor'].astype(str)==seller]
         portfolio_cmp=compare_periods(seller_history,start_date,end_date,'Cliente',20); sm=portfolio_cmp['current_metrics']; sp=portfolio_cmp['previous_metrics']
-        rev_var=sm['revenue']/sp['revenue']-1 if sp['revenue'] else 0; margin_var=(sm['margin_pct']-sp['margin_pct'])*100; client_var=sm['clients']-sp['clients']; product_var=sm['products']-sp['products']
-        k=st.columns(3); k[0].metric('Faturamento',brl(sm['revenue']),delta=f"{rev_var:+.1%}".replace('.',',')); k[1].metric('Margem',brl(sm['margin']),delta=pp(margin_var)); k[2].metric('Margem %',pct(sm['margin_pct']))
-        k=st.columns(3); k[0].metric('Clientes ativos',f"{sm['clients']:,}".replace(',','.'),delta=f"{client_var:+d}"); k[1].metric('Produtos vendidos',f"{sm['products']:,}".replace(',','.'),delta=f"{product_var:+d}"); k[2].metric('Ticket médio por NF',brl(sm['ticket']))
+        rev_var=sm['revenue']/sp['revenue']-1 if sp['revenue'] else 0; margin_var=(sm['margin_pct']-sp['margin_pct'])*100; client_var=sm['clients']-sp['clients']
+        price_var=sm['price_kg']/sp['price_kg']-1 if sp['price_kg'] else 0; weight_var=sm['weight']/sp['weight']-1 if sp['weight'] else 0
+        k=st.columns(3); k[0].metric('Faturamento',brl(sm['revenue']),delta=f"{rev_var:+.2%}".replace('.',',')); k[1].metric('Margem %',pct(sm['margin_pct']),delta=pp(margin_var)); k[2].metric('Margem em R$',brl(sm['margin']))
+        k=st.columns(3); k[0].metric('Clientes compradores',f"{sm['clients']:,}".replace(',','.'),delta=f"{client_var:+d}"); k[1].metric('Preço médio / kg',brl(sm['price_kg']),delta=f"{price_var:+.2%}".replace('.',',')); k[2].metric('Peso faturado (kg)',f"{sm['weight']:,.0f}".replace(',','.'),delta=f"{weight_var:+.2%}".replace('.',','))
         if seller_period.empty:
             st.warning('Este vendedor não possui faturamento no período selecionado. A tendência histórica permanece disponível abaixo.')
         trend=seller_history.copy(); trend=trend[trend['Data']>=pd.Timestamp(base_max)-pd.DateOffset(months=18)]
@@ -445,8 +446,12 @@ with tabs[4]:
             top5=clients.head(5)['faturamento'].sum()/clients['faturamento'].sum(); low_margin=clients[clients['margem_pct']<.10]['faturamento'].sum()/clients['faturamento'].sum(); new_clients=int(((portfolio_cmp['comparison']['faturamento_anterior']==0)&(portfolio_cmp['comparison']['faturamento_atual']>0)).sum()); lost_clients=int(((portfolio_cmp['comparison']['faturamento_anterior']>0)&(portfolio_cmp['comparison']['faturamento_atual']==0)).sum())
             st.markdown(f"**Leitura da carteira:** Top 5 clientes concentram **{pct(top5)}** da receita; **{pct(low_margin)}** do faturamento está em clientes com margem abaixo de 10%; houve **{new_clients} entradas** e **{lost_clients} saídas** versus o período anterior.")
             with st.expander('Detalhamento da carteira de clientes'):
-                detail=portfolio_cmp['comparison'].sort_values('faturamento_atual',ascending=False).rename(columns={'faturamento_atual':'Faturamento atual','faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %','margem_pct_atual':'Margem % atual','delta_margem_pp':'Δ Margem p.p.'})
-                show_table(detail[['Cliente','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Δ Margem p.p.']],width='stretch',height=500)
+                client_detail=group_metrics(seller_period,'Cliente').sort_values('faturamento',ascending=False).rename(columns={'faturamento':'Faturamento','margem':'Margem','margem_pct':'Margem %','peso':'Peso faturado (kg)','preco_kg':'Preço médio / kg','nfs':'Notas fiscais','produtos':'Produtos'})
+                client_delta=portfolio_cmp['comparison'][['Cliente','faturamento_anterior','delta_faturamento','var_faturamento']].rename(columns={'faturamento_anterior':'Faturamento anterior','delta_faturamento':'Δ Faturamento','var_faturamento':'Variação %'})
+                client_detail=client_detail.merge(client_delta,on='Cliente',how='left')
+                detail_columns=['Cliente','Faturamento','Faturamento anterior','Δ Faturamento','Variação %','Margem','Margem %','Peso faturado (kg)','Preço médio / kg','Notas fiscais','Produtos']
+                show_table(client_detail[detail_columns],width='stretch',height=560)
+                st.download_button('Exportar carteira do vendedor em CSV',client_detail[detail_columns].to_csv(index=False,sep=';',decimal=',').encode('utf-8-sig'),file_name=f"visao_vendedor_{seller}_{start_date}_{end_date}.csv",mime='text/csv',width='stretch')
 with tabs[5]:
     st.subheader('Clientes 360')
     st.caption('Segmento de valor do cliente (Curva Cliente da base), recência, frequência, rentabilidade e responsável comercial no contexto filtrado.')
