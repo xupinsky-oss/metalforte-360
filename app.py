@@ -120,6 +120,8 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stCaptionContainer"]{font-size:.92rem;color:#52647A!important;opacity:1!important}
 [data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid #DCE3EC}
 [data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#27364A!important}
+.st-key-period_filter{min-height:178px}.st-key-period_filter [data-testid="stDateInput"]{min-height:72px}
+.st-key-period_filter [data-testid="stForm"]{border:0;padding:0}
 [data-testid="stMetric"]{background:#FFFFFF;border:1px solid #DCE3EC;border-radius:12px;padding:1rem 1.05rem;min-height:116px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
 [data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#52647A!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 [data-testid="stMetricValue"]{font-size:clamp(1.25rem,1.55vw,1.9rem)!important;font-weight:750;color:#172033;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
@@ -142,8 +144,11 @@ with st.sidebar:
     if logo_path.exists(): st.image(str(logo_path),width=220)
     st.header("Filtros")
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Última carga: {last_load}</span>',unsafe_allow_html=True)
-    st.subheader("Período")
-    selected_dates=st.date_input("Selecione no calendário",value=(default_start,base_max),min_value=base_min,max_value=base_max,format="DD/MM/YYYY",help="O mês atual já vem selecionado. Clique para escolher outro intervalo.")
+    with st.container(key="period_filter"):
+        st.subheader("Período")
+        with st.form("period_form",border=False):
+            selected_dates=st.date_input("Selecione no calendário",value=(default_start,base_max),min_value=base_min,max_value=base_max,format="DD/MM/YYYY",help="O mês atual já vem selecionado. Escolha o intervalo e clique em Aplicar período.",key="period_range")
+            st.form_submit_button("Aplicar período",width="stretch")
     if isinstance(selected_dates,(tuple,list)) and len(selected_dates)==2: start_date,end_date=selected_dates
     elif isinstance(selected_dates,(tuple,list)) and len(selected_dates)==1: start_date=end_date=selected_dates[0]
     else: start_date=end_date=selected_dates
@@ -444,21 +449,28 @@ with tabs[4]:
                 show_table(detail[['Cliente','Faturamento atual','Faturamento anterior','Δ Faturamento','Variação %','Margem % atual','Δ Margem p.p.']],width='stretch',height=500)
 with tabs[5]:
     st.subheader('Clientes 360')
-    st.caption('Segmentação de valor, recência, frequência, rentabilidade e responsável comercial no contexto filtrado.')
-    cc=client_classification(f); k=st.columns(5)
-    for c,(lab,val) in zip(k,[("Clientes",len(cc)),("Curva A",(cc.abc=='A').sum()),("Curva B",(cc.abc=='B').sum()),("Curva C",(cc.abc=='C').sum()),("Inativos 90+d",(cc.dias_sem_compra>=90).sum())]): c.metric(lab,f"{val:,}".replace(',','.'))
+    st.caption('Segmento de valor do cliente (Curva Cliente da base), recência, frequência, rentabilidade e responsável comercial no contexto filtrado.')
+    cc=client_classification(f)
+    if 'Curva Cliente' in f.columns:
+        client_segments=f.groupby(['Cod Cliente','Cliente'],dropna=False)['Curva Cliente'].first().reset_index(name='segmento_cliente')
+        cc=cc.merge(client_segments,on=['Cod Cliente','Cliente'],how='left')
+    else: cc['segmento_cliente']='Não classificado'
+    cc['segmento_cliente']=cc['segmento_cliente'].fillna('Não classificado').astype(str)
+    k=st.columns(5)
+    for c,(lab,val) in zip(k,[("Clientes",len(cc)),("Segmento A",(cc.segmento_cliente=='A').sum()),("Segmento B",(cc.segmento_cliente=='B').sum()),("Segmento C",(cc.segmento_cliente=='C').sum()),("Inativos 90+d",(cc.dias_sem_compra>=90).sum())]): c.metric(lab,f"{val:,}".replace(',','.'))
     if not cc.empty:
         c1,c2=st.columns(2)
         with c1:
             status_view=cc.groupby('status',as_index=False).agg(Clientes=('Cliente','nunique'),Faturamento=('faturamento','sum')); show_chart(px.bar(status_view.sort_values('Faturamento'),x='Faturamento',y='status',orientation='h',text='Clientes',title='Valor da carteira por estágio',labels={'status':'Estágio'}))
         with c2:
-            abc_view=cc.groupby('abc',as_index=False).agg(Faturamento=('faturamento','sum'),Margem=('margem','sum'),Clientes=('Cliente','nunique')); abc_view['Margem %']=abc_view['Margem']/abc_view['Faturamento'].replace(0,pd.NA); show_chart(px.bar(abc_view,x='abc',y='Faturamento',text='Clientes',color='Margem %',color_continuous_scale='Blues',title='Curva ABC: receita e qualidade',labels={'abc':'Curva'}))
-        q1,q2,q3=st.columns(3); abc_filter=q1.multiselect('Curva ABC',['A','B','C'],key='client_abc'); status_filter=q2.multiselect('Estágio',sorted(cc.status.unique()),key='client_status'); owner_filter=q3.multiselect('Vendedor',sorted(cc.vendedor.astype(str).unique()),key='client_owner')
+            segment_view=cc.groupby('segmento_cliente',as_index=False).agg(Faturamento=('faturamento','sum'),Margem=('margem','sum'),Clientes=('Cliente','nunique')); segment_view['Margem %']=segment_view['Margem']/segment_view['Faturamento'].replace(0,pd.NA); show_chart(px.bar(segment_view,x='segmento_cliente',y='Faturamento',text='Clientes',color='Margem %',color_continuous_scale='Blues',title='Segmento de clientes: receita e qualidade',labels={'segmento_cliente':'Segmento do cliente'}))
+        q1,q2,q3=st.columns(3); segment_filter=q1.multiselect('Segmento do cliente',sorted(cc.segmento_cliente.unique()),key='client_segment'); status_filter=q2.multiselect('Estágio',sorted(cc.status.unique()),key='client_status'); owner_filter=q3.multiselect('Vendedor',sorted(cc.vendedor.astype(str).unique()),key='client_owner')
         detail=cc.copy()
-        if abc_filter: detail=detail[detail.abc.isin(abc_filter)]
+        if segment_filter: detail=detail[detail.segmento_cliente.isin(segment_filter)]
         if status_filter: detail=detail[detail.status.isin(status_filter)]
         if owner_filter: detail=detail[detail.vendedor.astype(str).isin(owner_filter)]
-        show_table(detail[["abc","status","Cliente","UF","municipio","vendedor","faturamento","margem_pct","nfs","meses","ultima_compra","dias_sem_compra","ticket_nf"]],height=600,width='stretch',column_config={'ultima_compra':st.column_config.DateColumn(format='DD/MM/YYYY')})
+        detail=detail.rename(columns={'segmento_cliente':'Segmento cliente'})
+        show_table(detail[["Segmento cliente","status","Cliente","UF","municipio","vendedor","faturamento","margem_pct","nfs","meses","ultima_compra","dias_sem_compra","ticket_nf"]],height=600,width='stretch',column_config={'ultima_compra':st.column_config.DateColumn(format='DD/MM/YYYY')})
     else: st.info('Sem clientes no período selecionado.')
 with tabs[6]:
     g=group_metrics(f,"Grupo Produto").sort_values('faturamento',ascending=False); t=group_metrics(f,"Tipo Produto").sort_values('faturamento',ascending=False); e=group_metrics(f,"Espessura").sort_values('faturamento',ascending=False); c1,c2=st.columns(2)
