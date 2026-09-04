@@ -1,0 +1,2 @@
+[functions.command-center]
+verify_jwt = true

@@ -125,6 +125,20 @@ def upload_file(local_path, timeout=180):
     return True
 
 
+def upload_bytes(payload, object_path, content_type="application/octet-stream", timeout=60):
+    """Publica um objeto pequeno no bucket privado, sem alterar o arquivo-base."""
+    if not is_configured():
+        return False
+    response = requests.post(
+        _object_url(object_path),
+        headers=_headers(content_type),
+        data=payload,
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    return True
+
+
 def upload_status(status, timeout=30):
     if not is_configured():
         return False
