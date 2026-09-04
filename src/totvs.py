@@ -1,7 +1,7 @@
 import os,time,requests
 
 FIXED_FILTERS=[2186,20811,2190,2188,2193,11127459,400287,32094813,32320838,11288138,36831947,3019,4491,4485,4489,30338385]
-REPORTS={"faturamento":"32915720","margem":"22637729","clientes_pedidos":"42959723","cliente_geo":"29087588","produto_classificacao":"20814355","preco_benchmark":"47742","regra_desconto":"854730"}
+REPORTS={"faturamento":"32915720","margem":"22637729","clientes_pedidos":"42959723","cliente_geo":"29087588","cliente_classificacao":"50868753","produto_classificacao":"20814355","preco_benchmark":"47742","regra_desconto":"854730"}
 
 class TotvsGoodDataConnector:
     def __init__(self,base_url,workspace,dashboard,cookie=None):
