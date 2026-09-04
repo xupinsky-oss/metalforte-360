@@ -29,7 +29,7 @@ function renderPanels(panels){
 async function loadDashboard(){
   const session=(await supa.auth.getSession()).data.session;
   if(!session) return;
-  const response=await fetch(cfg.SUPABASE_URL+"/functions/v1/"+(cfg.DASHBOARD_FUNCTION||"command-center"),{headers:{apikey:cfg.SUPABASE_ANON_KEY,Authorization:"Bearer "+session.access_token}});
+  const response=await fetch(cfg.SUPABASE_URL+"/functions/v1/"+(cfg.DASHBOARD_FUNCTION||"command-center"),{cache:"no-store",headers:{apikey:cfg.SUPABASE_ANON_KEY,Authorization:"Bearer "+session.access_token}});
   if(!response.ok) throw new Error(response.status===503 ? "O resumo ainda não está disponível. Execute uma carga automática para publicá-lo." : "Não foi possível carregar o painel.");
   const data=await response.json();
   el("periodo").textContent="Período: "+dateBR(data.periodo.inicio)+" a "+dateBR(data.periodo.fim);
@@ -44,5 +44,6 @@ async function start(){
   try{await loadDashboard();}catch(e){error.textContent=e.message;}
   el("login-form").addEventListener("submit",async function(event){event.preventDefault();error.textContent="";const r=await supa.auth.signInWithPassword({email:el("email").value,password:el("password").value});if(r.error){error.textContent="E-mail ou senha inválidos.";return;}try{await loadDashboard();}catch(e){error.textContent=e.message;}});
   el("logout").addEventListener("click",async function(){await supa.auth.signOut();location.reload();});
+  el("refresh-dashboard").addEventListener("click",async function(event){event.currentTarget.disabled=true;try{await loadDashboard();}catch(e){error.textContent=e.message;}finally{event.currentTarget.disabled=false;}});
 }
 start();

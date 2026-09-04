@@ -2,10 +2,37 @@ name: Atualizar base comercial
 
 on:
   workflow_dispatch:
+    inputs:
+      request_id:
+        description: "ID da solicitação da Control Tower (opcional)"
+        required: false
+        type: string
+      environment:
+        description: "Ambiente de destino"
+        required: true
+        default: homologacao
+        type: choice
+        options: [homologacao, producao]
+      scope:
+        description: "Escopo da atualização"
+        required: true
+        default: full
+        type: choice
+        options: [full]
+      requested_by:
+        description: "Solicitante (preenchido pela Control Tower)"
+        required: false
+        type: string
+      reason:
+        description: "Motivo operacional"
+        required: true
+        type: string
+      confirmation:
+        description: "Digite ATUALIZAR para produção ou HOMOLOGAR para homologação"
+        required: true
+        type: string
   schedule:
-    # GitHub Actions usa UTC: 09h e 15h = 06h e 12h em São Paulo.
     - cron: "0 9,15 * * *"
-    # 21h30 UTC = 18h30 em São Paulo.
     - cron: "30 21 * * *"
 
 concurrency:
@@ -28,25 +55,80 @@ jobs:
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       SUPABASE_BUCKET: metalforte-private
       SUPABASE_DATA_PATH: bases/metalforte_base.csv.gz
+      ETL_REQUEST_ID: ${{ inputs.request_id || format('scheduled-{0}', github.run_id) }}
+      ETL_ENVIRONMENT: ${{ inputs.environment || 'producao' }}
+      ETL_SCOPE: ${{ inputs.scope || 'full' }}
+      ETL_REQUESTED_BY: ${{ inputs.requested_by || github.actor }}
+      ETL_REASON: ${{ inputs.reason || 'Execução automática agendada' }}
+      ETL_SOURCE: ${{ github.event_name == 'schedule' && 'schedule' || 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v5
+      - name: Validar autorização da execução manual
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [ "$TARGET_ENVIRONMENT" = "producao" ] && [ "$CONFIRMATION" != "ATUALIZAR" ]; then
+            echo "Confirmação de produção inválida."
+            exit 1
+          fi
+          if [ "$TARGET_ENVIRONMENT" = "homologacao" ] && [ "$CONFIRMATION" != "HOMOLOGAR" ]; then
+            echo "Confirmação de homologação inválida."
+            exit 1
+          fi
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
       - name: Instalar dependências
         run: pip install -r requirements.txt
-      - name: Atualizar, validar e publicar a base
+      - name: Iniciar telemetria sanitizada
+        run: |
+          python scripts/etl_status.py start --message "Execução iniciada pelo GitHub Actions"
+          python scripts/etl_status.py step --index 2 --status completed --message "Ambiente preparado"
+      - name: Atualizar, validar e publicar a base privada
         shell: bash
         run: |
+          python scripts/etl_status.py step --index 3 --status running --message "Coleta e consolidação iniciadas"
+          succeeded=false
           for attempt in 1 2 3; do
             echo "Tentativa ${attempt} de 3"
             if python atualizar_gooddata.py; then
-              python gerar_dashboard_web.py
-              exit 0
+              succeeded=true
+              break
             fi
-            if [ "${attempt}" -lt 3 ]; then
-              sleep 60
-            fi
+            if [ "${attempt}" -lt 3 ]; then sleep 60; fi
           done
-          exit 1
+          if [ "$succeeded" != "true" ]; then
+            python scripts/etl_status.py step --index 3 --status failed --message "Coleta falhou após três tentativas"
+            exit 1
+          fi
+          python scripts/etl_status.py step --index 3 --status completed --message "Coleta TOTVS / GoodData concluída"
+          python scripts/etl_status.py step --index 4 --status completed --message "Validações mínimas aprovadas"
+          python scripts/etl_status.py step --index 5 --status completed --message "Tratamento e normalização concluídos"
+          python scripts/etl_status.py step --index 6 --status completed --message "Base privada publicada"
+      - name: Gerar e publicar agregados do painel
+        shell: bash
+        run: |
+          python scripts/etl_status.py step --index 7 --status running --message "Geração de métricas iniciada"
+          if ! python gerar_dashboard_web.py; then
+            python scripts/etl_status.py step --index 7 --status failed --message "Falha ao gerar ou publicar agregados"
+            exit 1
+          fi
+          python scripts/etl_status.py step --index 7 --status completed --message "Métricas e agregados gerados"
+          python scripts/etl_status.py step --index 8 --status completed --message "Resumo privado publicado"
+          python scripts/etl_status.py step --index 9 --status completed --message "Publicação validada pelo processo"
+          python scripts/etl_status.py step --index 10 --status completed --message "Painel disponível para reconsulta"
+      - name: Finalizar telemetria
+        if: always()
+        shell: bash
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          if [ "$RESULT" = "success" ]; then
+            python scripts/etl_status.py finish --status completed --message "Execução concluída com sucesso"
+          else
+            python scripts/etl_status.py finish --status failed --message "Execução encerrada com falha; consulte o log protegido do GitHub"
+          fi

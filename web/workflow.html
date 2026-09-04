@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>METALFORTE 360 | Workflow & ETL Control Tower</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="workflow.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <div><span class="brand">METALFORTE</span><span class="sub">360 · Control Tower v2.4</span></div>
+    <nav class="header-actions"><a class="button ghost" href="index.html">Painel comercial</a><button id="logout" class="ghost" hidden>Sair</button></nav>
+  </header>
+  <main>
+    <section id="login" class="card login">
+      <h1>Acesso à Control Tower</h1>
+      <p>Use o mesmo usuário corporativo do Command Center.</p>
+      <form id="login-form"><label>E-mail<input id="email" type="email" required autocomplete="email"></label><label>Senha<input id="password" type="password" required autocomplete="current-password"></label><button>Entrar</button><p id="login-error" class="error"></p></form>
+    </section>
+
+    <section id="tower" hidden>
+      <div class="title-row"><div><p class="eyebrow">OPERAÇÃO E GOVERNANÇA</p><h1>Workflow & ETL Control Tower</h1><p class="muted">Demandas, aprovações e atualização da base em um único lugar.</p></div><span id="connection-badge" class="status neutral">Verificando integração</span></div>
+      <div id="tower-kpis" class="kpis tower-kpis"></div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="workflow">Workflow</button>
+        <button class="tab" data-tab="etl">ETL Monitor</button>
+        <button class="tab" data-tab="history">Histórico & Logs</button>
+        <button class="tab" data-tab="runbook">Runbook</button>
+      </div>
+
+      <section id="tab-workflow" class="tab-panel active">
+        <div class="section-heading"><div><h2>Gestão fase a fase</h2><p class="muted">O estado fica neste navegador e pode ser exportado para versionamento.</p></div><div class="actions"><button id="new-task">Nova demanda</button><button id="export-workflow" class="ghost">Exportar JSON</button><label class="button ghost file-button">Importar JSON<input id="import-workflow" type="file" accept="application/json" hidden></label></div></div>
+        <div id="workflow-board" class="workflow-board"></div>
+        <section class="card compact"><h2>Nova demanda</h2><form id="task-form" class="task-form"><label>Título<input id="task-title" required maxlength="100" placeholder="Ex.: Ajustar regra de margem"></label><label>Responsável<input id="task-owner" maxlength="60" placeholder="Nome ou time"></label><label>Prioridade<select id="task-priority"><option>Alta</option><option selected>Média</option><option>Baixa</option></select></label><label>Ambiente<select id="task-environment"><option>DEV</option><option>HOMOLOGAÇÃO</option><option>PRODUÇÃO</option></select></label><label class="wide">Critério de aceite<textarea id="task-acceptance" maxlength="400" placeholder="Como saberemos que está concluído?"></textarea></label><div class="form-actions wide"><button type="submit">Adicionar ao backlog</button><button type="button" id="cancel-task" class="ghost">Cancelar</button></div></form></section>
+      </section>
+
+      <section id="tab-etl" class="tab-panel">
+        <div class="section-heading"><div><h2>Atualização da base</h2><p class="muted">O navegador nunca recebe credenciais da TOTVS, Supabase administrativo ou GitHub.</p></div><div class="actions"><button id="refresh-etl" class="ghost">Atualizar status</button><button id="open-trigger">Atualizar base agora</button></div></div>
+        <div class="etl-layout">
+          <section class="card compact"><div class="run-header"><div><p class="eyebrow">ÚLTIMA EXECUÇÃO</p><h2 id="run-title">Aguardando telemetria</h2></div><span id="run-status" class="status neutral">Sem dados</span></div><div id="run-meta" class="meta-grid"></div><div id="etl-timeline" class="timeline"></div></section>
+          <aside class="card compact"><h2>Solicitar carga manual</h2><form id="trigger-form"><label>Ambiente<select id="trigger-environment"><option value="homologacao">Homologação</option><option value="producao">Produção</option></select></label><label>Escopo<select id="trigger-scope"><option value="full">Carga completa</option></select></label><label>Motivo<textarea id="trigger-reason" required minlength="10" maxlength="240" placeholder="Descreva o motivo operacional"></textarea></label><label class="confirm"><input id="trigger-confirm" type="checkbox" required> Confirmo que a carga pode consultar as fontes e substituir a base publicada.</label><button type="submit">Solicitar execução segura</button><p id="trigger-message" class="muted"></p></form><hr><p class="security-note">A solicitação é aceita apenas para usuários autorizados. O token do GitHub fica armazenado como segredo da Edge Function.</p></aside>
+        </div>
+      </section>
+
+      <section id="tab-history" class="tab-panel"><div class="section-heading"><div><h2>Histórico e eventos sanitizados</h2><p class="muted">Sem payloads de origem, cookies ou valores de credenciais.</p></div><button id="export-history" class="ghost">Exportar histórico</button></div><div id="etl-history" class="history-list"></div></section>
+      <section id="tab-runbook" class="tab-panel"><div class="runbook-grid"><article class="card compact"><p class="eyebrow">01 · TRIAGEM</p><h2>Falha de autenticação</h2><p>Verifique os secrets no GitHub e a credencial cadastrada. Nunca copie o valor para o navegador ou para logs.</p></article><article class="card compact"><p class="eyebrow">02 · FONTE</p><h2>Timeout TOTVS/GoodData</h2><p>Aguarde a janela de indisponibilidade e reexecute. O workflow já faz até três tentativas.</p></article><article class="card compact"><p class="eyebrow">03 · QUALIDADE</p><h2>Validação bloqueou a carga</h2><p>Preserve a última base válida. Revise cobertura, volume de linhas, datas e reconciliação de faturamento.</p></article><article class="card compact"><p class="eyebrow">04 · PUBLICAÇÃO</p><h2>Resumo não disponível</h2><p>Confirme a publicação no bucket privado e a Edge Function. Não torne o objeto público como atalho.</p></article></div></section>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="workflow-data.js"></script>
+  <script src="js/manual-refresh-adapter.js"></script>
+  <script src="js/workflow-manager.js"></script>
+  <script src="js/etl-monitor.js"></script>
+</body>
+</html>

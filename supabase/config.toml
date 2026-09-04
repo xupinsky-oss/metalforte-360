@@ -1,2 +1,5 @@
 [functions.command-center]
 verify_jwt = true
+
+[functions.etl-control]
+verify_jwt = true
