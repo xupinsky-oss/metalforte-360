@@ -12,7 +12,7 @@ ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_cre
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
 DASHBOARD=os.getenv('TOTVS_DASHBOARD','11078478')
 BASE_URL=os.getenv('TOTVS_BASE_URL','https://analytics.totvs.com.br')
-FINAL_COLUMNS=['Data','Mes','Ano','Fonte Data','Filial','Vendedor','Cod Cliente','Cliente','UF','Município','Geo Fonte','Curva Cliente','Pedido','NF','Produto Codigo','Produto','Grupo Produto','Tipo Produto','Espessura','CFOP','TES','Faturamento','Peso','Preço Real Kg','Benchmark Grupo','Desvio Benchmark %','Custo','Impostos','PIS','COFINS','ICMS','Margem','Margem %']
+FINAL_COLUMNS=['Data','Mes','Ano','Fonte Data','Filial','Vendedor','Cod Cliente','Cliente','UF','Município','Geo Fonte','Segmento Cliente','Tipologia Cliente','Curva Cliente','Pedido','NF','Produto Codigo','Produto','Grupo Produto','Tipo Produto','Espessura','CFOP','TES','Faturamento','Peso','Preço Real Kg','Benchmark Grupo','Desvio Benchmark %','Custo','Impostos','PIS','COFINS','ICMS','Margem','Margem %']
 
 for p in (RAW,BACKUP,LOGS): p.mkdir(parents=True,exist_ok=True)
 logging.basicConfig(filename=LOGS/'atualizacao_gooddata.log',level=logging.INFO,format='%(asctime)s | %(levelname)s | %(message)s',encoding='utf-8')
@@ -43,6 +43,11 @@ def consolidate(downloaded):
     mar=downloaded['margem'].copy(); mar.columns=['Pedido M','NF','Item','Produto Codigo','Produto M','Margem M %','Margem','Preço M','Venda','Devolução','Faturamento M','Qtd Venda','Qtd Devolução','Qtd Faturada','Custo Unitário','Custo','COFINS','ICMS','PIS','Impostos']
     prod=downloaded['produto_classificacao'].copy(); prod.columns=['Produto Codigo','Produto Cadastro','Espessura','Grupo Produto','Tipo Produto','Peso Comercial','Peso Total']
     geo=downloaded['cliente_geo'].copy(); geo.columns=['Cod Cliente','Cliente Geo','UF','Município','Faturamento Geo']
+    classification=downloaded['cliente_classificacao'].copy()
+    expected_classification=['Cod Cliente','Loja Cliente','Cliente Classificação','CPF/CNPJ','Segmento Cliente','Tipologia Cliente','Vendedor Classificação','Vlr Venda Classificação','Faturamento Classificação','Qtd NF Classificação','Frequência','Última Compra Classificação','Recência','Margem Classificação %','Nota Margem','Soma Notas']
+    if classification.shape[1] < 7:
+        raise ValueError(f'Relatório de classificação de clientes incompleto: {classification.shape[1]} colunas')
+    classification.columns=expected_classification[:classification.shape[1]] if classification.shape[1]<=len(expected_classification) else expected_classification+[f'Classificação Extra {i}' for i in range(classification.shape[1]-len(expected_classification))]
     bench=downloaded['preco_benchmark'].copy(); bench.columns=['Mes Benchmark','Grupo Produto','Benchmark Grupo']
 
     for d in (fat,cli,mar):
@@ -55,8 +60,11 @@ def consolidate(downloaded):
     x['Cod Cliente']=_key(x['Cod Cliente']); x['Produto Codigo']=_key(x['Produto Codigo'])
     prod['Produto Codigo']=_key(prod['Produto Codigo']); prod=prod.dropna(subset=['Produto Codigo']).drop_duplicates('Produto Codigo')
     geo['Cod Cliente']=_key(geo['Cod Cliente']); geo=geo.dropna(subset=['Cod Cliente']).sort_values('Faturamento Geo').drop_duplicates('Cod Cliente',keep='last')
+    classification['Cod Cliente']=_key(classification['Cod Cliente'])
+    classification=classification.dropna(subset=['Cod Cliente']).drop_duplicates('Cod Cliente',keep='last')
     x=x.merge(prod[['Produto Codigo','Grupo Produto','Tipo Produto','Espessura']],on='Produto Codigo',how='left')
     x=x.merge(geo[['Cod Cliente','UF','Município']],on='Cod Cliente',how='left')
+    x=x.merge(classification[['Cod Cliente','Segmento Cliente','Tipologia Cliente']],on='Cod Cliente',how='left')
     geo_names=geo.assign(_cliente=geo['Cliente Geo'].astype(str).str.strip().str.upper())
     geo_names=geo_names[~geo_names['_cliente'].duplicated(keep=False)].set_index('_cliente')
     name_key=x['Cliente'].astype(str).str.strip().str.upper()
@@ -73,6 +81,8 @@ def consolidate(downloaded):
     x['Benchmark Grupo']=x['Benchmark Grupo'].fillna(0); x['Desvio Benchmark %']=(x['Preço Real Kg']/x['Benchmark Grupo'].replace(0,pd.NA)-1).fillna(0)
     for c in ['Custo','Impostos','PIS','COFINS','ICMS']: x[c]=x[c].fillna(0)
     x['UF']=x['UF'].fillna('Não mapeado'); x['Município']=x['Município'].fillna('Não mapeado'); x['Geo Fonte']=x['UF'].map(lambda v:'Código cliente' if v!='Não mapeado' else 'Não mapeado')
+    x['Segmento Cliente']=x['Segmento Cliente'].fillna('Não classificado').astype(str).str.strip().replace('', 'Não classificado')
+    x['Tipologia Cliente']=x['Tipologia Cliente'].fillna('Não classificado').astype(str).str.strip().replace('', 'Não classificado')
     x['Grupo Produto']=x['Grupo Produto'].fillna('Não mapeado'); x['Tipo Produto']=x['Tipo Produto'].fillna('Não mapeado'); x['Fonte Data']='GoodData automático'
     revenue=x.groupby('Cod Cliente',dropna=False)['Faturamento'].sum().sort_values(ascending=False); positive=revenue.clip(lower=0); cum=positive.cumsum()/positive.sum() if positive.sum() else positive
     curve=pd.Series('C',index=cum.index); curve[cum<=.90]='B'; curve[cum<=.70]='A'; x['Curva Cliente']=x['Cod Cliente'].map(curve).fillna('C')
@@ -94,12 +104,15 @@ def main():
     if main_df['Data'].notna().mean()<.99: raise ValueError('Cobertura de datas abaixo de 99%.')
     source_total=pd.to_numeric(downloaded['faturamento'].iloc[:,9],errors='coerce').sum(); final_total=main_df['Faturamento'].sum()
     if source_total and abs(final_total/source_total-1)>.0001: raise ValueError('Total de faturamento divergiu na consolidação.')
+    classified_revenue=main_df.loc[main_df['Segmento Cliente']!='Não classificado','Faturamento'].sum()
+    classification_coverage=classified_revenue/final_total if final_total else 0
+    if classification_coverage<.50: raise ValueError(f'Cobertura de classificação de clientes abaixo de 50%: {classification_coverage:.1%}')
     if ACTIVE.exists(): shutil.copy2(ACTIVE,BACKUP/f'metalforte_base_{stamp}.csv.gz')
     tmp=DATA/'metalforte_base.nova.csv.gz'; main_df.to_csv(tmp,index=False,compression='gzip')
     cloud_updated=upload_file(tmp)
     tmp.replace(ACTIVE)
     logging.info('Base ativa substituída: %s linhas',len(main_df))
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2)}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 
