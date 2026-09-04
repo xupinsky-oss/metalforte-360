@@ -16,6 +16,8 @@ jobs:
   atualizar:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
     env:
       TOTVS_LOGIN: ${{ secrets.TOTVS_LOGIN }}
       TOTVS_PASSWORD: ${{ secrets.TOTVS_PASSWORD }}
@@ -27,12 +29,23 @@ jobs:
       SUPABASE_BUCKET: metalforte-private
       SUPABASE_DATA_PATH: bases/metalforte_base.csv.gz
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
       - name: Instalar dependências
         run: pip install -r requirements.txt
       - name: Atualizar, validar e publicar a base
-        run: python atualizar_gooddata.py
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            echo "Tentativa ${attempt} de 3"
+            if python atualizar_gooddata.py; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 3 ]; then
+              sleep 60
+            fi
+          done
+          exit 1
