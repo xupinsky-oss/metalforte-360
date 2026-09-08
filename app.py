@@ -102,7 +102,17 @@ def yoy_comparison(current,previous,dimension):
     return result[columns].sort_values('Δ Faturamento',ascending=False)
 
 access=require_login()
-df=get_data(); load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
+df=get_data()
+if access["role"] == "seller":
+    seller_scope = access.get("seller_scope", "")
+    if not seller_scope:
+        st.error("Seu perfil de vendedor ainda não possui uma carteira associada. Procure um administrador.")
+        st.stop()
+    df = df[df["Vendedor"].astype(str) == seller_scope].copy()
+    if df.empty:
+        st.error("A carteira associada ao usuário não foi encontrada na base atual. Procure um administrador.")
+        st.stop()
+load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
 load_timestamp=pd.to_datetime(load_status.get('atualizado_em'),errors='coerce')
 if pd.notna(load_timestamp):
     if load_timestamp.tzinfo is None: load_timestamp=load_timestamp.tz_localize('UTC')
@@ -170,19 +180,23 @@ with st.sidebar:
     filial=st.multiselect("Filial",sorted(df["Filial"].unique()))
     uf=st.multiselect("UF",sorted(df["UF"].unique()))
     vend=st.multiselect("Vendedor",sorted(df["Vendedor"].unique()))
+    client_options=["Todos os clientes"]+sorted(df["Cliente"].dropna().astype(str).unique().tolist())
+    client_scope=st.selectbox("Cliente",client_options,index=0,help="Selecione um cliente para isolar todas as análises.")
+    selected_client=None if client_scope=="Todos os clientes" else client_scope
     with st.expander("Mais filtros"):
         pool=df if not uf else df[df["UF"].isin(uf)]
         city=st.multiselect("Município",sorted(pool["Município"].unique()))
+        canal=st.multiselect("Canal",sorted(df["Canal"].unique())) if "Canal" in df else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
         ct=st.text_input("Buscar cliente")
         pt=st.text_input("Buscar produto")
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,grupo=grupo,tipo=tipo,espessura=esp,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
-monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,grupo=grupo,tipo=tipo,espessura=esp,cliente_text=ct,produto_text=pt)
+monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
 
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
