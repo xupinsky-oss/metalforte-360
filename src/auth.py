@@ -15,8 +15,11 @@ import streamlit as st
 
 PERMISSION_LABELS = {
     "view_overview": "Visão executiva",
+    "view_clients": "Inteligência de clientes",
+    "view_products": "Inteligência de produtos",
     "view_daily": "Performance diária",
     "view_sellers": "Visão por vendedor",
+    "view_insights": "Insights e oportunidades",
     "view_pivot": "Tabela dinâmica",
     "view_yoy": "Comparativo anual",
     "use_assistant": "Assistente analítico",
@@ -26,17 +29,26 @@ PERMISSION_LABELS = {
 
 ROLE_LABELS = {
     "viewer": "Consulta",
+    "seller": "Vendedor",
     "analyst": "Analista",
     "manager": "Gestor",
     "admin": "Administrador",
 }
 
 ROLE_PRESETS = {
-    "viewer": {"view_overview", "view_daily"},
-    "analyst": {"view_overview", "view_daily", "view_sellers", "view_yoy"},
+    "viewer": {"view_overview", "view_clients", "view_products"},
+    "seller": {
+        "view_overview", "view_clients", "view_products", "view_daily",
+        "view_sellers", "view_insights",
+    },
+    "analyst": {
+        "view_overview", "view_clients", "view_products", "view_daily",
+        "view_sellers", "view_insights", "view_yoy",
+    },
     "manager": {
-        "view_overview", "view_daily", "view_sellers", "view_pivot",
-        "view_yoy", "use_assistant", "export_data",
+        "view_overview", "view_clients", "view_products", "view_daily",
+        "view_sellers", "view_insights", "view_pivot", "view_yoy",
+        "use_assistant", "export_data",
     },
     "admin": set(PERMISSION_LABELS),
 }
@@ -112,7 +124,12 @@ def authorization_for(user):
     permissions &= set(PERMISSION_LABELS)
     if role == "admin" or bootstrap_admin:
         permissions = set(PERMISSION_LABELS)
-    return {"role": role, "permissions": permissions, "user": user}
+    return {
+        "role": role,
+        "permissions": permissions,
+        "seller_scope": metadata.get("mf_seller_scope", ""),
+        "user": user,
+    }
 
 
 def require_login():
@@ -162,7 +179,7 @@ def list_users():
     return response.get("users", []) if isinstance(response, dict) else []
 
 
-def create_user(email, password, display_name, role, permissions):
+def create_user(email, password, display_name, role, permissions, seller_scope=""):
     if len(password) < 8:
         raise AuthError("A senha inicial deve ter pelo menos 8 caracteres.")
     return _request(
@@ -175,17 +192,19 @@ def create_user(email, password, display_name, role, permissions):
             "app_metadata": {
                 "mf_role": role,
                 "mf_permissions": sorted(set(permissions)),
+                "mf_seller_scope": seller_scope.strip() if role == "seller" else "",
                 "etl_admin": role == "admin",
             },
         },
     )
 
 
-def update_user(user_id, role, permissions, new_password="", existing_metadata=None):
+def update_user(user_id, role, permissions, new_password="", existing_metadata=None, seller_scope=""):
     metadata = dict(existing_metadata or {})
     metadata.update({
         "mf_role": role,
         "mf_permissions": sorted(set(permissions)),
+        "mf_seller_scope": seller_scope.strip() if role == "seller" else "",
         "etl_admin": role == "admin",
     })
     payload = {
@@ -198,7 +217,7 @@ def update_user(user_id, role, permissions, new_password="", existing_metadata=N
     return _request("PUT", f"/auth/v1/admin/users/{user_id}", admin=True, payload=payload)
 
 
-def render_user_admin(current_user):
+def render_user_admin(current_user, seller_options=None):
     """Cadastro, redefinição de senha e permissões, disponível só ao administrador."""
     st.subheader("Usuários e permissões")
     st.caption("Senhas nunca são exibidas ou armazenadas pelo painel.")
@@ -214,6 +233,12 @@ def render_user_admin(current_user):
                 format_func=lambda value: ROLE_LABELS[value], key="new_user_role",
             )
             password = c4.text_input("Senha inicial", type="password")
+            seller_scope = st.selectbox(
+                "Carteira do vendedor",
+                [""] + sorted(set(seller_options or [])),
+                help="Obrigatório para o perfil Vendedor. Limita todas as páginas à própria carteira.",
+                key="new_seller_scope",
+            )
             default_permissions = sorted(ROLE_PRESETS[role])
             permissions = st.multiselect(
                 "Permissões", list(PERMISSION_LABELS), default=default_permissions,
@@ -222,7 +247,9 @@ def render_user_admin(current_user):
             submitted = st.form_submit_button("Criar usuário", width="stretch")
         if submitted:
             try:
-                create_user(email, password, name, role, permissions)
+                if role == "seller" and not seller_scope:
+                    raise AuthError("Selecione a carteira para o perfil Vendedor.")
+                create_user(email, password, name, role, permissions, seller_scope)
                 st.success("Usuário criado. O acesso já está disponível.")
                 st.cache_data.clear()
             except AuthError as exc:
@@ -270,10 +297,19 @@ def render_user_admin(current_user):
             format_func=lambda value: PERMISSION_LABELS[value], key=f"edit_permissions_{selected_id}",
         )
         password = st.text_input("Nova senha (opcional)", type="password")
+        saved_scope = selected_access.get("seller_scope", "")
+        scope_options = [""] + sorted(set((seller_options or []) + ([saved_scope] if saved_scope else [])))
+        seller_scope = st.selectbox(
+            "Carteira do vendedor", scope_options,
+            index=scope_options.index(saved_scope) if saved_scope in scope_options else 0,
+            help="Obrigatório para o perfil Vendedor.", key=f"edit_scope_{selected_id}",
+        )
         submitted = st.form_submit_button("Salvar alterações", width="stretch")
     if submitted:
         try:
-            update_user(selected_id, role, permissions, password, selected.get("app_metadata"))
+            if role == "seller" and not seller_scope:
+                raise AuthError("Selecione a carteira para o perfil Vendedor.")
+            update_user(selected_id, role, permissions, password, selected.get("app_metadata"), seller_scope)
             st.success("Permissões e acesso atualizados.")
             st.rerun()
         except AuthError as exc:

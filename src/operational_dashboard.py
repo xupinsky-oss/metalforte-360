@@ -10,6 +10,15 @@ import streamlit as st
 from src.analytics import group_metrics, metrics
 from src.assistant import answer
 from src.auth import render_user_admin
+from src.commercial_intelligence import (
+    actionable_insights,
+    commercial_metrics,
+    customer_portfolio,
+    entity_comparison,
+    product_curve,
+    purchase_seasonality,
+    reference_period,
+)
 
 
 def _polish_chart(chart, *, height=380, x_title=None, y_title=None):
@@ -219,13 +228,214 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
             show_table(daily.sort_values("Data", ascending=False), height=420, width="stretch", hide_index=True)
 
 
-def _seller_view(data, show_chart, show_table, can_export):
-    st.subheader("Visão por vendedor")
-    view = _summary(data, "Vendedor", data["Faturamento"].sum())
+def _reference_selector(key):
+    options = {
+        "Período anterior": "period",
+        "Mês anterior": "month",
+        "Ano anterior": "year",
+    }
+    label = st.selectbox("Referência de comparação", list(options), key=key)
+    return options[label], label.lower()
+
+
+def _comparison_cards(current, reference, brl, brl2, pct):
+    cards = st.columns(5)
+    definitions = [
+        ("Faturamento", brl(current["revenue"]), "revenue", False),
+        ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
+        ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
+        ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
+        ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
+    ]
+    for column, (label, value, key, points) in zip(cards, definitions):
+        if points:
+            delta = (current[key] - reference[key]) * 100
+            shown = _comparison_text(delta, points=True)
+        else:
+            delta = _relative(current[key], reference[key])
+            shown = _comparison_text(delta)
+        column.metric(label, value, shown)
+
+
+def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Inteligência de clientes")
+    available = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
+    c1, c2 = st.columns([1.7, 1])
+    selected = c1.selectbox("Cliente", ["Todos os clientes"] + available, key="client_page_scope")
+    mode, reference_label = _reference_selector("client_reference")
+    current = data if selected == "Todos os clientes" else data[data["Cliente"].astype(str) == selected]
+    client_history = history if selected == "Todos os clientes" else history[history["Cliente"].astype(str) == selected]
+    reference, ref_start, ref_end = reference_period(client_history, start_date, end_date, mode)
+    st.caption(
+        f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}."
+    )
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+
+    if selected != "Todos os clientes":
+        before_end = client_history[client_history["Data"] <= pd.Timestamp(end_date)]
+        last_purchase = before_end["Data"].max() if not before_end.empty else pd.NaT
+        info = st.columns(4)
+        info[0].metric("Última compra", last_purchase.strftime("%d/%m/%Y") if pd.notna(last_purchase) else "—")
+        info[1].metric("Dias sem comprar", int((pd.Timestamp(end_date) - last_purchase.normalize()).days) if pd.notna(last_purchase) else "—")
+        info[2].metric("Mix de produtos", current["Produto"].nunique())
+        info[3].metric("Pedidos", current["NF"].nunique())
+
+    st.markdown("### Histórico e sazonalidade de compra")
+    window_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
+    last_12m = client_history[(client_history["Data"] >= window_start) & (client_history["Data"] <= pd.Timestamp(end_date))].copy()
+    if not last_12m.empty:
+        last_12m["Mês"] = last_12m["Data"].dt.to_period("M").dt.to_timestamp()
+        monthly = last_12m.groupby("Mês", as_index=False).agg(
+            Faturamento=("Faturamento", "sum"), KG=("Peso", "sum"), Margem=("Margem", "sum"),
+        )
+        monthly["Margem %"] = monthly["Margem"] / monthly["Faturamento"].replace(0, pd.NA)
+        chart = px.bar(monthly, x="Mês", y="Faturamento", title="Compras nos últimos 12 meses")
+        chart.update_traces(marker_color="#F36A2D")
+        show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
+
+    matrix, cadence = purchase_seasonality(
+        client_history, end_date, None if selected == "Todos os clientes" else [selected]
+    )
+    if not matrix.empty:
+        if selected == "Todos os clientes":
+            top_clients = matrix.sum(axis=1).nlargest(25).index
+            heat = matrix.loc[top_clients]
+        else:
+            heat = matrix
+        heat_chart = px.imshow(
+            heat, aspect="auto", color_continuous_scale=["#F4F6F8", "#F36A2D"],
+            labels={"x": "Mês", "y": "Cliente", "color": "Faturamento"},
+            title="Janela de compra por cliente",
+        )
+        show_chart(_polish_chart(heat_chart, height=max(260, 28 * len(heat) + 120), x_title="", y_title=""))
+    if not cadence.empty:
+        with st.expander("Ver frequência e janela de recompra"):
+            show_table(cadence.sort_values(["Janela vencida", "Dias sem comprar"], ascending=False), height=420, width="stretch", hide_index=True)
+
+    st.markdown("### Carteira e movimentação")
+    portfolio = customer_portfolio(current, client_history, start_date, end_date, mode)
+    if selected == "Todos os clientes" and not portfolio.empty:
+        columns = [column for column in [
+            "Cliente", "Vendedor", "Canal", "UF", "Município", "Última compra", "Dias sem comprar",
+            "Faturamento atual", "Faturamento referência", "Variação faturamento %",
+            "KG atual", "Margem % atual", "Preço médio atual", "Mix atual", "Situação",
+        ] if column in portfolio]
+        show_table(portfolio[columns], height=560, width="stretch", hide_index=True)
+    else:
+        st.markdown("### Produtos comprados")
+        products = entity_comparison(current, reference, "Produto")
+        if not products.empty:
+            show_table(products, height=500, width="stretch", hide_index=True)
+        detail_columns = [column for column in ["Data", "NF", "Produto", "Grupo Produto", "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg"] if column in current]
+        with st.expander("Ver histórico de compras"):
+            show_table(current[detail_columns].sort_values("Data", ascending=False), height=520, width="stretch", hide_index=True)
+    if can_export and not portfolio.empty:
+        st.download_button("Exportar carteira", portfolio.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "clientes.csv", "text/csv")
+
+
+def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Inteligência de produtos")
+    available = sorted(history["Produto"].dropna().astype(str).unique().tolist())
+    selected = st.selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
+    mode, reference_label = _reference_selector("product_reference")
+    current = data if selected == "Todos os produtos" else data[data["Produto"].astype(str) == selected]
+    product_history = history if selected == "Todos os produtos" else history[history["Produto"].astype(str) == selected]
+    reference, ref_start, ref_end = reference_period(product_history, start_date, end_date, mode)
+    st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+
+    comparison = entity_comparison(current, reference, "Produto")
+    if comparison.empty:
+        st.info("Sem produtos no recorte selecionado.")
+        return
+    if selected == "Todos os produtos":
+        curve = product_curve(current)
+        st.markdown("### Curva e mix de produtos")
+        chart = px.bar(
+            curve.head(20).sort_values("Faturamento atual"), x="Faturamento atual", y="Produto",
+            color="Curva", orientation="h", title="Top produtos e classificação ABC",
+            color_discrete_map={"A": "#F36A2D", "B": "#2F8FD8", "C": "#AAB4C0"},
+        )
+        show_chart(_polish_chart(chart, height=620, x_title="Faturamento (R$)", y_title=""))
+        curve_counts = curve.groupby("Curva").agg(
+            Produtos=("Produto", "nunique"), Faturamento=("Faturamento atual", "sum"),
+            KG=("KG atual", "sum"),
+        ).reset_index()
+        show_table(curve_counts, width="stretch", hide_index=True)
+
+    st.markdown("### Performance por produto e categoria")
+    dimension = st.segmented_control(
+        "Agrupar por", [column for column in ["Produto", "Grupo Produto", "Tipo Produto"] if column in current],
+        default="Produto", key="product_dimension",
+    )
+    view = entity_comparison(current, reference, dimension)
+    chart_data = view.head(15).sort_values("Faturamento atual")
+    chart = px.bar(chart_data, x="Faturamento atual", y=dimension, orientation="h", title=f"Faturamento por {dimension.lower()}")
+    chart.update_traces(marker_color="#F36A2D")
+    show_chart(_polish_chart(chart, height=520, x_title="Faturamento (R$)", y_title=""))
+    show_table(view, height=560, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button("Exportar produtos", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "produtos.csv", "text/csv")
+
+
+def _insights_view(data, history, start_date, end_date, brl, show_table, can_export):
+    st.subheader("Insights e oportunidades")
+    st.caption("Filas de ação calculadas com o mesmo período do ano anterior e a janela de compra dos últimos 12 meses.")
+    insights = actionable_insights(data, history, start_date, end_date)
+    reactivation = insights["reactivation"]
+    declines = insights["declines"]
+    seasonality = insights["seasonality"]
+    mix = insights["mix"]
+    cards = st.columns(4)
+    cards[0].metric("Clientes para reativar", len(reactivation), brl(reactivation["Potencial R$"].sum()) if not reactivation.empty else brl(0))
+    cards[1].metric("Clientes em queda", len(declines), brl(declines["Potencial R$"].sum()) if not declines.empty else brl(0))
+    cards[2].metric("Janelas vencidas", len(seasonality))
+    cards[3].metric("Oportunidades de mix", len(mix))
+
+    tabs = st.tabs(["Reativação", "Possíveis quedas", "Sazonalidade", "Recuperação de mix"])
+    selections = [
+        (reactivation, ["Cliente", "Vendedor", "UF", "Última_compra", "Dias sem comprar", "Faturamento referência", "Potencial R$", "Ação"]),
+        (declines, ["Cliente", "Vendedor", "UF", "Faturamento atual", "Faturamento referência", "Variação faturamento %", "Margem % atual", "Δ Margem p.p.", "Potencial R$", "Ação"]),
+        (seasonality, ["Cliente", "Vendedor", "UF", "Última compra", "Dias sem comprar", "Cadência mediana (dias)", "Faturamento 12m", "Ação"]),
+        (mix, ["Cliente", "Vendedor", "Faturamento atual", "Mix atual", "Mix referência", "Produtos a recuperar", "Potencial R$", "Ação"]),
+    ]
+    for tab, (frame, columns) in zip(tabs, selections):
+        with tab:
+            if frame.empty:
+                st.success("Nenhuma ocorrência relevante encontrada neste recorte.")
+            else:
+                visible = [column for column in columns if column in frame]
+                show_table(frame[visible], height=560, width="stretch", hide_index=True)
+                if can_export:
+                    file_name = f"insights_{visible[0].lower().replace(' ', '_')}.csv"
+                    st.download_button("Exportar lista", frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_{file_name}")
+
+
+def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Painel de indicadores por vendedor")
+    available = sorted(history["Vendedor"].dropna().astype(str).unique().tolist())
+    selected = st.selectbox("Vendedor", ["Todos os vendedores"] + available, key="seller_page_scope")
+    mode, reference_label = _reference_selector("seller_reference")
+    current = data if selected == "Todos os vendedores" else data[data["Vendedor"].astype(str) == selected]
+    seller_history = history if selected == "Todos os vendedores" else history[history["Vendedor"].astype(str) == selected]
+    reference, ref_start, ref_end = reference_period(seller_history, start_date, end_date, mode)
+    st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+    view = entity_comparison(current, reference, "Vendedor")
     if view.empty:
         st.info("Sem vendedores no período.")
         return
-    show_chart(_compact_bar(view, "Vendedor", "Vendedores por faturamento"))
+    st.markdown("### Performance diária")
+    daily = current.groupby(current["Data"].dt.normalize()).agg(
+        Faturamento=("Faturamento", "sum"), KG=("Peso", "sum"), Margem=("Margem", "sum"),
+        Clientes=("Cliente", "nunique"),
+    ).reset_index(names="Data")
+    daily["Margem %"] = daily["Margem"] / daily["Faturamento"].replace(0, pd.NA)
+    if not daily.empty:
+        chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário do vendedor")
+        chart.update_traces(line=dict(color="#F36A2D", width=3))
+        show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
+    st.markdown("### Comparação da equipe")
     show_table(view, height=520, width="stretch", hide_index=True)
     if can_export:
         st.download_button(
@@ -277,10 +487,16 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     pages = []
     if "view_overview" in permissions:
         pages.append(("Visão executiva", "view_overview"))
+    if "view_clients" in permissions:
+        pages.append(("Clientes", "view_clients"))
+    if "view_products" in permissions:
+        pages.append(("Produtos", "view_products"))
     if "view_daily" in permissions:
         pages.append(("Performance diária", "view_daily"))
     if "view_sellers" in permissions:
         pages.append(("Vendedores", "view_sellers"))
+    if "view_insights" in permissions:
+        pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
         pages.append(("Tabela dinâmica", "view_pivot"))
     if "view_yoy" in permissions:
@@ -299,10 +515,16 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     can_export = "export_data" in permissions
     if permission == "view_overview":
         _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table)
+    elif permission == "view_clients":
+        _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_products":
+        _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_daily":
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":
-        _seller_view(data, show_chart, show_table, can_export)
+        _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_insights":
+        _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":
         _pivot(data, show_table, can_export)
     elif permission == "view_yoy":
@@ -321,4 +543,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
             st.session_state.chat.extend([("user", question), ("assistant", response)])
             st.rerun()
     elif permission == "manage_users":
-        render_user_admin(current_user)
+        render_user_admin(
+            current_user,
+            seller_options=sorted(history["Vendedor"].dropna().astype(str).unique().tolist()),
+        )
