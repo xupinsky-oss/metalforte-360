@@ -15,9 +15,11 @@ from src.auth import require_login, logout, ROLE_LABELS
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
 px.defaults.template="plotly_white"
 px.defaults.color_discrete_sequence=["#F36A2D","#2F8FD8","#34B27B","#F2B84B","#A78BFA","#EC6F91"]
-def brl(v): return (f"R$ {v:,.0f}").replace(",",".")
-def brl2(v):
-    return f"R$ {v:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+def _ptbr_number(v, decimals=2):
+    return f"{v:,.{decimals}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+def brl(v): return f"R$ {_ptbr_number(v, 2)}"
+def brl2(v): return f"R$ {_ptbr_number(v, 2)}"
+def integer(v): return _ptbr_number(v, 0)
 def pct(v): return f"{v*100:.2f}%".replace(".",",")
 def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 @st.cache_data(ttl=300,show_spinner="Carregando Metalforte 360...")
@@ -34,8 +36,12 @@ def _is_money_column(name):
     name=str(name).lower()
     return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto")) and not _is_fraction_percent(name) and "p.p." not in name
 
+def _is_weight_column(name):
+    name=str(name).lower()
+    return "peso" in name or "kg" in name
+
 def _numeric_column_config(data):
-    """Moeda em R$, margens em % e os demais números sem casas decimais."""
+    """Configuração de reserva para números que continuam numéricos na tabela."""
     config={}
     for col in data.columns:
         if not pd.api.types.is_numeric_dtype(data[col]): continue
@@ -44,30 +50,37 @@ def _numeric_column_config(data):
         elif "desvio_%" in name: fmt="%.2f%%"
         elif _is_fraction_percent(name): fmt="%.2f%%"
         elif "preço" in name or "preco" in name: fmt="R$ %.2f"
-        elif _is_money_column(name): fmt="R$ %.0f"
+        elif _is_money_column(name): fmt="R$ %.2f"
         else: fmt="%.0f"
         config[col]=st.column_config.NumberColumn(format=fmt)
     return config
 def show_table(data,**kwargs):
     display=data.copy()
     for col in display.columns:
-        if pd.api.types.is_numeric_dtype(display[col]) and _is_fraction_percent(col):
-            display[col]=display[col]*100
-        elif pd.api.types.is_numeric_dtype(display[col]) and _is_money_column(col):
-            use_decimals="preço" in str(col).lower() or "preco" in str(col).lower()
-            display[col]=display[col].map(lambda value: (brl2(value) if use_decimals else brl(value)) if pd.notna(value) else "—")
+        if not pd.api.types.is_numeric_dtype(display[col]): continue
+        name=str(col).lower()
+        if "p.p." in name or "delta_margem_pp" in name:
+            display[col]=display[col].map(lambda value: f"{value:.2f} p.p.".replace(".", ",") if pd.notna(value) else "—")
+        elif "desvio_%" in name:
+            display[col]=display[col].map(lambda value: f"{value:.2f}%".replace(".", ",") if pd.notna(value) else "—")
+        elif _is_fraction_percent(col):
+            display[col]=display[col].map(lambda value: pct(value) if pd.notna(value) else "—")
+        elif _is_money_column(col):
+            display[col]=display[col].map(lambda value: brl2(value) if pd.notna(value) else "—")
+        elif _is_weight_column(col):
+            display[col]=display[col].map(lambda value: integer(value) if pd.notna(value) else "—")
     inferred=_numeric_column_config(display)
     inferred.update(kwargs.pop("column_config",{}) or {})
     return st.dataframe(display,column_config=inferred,**kwargs)
 def show_chart(fig,**kwargs):
-    fig.update_layout(font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(font_size=14))
+    fig.update_layout(separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(font_size=14))
     fig.update_xaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
         axis=getattr(fig.layout,axis_name,None); title=((axis.title.text if axis and axis.title else "") or "").lower()
         if "desvio_%" in title: axis.update(tickformat=",.1f",ticksuffix="%")
         elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".2%")
-        elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.0f")
+        elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.2f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
     return st.plotly_chart(fig,width="stretch",**kwargs)
 

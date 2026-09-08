@@ -71,19 +71,54 @@ def _comparison_text(value, *, points=False):
     return f"{number:+.2f}{suffix}".replace(".", ",")
 
 
-def _metric_card(label, value, month_change, year_change, *, points=False):
-    month_class = "up" if (month_change or 0) >= 0 else "down"
-    year_class = "up" if (year_change or 0) >= 0 else "down"
+def _metric_card(label, value, comparisons):
+    comparison_html = []
+    for comparison_label, reference_value, change, points in comparisons:
+        direction = "neutral" if change is None or pd.isna(change) else ("up" if change >= 0 else "down")
+        arrow = "" if direction == "neutral" else ("↑ " if direction == "up" else "↓ ")
+        comparison_html.append(
+            f'<div class="mf-kpi-compare"><span class="mf-kpi-ref">{html.escape(comparison_label)}: '
+            f'{html.escape(reference_value)}</span><span class="mf-kpi-delta {direction}">'
+            f'{arrow}{html.escape(_comparison_text(change, points=points))}</span></div>'
+        )
     st.markdown(
         f"""
         <div class="mf-kpi">
           <div class="mf-kpi-label">{html.escape(label)}</div>
           <div class="mf-kpi-value">{html.escape(value)}</div>
-          <div class="mf-kpi-compare"><span class="{month_class}">Mês ant. {_comparison_text(month_change, points=points)}</span></div>
-          <div class="mf-kpi-compare"><span class="{year_class}">Ano ant. {_comparison_text(year_change, points=points)}</span></div>
+          {''.join(comparison_html)}
         </div>
         """, unsafe_allow_html=True,
     )
+
+
+def _quantity(value):
+    return f"{value:,.0f}".replace(",", ".")
+
+
+def _metric_value(key, value, brl, brl2, pct):
+    if key == "revenue":
+        return brl(value)
+    if key == "weight":
+        return f"{_quantity(value)} kg"
+    if key == "margin_pct":
+        return pct(value)
+    if key == "price_kg":
+        return brl2(value)
+    if key == "positive_clients":
+        return _quantity(value)
+    return _quantity(value)
+
+
+def _inject_kpi_styles():
+    st.markdown("""
+    <style>
+    .mf-kpi{background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:1rem;min-height:162px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
+    .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
+    .mf-kpi-compare{display:flex;align-items:center;justify-content:space-between;gap:.35rem;font-size:.72rem;line-height:1.55;white-space:nowrap}
+    .mf-kpi-ref{color:#64748B}.mf-kpi-delta{font-weight:700}.mf-kpi-delta.up{color:#177245}.mf-kpi-delta.down{color:#B33A2B}.mf-kpi-delta.neutral{color:#64748B}
+    </style>
+    """, unsafe_allow_html=True)
 
 
 def _monthly_summary(data):
@@ -128,13 +163,6 @@ def _compact_bar(view, dimension, title, limit=10):
 
 
 def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table):
-    st.markdown("""
-    <style>
-    .mf-kpi{background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:1rem;min-height:154px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
-    .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
-    .mf-kpi-compare{font-size:.79rem;line-height:1.45}.mf-kpi-compare .up{color:#177245}.mf-kpi-compare .down{color:#B33A2B}
-    </style>
-    """, unsafe_allow_html=True)
     st.subheader("Visão executiva")
     st.caption(
         f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
@@ -150,7 +178,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
         ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
         ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
-        ("Peso faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
+        ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
     ]
     for column, (label, value, key, points) in zip(cards, definitions):
         if points:
@@ -160,7 +188,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             mom = _relative(current[key], prior_month[key])
             yoy = _relative(current[key], prior_year[key])
         with column:
-            _metric_card(label, value, mom, yoy, points=points)
+            _metric_card(label, value, [
+                ("Mês ant.", _metric_value(key, prior_month[key], brl, brl2, pct), mom, points),
+                ("Ano ant.", _metric_value(key, prior_year[key], brl, brl2, pct), yoy, points),
+            ])
 
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
@@ -179,7 +210,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         elif selected == "Preço médio/kg":
             chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f")
         elif selected == "Faturamento":
-            chart.update_yaxes(tickprefix="R$ ", tickformat=",.0f")
+            chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f")
         _polish_chart(chart, height=370, x_title="", y_title=selected)
         chart.update_xaxes(dtick="M1", tickformat="%b/%y")
         show_chart(chart)
@@ -213,10 +244,16 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
     prior = history[history["Data"].dt.normalize() == prior_day]
     current, before = _period_metrics(today), _period_metrics(prior)
     cards = st.columns(4)
-    cards[0].metric("Faturamento", brl(current["revenue"]), _comparison_text(_relative(current["revenue"], before["revenue"])))
-    cards[1].metric("Preço médio/kg", brl2(current["price_kg"]), _comparison_text(_relative(current["price_kg"], before["price_kg"])))
-    cards[2].metric("Margem %", pct(current["margin_pct"]), _comparison_text((current["margin_pct"] - before["margin_pct"]) * 100, points=True))
-    cards[3].metric("Clientes positivados", current["positive_clients"], _comparison_text(_relative(current["positive_clients"], before["positive_clients"])))
+    daily_definitions = [
+        ("Faturamento", "revenue", False), ("Preço médio/kg", "price_kg", False),
+        ("Margem %", "margin_pct", True), ("Clientes positivados", "positive_clients", False),
+    ]
+    for column, (label, key, points) in zip(cards, daily_definitions):
+        change = ((current[key] - before[key]) * 100) if points else _relative(current[key], before[key])
+        with column:
+            _metric_card(label, _metric_value(key, current[key], brl, brl2, pct), [
+                ("Dia ant.", _metric_value(key, before[key], brl, brl2, pct), change, points)
+            ])
     st.caption(f"Comparação com o último dia disponível: {prior_day.strftime('%d/%m/%Y')}.")
     daily = data.groupby(data["Data"].dt.normalize()).agg(Faturamento=("Faturamento", "sum"), Margem=("Margem", "sum")).reset_index(names="Data")
     if not daily.empty:
@@ -238,7 +275,7 @@ def _reference_selector(key):
     return options[label], label.lower()
 
 
-def _comparison_cards(current, reference, brl, brl2, pct):
+def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
     cards = st.columns(5)
     definitions = [
         ("Faturamento", brl(current["revenue"]), "revenue", False),
@@ -250,11 +287,12 @@ def _comparison_cards(current, reference, brl, brl2, pct):
     for column, (label, value, key, points) in zip(cards, definitions):
         if points:
             delta = (current[key] - reference[key]) * 100
-            shown = _comparison_text(delta, points=True)
         else:
             delta = _relative(current[key], reference[key])
-            shown = _comparison_text(delta)
-        column.metric(label, value, shown)
+        with column:
+            _metric_card(label, value, [
+                (reference_label.capitalize(), _metric_value(key, reference[key], brl, brl2, pct), delta, points)
+            ])
 
 
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
@@ -269,7 +307,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     st.caption(
         f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}."
     )
-    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
 
     if selected != "Todos os clientes":
         before_end = client_history[client_history["Data"] <= pd.Timestamp(end_date)]
@@ -342,7 +380,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
     product_history = history if selected == "Todos os produtos" else history[history["Produto"].astype(str) == selected]
     reference, ref_start, ref_end = reference_period(product_history, start_date, end_date, mode)
     st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
-    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
 
     comparison = entity_comparison(current, reference, "Produto")
     if comparison.empty:
@@ -420,7 +458,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     seller_history = history if selected == "Todos os vendedores" else history[history["Vendedor"].astype(str) == selected]
     reference, ref_start, ref_end = reference_period(seller_history, start_date, end_date, mode)
     st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
-    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), brl, brl2, pct)
+    _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
     view = entity_comparison(current, reference, "Vendedor")
     if view.empty:
         st.info("Sem vendedores no período.")
@@ -484,6 +522,7 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
 
 def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
+    _inject_kpi_styles()
     pages = []
     if "view_overview" in permissions:
         pages.append(("Visão executiva", "view_overview"))
