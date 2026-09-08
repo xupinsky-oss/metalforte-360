@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
   const authorized = user.app_metadata?.etl_admin === true || (!!user.email && allowedEmails.includes(user.email.toLowerCase()));
   if (!authorized) return response(request, { error: "Usuário sem permissão para operar o ETL." }, 403);
 
-  const bucket = Deno.env.get("SUPABASE_BUCKET") ?? "metalforte-private";
+  const bucket = Deno.env.get("ETL_STORAGE_BUCKET") ?? "metalforte-private";
   async function readRun(path: string) {
     const { data, error } = await admin.storage.from(bucket).download(path);
     if (error || !data) return null;

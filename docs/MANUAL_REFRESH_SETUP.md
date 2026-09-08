@@ -17,7 +17,7 @@ Configure no ambiente do Supabase, nunca em `web/config.js`:
 - `GITHUB_WORKFLOW_REF`: `main`.
 - `ETL_ALLOWED_EMAILS`: e-mails autorizados, separados por vírgula.
 - `ETL_ALLOWED_ORIGINS`: origens web permitidas, separadas por vírgula.
-- `SUPABASE_BUCKET`: `metalforte-private`.
+- `ETL_STORAGE_BUCKET`: `metalforte-private`.
 
 Como alternativa à lista de e-mails, um administrador pode definir `app_metadata.etl_admin = true` no usuário. Nunca use `user_metadata` para autorização, pois o próprio usuário pode alterá-la.
 
