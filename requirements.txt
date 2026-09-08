@@ -1,7 +1,7 @@
-streamlit>=1.41
-pandas>=2.2
-numpy>=2.0
-plotly>=5.24
-requests>=2.32
-python-dateutil>=2.9
-rapidfuzz>=3.10
+streamlit==1.63.0
+pandas==3.0.5
+numpy==2.5.3
+plotly==7.0.0
+requests==2.34.2
+python-dateutil==2.9.0.post0
+rapidfuzz==3.14.6
