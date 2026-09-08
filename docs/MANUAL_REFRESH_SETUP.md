@@ -31,6 +31,11 @@ Como alternativa à lista de e-mails, um administrador pode definir `app_metadat
 6. Executar primeiro em `homologacao` e reconciliar a base/resumo.
 7. Somente depois habilitar e testar `producao`.
 
+A execução em `homologacao` publica em caminhos isolados no bucket privado:
+`bases/homologacao/metalforte_base.csv.gz` e
+`dashboard/homologacao/command-center.json`. A base ativa de produção não é
+substituída durante esse teste.
+
 ## Proteções
 
 - sessão Supabase obrigatória;

@@ -54,7 +54,9 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       SUPABASE_BUCKET: metalforte-private
-      SUPABASE_DATA_PATH: bases/metalforte_base.csv.gz
+      # A homologação publica em objetos isolados e nunca substitui a base ativa.
+      SUPABASE_DATA_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_base.csv.gz' || 'bases/metalforte_base.csv.gz' }}
+      SUPABASE_DASHBOARD_PATH: ${{ inputs.environment == 'homologacao' && 'dashboard/homologacao/command-center.json' || 'dashboard/command-center.json' }}
       ETL_REQUEST_ID: ${{ inputs.request_id || format('scheduled-{0}', github.run_id) }}
       ETL_ENVIRONMENT: ${{ inputs.environment || 'producao' }}
       ETL_SCOPE: ${{ inputs.scope || 'full' }}
