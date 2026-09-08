@@ -20,18 +20,19 @@ def load_data(path=None):
     if "Ano" not in df: df["Ano"]=df["Data"].dt.year
     for c in NUMERIC:
         if c in df: df[c]=pd.to_numeric(df[c],errors="coerce")
-    for c in ["UF","Município","Grupo Produto","Tipo Produto","Vendedor","Filial","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
+    for c in ["UF","Município","Grupo Produto","Tipo Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
     return df
 
-def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, vendedor=None, grupo=None, tipo=None, espessura=None, cliente_text="", produto_text="", start_date=None, end_date=None):
+def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, vendedor=None, canal=None, grupo=None, tipo=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df
     if start_date is not None: x=x[x["Data"]>=pd.Timestamp(start_date)]
     if end_date is not None: x=x[x["Data"]<pd.Timestamp(end_date)+pd.Timedelta(days=1)]
     if years: x=x[x["Ano"].isin(years)]
     if months: x=x[x["Data"].dt.month.isin(months)]
-    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Vendedor",vendedor),("Grupo Produto",grupo),("Tipo Produto",tipo),("Espessura",espessura)]:
-        if values: x=x[x[col].isin(values)]
+    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Vendedor",vendedor),("Canal",canal),("Grupo Produto",grupo),("Tipo Produto",tipo),("Espessura",espessura)]:
+        if values and col in x: x=x[x[col].isin(values)]
+    if cliente and "Cliente" in x: x=x[x["Cliente"]==cliente]
     if cliente_text: x=x[x["Cliente"].fillna("").str.contains(cliente_text,case=False,na=False)]
     if produto_text: x=x[x["Produto"].fillna("").str.contains(produto_text,case=False,na=False)]
     return x
