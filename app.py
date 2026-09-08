@@ -10,12 +10,14 @@ from src.analytics import metrics,group_metrics,client_classification,quick_insi
 from src.assistant import answer
 from src.cloud_storage import download_status
 from src.operational_dashboard import render as render_operational_dashboard
+from src.auth import require_login, logout, ROLE_LABELS
 
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
 px.defaults.template="plotly_white"
 px.defaults.color_discrete_sequence=["#F36A2D","#2F8FD8","#34B27B","#F2B84B","#A78BFA","#EC6F91"]
 def brl(v): return (f"R$ {v:,.0f}").replace(",",".")
-def brl2(v): return brl(v)
+def brl2(v):
+    return f"R$ {v:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
 def pct(v): return f"{v*100:.2f}%".replace(".",",")
 def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 @st.cache_data(ttl=300,show_spinner="Carregando Metalforte 360...")
@@ -41,6 +43,7 @@ def _numeric_column_config(data):
         if "p.p." in name or "delta_margem_pp" in name: fmt="%.2f p.p."
         elif "desvio_%" in name: fmt="%.2f%%"
         elif _is_fraction_percent(name): fmt="%.2f%%"
+        elif "preço" in name or "preco" in name: fmt="R$ %.2f"
         elif _is_money_column(name): fmt="R$ %.0f"
         else: fmt="%.0f"
         config[col]=st.column_config.NumberColumn(format=fmt)
@@ -51,7 +54,8 @@ def show_table(data,**kwargs):
         if pd.api.types.is_numeric_dtype(display[col]) and _is_fraction_percent(col):
             display[col]=display[col]*100
         elif pd.api.types.is_numeric_dtype(display[col]) and _is_money_column(col):
-            display[col]=display[col].map(lambda value: brl(value) if pd.notna(value) else "—")
+            use_decimals="preço" in str(col).lower() or "preco" in str(col).lower()
+            display[col]=display[col].map(lambda value: (brl2(value) if use_decimals else brl(value)) if pd.notna(value) else "—")
     inferred=_numeric_column_config(display)
     inferred.update(kwargs.pop("column_config",{}) or {})
     return st.dataframe(display,column_config=inferred,**kwargs)
@@ -97,6 +101,7 @@ def yoy_comparison(current,previous,dimension):
     result.loc[(result['Faturamento anterior']>0)&(result['Variação %']<=-.02),'Situação']='Retração'
     return result[columns].sort_values('Δ Faturamento',ascending=False)
 
+access=require_login()
 df=get_data(); load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
 load_timestamp=pd.to_datetime(load_status.get('atualizado_em'),errors='coerce')
 if pd.notna(load_timestamp):
@@ -112,7 +117,7 @@ with head_logo:
     if logo_path.exists(): st.image(str(logo_path),width=190)
 with head_title:
     st.title("METALFORTE 360")
-    st.caption(f"Command Center Comercial • carteira • preço • planejamento • IA  |  Última carga: {last_load}")
+    st.caption(f"Painel comercial • visão executiva e comparativos  |  Última carga: {last_load}")
 st.markdown("""<style>
 html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
@@ -143,8 +148,16 @@ button,input,[role="combobox"]{font-size:.95rem!important}
 
 with st.sidebar:
     if logo_path.exists(): st.image(str(logo_path),width=220)
+    user=access["user"]
+    display_name=(user.get("user_metadata") or {}).get("display_name") or user.get("email", "Usuário")
+    st.caption(f"Conectado como **{display_name}**  \n{ROLE_LABELS.get(access['role'], access['role'])}")
+    if st.button("Sair", width="stretch"):
+        logout(); st.rerun()
+    st.divider()
     st.header("Filtros")
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Última carga: {last_load}</span>',unsafe_allow_html=True)
+    if st.button("Atualizar visualização", width="stretch"):
+        st.cache_data.clear(); st.rerun()
     with st.container(key="period_filter"):
         st.subheader("Período")
         with st.form("period_form",border=False):
@@ -154,8 +167,17 @@ with st.sidebar:
     elif isinstance(selected_dates,(tuple,list)) and len(selected_dates)==1: start_date=end_date=selected_dates[0]
     else: start_date=end_date=selected_dates
     st.caption(f"Período disponível: {base_min.strftime('%d/%m/%Y')} a {last_update}")
-    names={1:"Jan",2:"Fev",3:"Mar",4:"Abr",5:"Mai",6:"Jun",7:"Jul",8:"Ago",9:"Set",10:"Out",11:"Nov",12:"Dez"}
-    filial=st.multiselect("Filial",sorted(df["Filial"].unique())); uf=st.multiselect("UF",sorted(df["UF"].unique())); pool=df if not uf else df[df["UF"].isin(uf)]; city=st.multiselect("Município",sorted(pool["Município"].unique())); vend=st.multiselect("Vendedor",sorted(df["Vendedor"].unique())); grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique())); tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique())); esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique())); ct=st.text_input("Buscar cliente"); pt=st.text_input("Buscar produto")
+    filial=st.multiselect("Filial",sorted(df["Filial"].unique()))
+    uf=st.multiselect("UF",sorted(df["UF"].unique()))
+    vend=st.multiselect("Vendedor",sorted(df["Vendedor"].unique()))
+    with st.expander("Mais filtros"):
+        pool=df if not uf else df[df["UF"].isin(uf)]
+        city=st.multiselect("Município",sorted(pool["Município"].unique()))
+        grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
+        tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
+        esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
+        ct=st.text_input("Buscar cliente")
+        pt=st.text_input("Buscar produto")
 f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,grupo=grupo,tipo=tipo,espessura=esp,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
@@ -167,6 +189,7 @@ if f.empty:
 
 render_operational_dashboard(
     f, monitor_scope, start_date, end_date, last_load,
-    brl, pct, pp, show_chart, show_table,
+    brl, brl2, pct, pp, show_chart, show_table,
+    permissions=access["permissions"], current_user=access["user"],
 )
 st.stop()
