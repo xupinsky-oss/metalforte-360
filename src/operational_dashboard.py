@@ -1,27 +1,23 @@
-"""Visões operacionais enxutas do METALFORTE 360."""
+"""Painel comercial simplificado, comparável e controlado por permissões."""
+
+import html
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
-from src.analytics import compare_periods, group_metrics, metrics
+from src.analytics import group_metrics, metrics
 from src.assistant import answer
+from src.auth import render_user_admin
 
 
-def _polish_chart(chart, *, height=None, x_title=None, y_title=None):
-    """Padroniza os gráficos para leitura rápida e sem ruído visual."""
+def _polish_chart(chart, *, height=380, x_title=None, y_title=None):
     chart.update_layout(
-        height=height,
-        template="plotly_white",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Arial, sans-serif", size=12, color="#243447"),
+        height=height, template="plotly_white", paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)", font=dict(family="Arial, sans-serif", size=12, color="#243447"),
         title=dict(font=dict(size=16, color="#243447"), x=0, xanchor="left"),
-        margin=dict(l=18, r=72, t=58, b=42),
-        showlegend=False,
-        hoverlabel=dict(bgcolor="#243447", font_color="white"),
+        margin=dict(l=18, r=58, t=58, b=42), hoverlabel=dict(bgcolor="#243447", font_color="white"),
     )
     if x_title is not None:
         chart.update_xaxes(title=x_title)
@@ -32,281 +28,297 @@ def _polish_chart(chart, *, height=None, x_title=None, y_title=None):
     return chart
 
 
-def _classification_columns(data):
-    candidates = [
-        "Segmento Cliente", "Grupo Cliente", "Classificação Cliente",
-        "Classificacao Cliente", "Tipo Cliente", "Ramo Atividade",
-        "Curva Cliente",
-    ]
-    return [column for column in candidates if column in data.columns]
+def _positive_clients(data):
+    """Clientes com faturamento líquido positivo no período."""
+    if data.empty:
+        return 0
+    return int((data.groupby("Cliente", dropna=False)["Faturamento"].sum() > 0).sum())
+
+
+def _period_metrics(data):
+    result = metrics(data)
+    result["positive_clients"] = _positive_clients(data)
+    return result
+
+
+def _shifted_period(history, start_date, end_date, *, months=0, years=0):
+    offset = pd.DateOffset(months=months, years=years)
+    start = pd.Timestamp(start_date) - offset
+    end = pd.Timestamp(end_date) - offset
+    return history[(history["Data"] >= start) & (history["Data"] < end + pd.Timedelta(days=1))]
+
+
+def _relative(current, reference):
+    if not reference or pd.isna(reference):
+        return None
+    return current / reference - 1
+
+
+def _comparison_text(value, *, points=False):
+    if value is None or pd.isna(value):
+        return "sem base"
+    suffix = " p.p." if points else "%"
+    number = value if points else value * 100
+    return f"{number:+.2f}{suffix}".replace(".", ",")
+
+
+def _metric_card(label, value, month_change, year_change, *, points=False):
+    month_class = "up" if (month_change or 0) >= 0 else "down"
+    year_class = "up" if (year_change or 0) >= 0 else "down"
+    st.markdown(
+        f"""
+        <div class="mf-kpi">
+          <div class="mf-kpi-label">{html.escape(label)}</div>
+          <div class="mf-kpi-value">{html.escape(value)}</div>
+          <div class="mf-kpi-compare"><span class="{month_class}">Mês ant. {_comparison_text(month_change, points=points)}</span></div>
+          <div class="mf-kpi-compare"><span class="{year_class}">Ano ant. {_comparison_text(year_change, points=points)}</span></div>
+        </div>
+        """, unsafe_allow_html=True,
+    )
+
+
+def _monthly_summary(data):
+    if data.empty:
+        return pd.DataFrame()
+    source = data.dropna(subset=["Data"]).copy()
+    source["Mês"] = source["Data"].dt.to_period("M").dt.to_timestamp()
+    totals = source.groupby("Mês", as_index=False).agg(
+        Faturamento=("Faturamento", "sum"), Peso=("Peso", "sum"), Margem=("Margem", "sum")
+    )
+    clients = source.groupby(["Mês", "Cliente"], dropna=False)["Faturamento"].sum().gt(0).groupby(level=0).sum()
+    totals["Preço médio/kg"] = totals["Faturamento"] / totals["Peso"].replace(0, pd.NA)
+    totals["Margem %"] = totals["Margem"] / totals["Faturamento"].replace(0, pd.NA)
+    totals["Clientes positivados"] = totals["Mês"].map(clients).fillna(0).astype(int)
+    totals["Mês referência"] = totals["Mês"].dt.strftime("%m/%Y")
+    return totals.sort_values("Mês")
 
 
 def _summary(data, dimension, total):
     if data.empty or dimension not in data.columns:
         return pd.DataFrame()
-    result = group_metrics(data, dimension).rename(columns={
-        "faturamento": "Faturamento", "margem": "Margem",
-        "margem_pct": "Margem %", "peso": "Peso (kg)",
-        "clientes": "Clientes", "produtos": "Produtos",
-        "preco_kg": "Preço médio / kg", "nfs": "Notas fiscais",
+    view = group_metrics(data, dimension).rename(columns={
+        "faturamento": "Faturamento", "margem": "Margem", "margem_pct": "Margem %",
+        "peso": "Peso (kg)", "clientes": "Clientes positivados", "produtos": "Produtos",
+        "preco_kg": "Preço médio/kg", "nfs": "Notas fiscais",
     })
-    result["Participação %"] = result["Faturamento"] / total if total else 0
-    return result.sort_values("Faturamento", ascending=False)
+    positive = data.groupby([dimension, "Cliente"], dropna=False)["Faturamento"].sum().gt(0).groupby(level=0).sum()
+    view["Clientes positivados"] = view[dimension].map(positive).fillna(0).astype(int)
+    view["Participação %"] = view["Faturamento"] / total if total else 0
+    return view.sort_values("Faturamento", ascending=False)
 
 
-def _compact_bar(view, dimension, title, color="#F36A2D", limit=10):
-    """Ranking enxuto: barras ordenadas, rótulos diretos e sem legenda redundante."""
+def _compact_bar(view, dimension, title, limit=10):
     ranked = view.head(limit).sort_values("Faturamento")
     chart = px.bar(
-        ranked, x="Faturamento", y=dimension, orientation="h",
-        title=title, color_discrete_sequence=[color],
-        text=ranked["Faturamento"].map(lambda value: f"R$ {value / 1_000_000:.1f} mi" if abs(value) >= 1_000_000 else f"R$ {value / 1_000:.0f} mil"),
-        hover_data={"Peso (kg)": ":,.0f", "Participação %": ":.2%", "Margem %": ":.2%", "Clientes": ":,.0f"},
+        ranked, x="Faturamento", y=dimension, orientation="h", title=title,
+        color_discrete_sequence=["#F36A2D"],
+        hover_data={"Preço médio/kg": ":.2f", "Margem %": ":.2%", "Clientes positivados": ":,.0f"},
     )
-    chart.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0)
-    _polish_chart(chart, height=max(330, 32 * len(ranked) + 100), x_title="Faturamento (R$)", y_title="")
-    chart.update_xaxes(rangemode="tozero")
-    return chart
+    chart.update_traces(marker_line_width=0)
+    return _polish_chart(chart, height=max(330, 31 * len(ranked) + 100), x_title="Faturamento (R$)", y_title="")
 
 
-def _breakdown_panel(data, dimension, title, total, show_chart, show_table):
-    view = _summary(data, dimension, total)
-    st.markdown(f"### {title}")
-    if view.empty:
-        st.info("Sem informações para este recorte no período selecionado.")
-        return
-    chart_col, table_col = st.columns([1.15, 1], gap="large")
-    detail = view[[dimension, "Faturamento", "Participação %", "Peso (kg)", "Margem %", "Clientes", "Produtos"]]
-    with chart_col:
-        show_chart(_compact_bar(view, dimension, f"Top 10 por faturamento"))
-    with table_col:
-        st.caption("Valores exatos e indicadores complementares")
-        show_table(detail.head(10), height=420, width="stretch", hide_index=True)
-    if len(detail) > 10:
-        with st.expander(f"Ver todos os {dimension.lower()}s ({len(detail):,})".replace(",", ".")):
-            show_table(detail, height=480, width="stretch", hide_index=True)
-
-
-def _command_center(data, history, start_date, end_date, last_load, brl, pct, pp, show_chart, show_table):
-    st.subheader("Command Center Comercial")
+def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table):
+    st.markdown("""
+    <style>
+    .mf-kpi{background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:1rem;min-height:154px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
+    .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
+    .mf-kpi-compare{font-size:.79rem;line-height:1.45}.mf-kpi-compare .up{color:#177245}.mf-kpi-compare .down{color:#B33A2B}
+    </style>
+    """, unsafe_allow_html=True)
+    st.subheader("Visão executiva")
     st.caption(
-        f"Visão operacional de {start_date.strftime('%d/%m/%Y')} a "
-        f"{end_date.strftime('%d/%m/%Y')} • última carga: {last_load}"
+        f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
+        f"comparações usam o mesmo intervalo deslocado em 1 mês e 1 ano • carga: {last_load}"
     )
-    current = metrics(data)
-    comparison = compare_periods(history, start_date, end_date, "Vendedor", 1000)
-    previous = comparison["previous_metrics"]
-    revenue_growth = (current["revenue"] / previous["revenue"] - 1) if previous["revenue"] else 0
-    margin_delta = (current["margin_pct"] - previous["margin_pct"]) * 100
+    current = _period_metrics(data)
+    prior_month = _period_metrics(_shifted_period(history, start_date, end_date, months=1))
+    prior_year = _period_metrics(_shifted_period(history, start_date, end_date, years=1))
 
-    cards = st.columns(6)
-    cards[0].metric("Faturamento", brl(current["revenue"]), delta=f"{revenue_growth:+.1%}".replace(".", ","))
-    cards[1].metric("Peso faturado", f"{current['weight']:,.0f} kg".replace(",", "."))
-    cards[2].metric("Margem", brl(current["margin"]), delta=pp(margin_delta))
-    cards[3].metric("Margem %", pct(current["margin_pct"]))
-    cards[4].metric("Clientes", f"{current['clients']:,}".replace(",", "."))
-    cards[5].metric("Preço médio/kg", brl(current["price_kg"]))
+    cards = st.columns(5)
+    definitions = [
+        ("Faturamento", brl(current["revenue"]), "revenue", False),
+        ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
+        ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
+        ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
+        ("Peso faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
+    ]
+    for column, (label, value, key, points) in zip(cards, definitions):
+        if points:
+            mom = (current[key] - prior_month[key]) * 100
+            yoy = (current[key] - prior_year[key]) * 100
+        else:
+            mom = _relative(current[key], prior_month[key])
+            yoy = _relative(current[key], prior_year[key])
+        with column:
+            _metric_card(label, value, mom, yoy, points=points)
 
-    st.markdown("### Evolução mensal")
+    st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
-    monthly = history[
-        (history["Data"] >= monthly_start)
-        & (history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1))
-    ].dropna(subset=["Data"]).copy()
+    monthly = _monthly_summary(history[(history["Data"] >= monthly_start) & (history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1))])
     if monthly.empty:
-        st.info("Sem dados mensais para o período selecionado.")
+        st.info("Sem dados mensais para o período.")
     else:
-        monthly["Mês"] = monthly["Data"].dt.to_period("M").dt.to_timestamp()
-        monthly = monthly.groupby("Mês", as_index=False).agg(
-            Faturamento=("Faturamento", "sum"), Peso=("Peso", "sum"), Margem=("Margem", "sum")
+        selected = st.segmented_control(
+            "Indicador", ["Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados"],
+            default="Faturamento", key="executive_trend_metric",
         )
-        monthly["Margem %"] = monthly["Margem"] / monthly["Faturamento"].replace(0, pd.NA)
-        monthly["Mês referência"] = monthly["Mês"].dt.strftime("%m/%Y")
-        metric = st.segmented_control(
-            "Exibir faturamento em", ["R$", "kg"], default="R$", key="command_monthly_metric",
-        )
-        value_column = "Faturamento" if metric == "R$" else "Peso"
-        unit_label = "Faturamento (R$)" if metric == "R$" else "Peso faturado (kg)"
-        chart_col, table_col = st.columns([1.45, 1], gap="large")
-        with chart_col:
-            chart = go.Figure()
-            chart.add_bar(
-                x=monthly["Mês"], y=monthly[value_column], name=unit_label,
-                marker_color="#F36A2D", marker_line_width=0,
-                hovertemplate="%{x|%m/%Y}<br>" + unit_label + ": %{y:,.0f}<extra></extra>",
-            )
-            chart.add_scatter(
-                x=monthly["Mês"], y=monthly["Margem %"], name="Margem %",
-                yaxis="y2", mode="lines+markers",
-                line=dict(color="#243447", width=3), marker=dict(size=7, color="#243447"),
-                hovertemplate="%{x|%m/%Y}<br>Margem: %{y:.2%}<extra></extra>",
-            )
-            chart.update_layout(
-                title=f"{unit_label} e margem mensal",
-                height=390, barmode="group", showlegend=True,
-                legend=dict(orientation="h", y=1.12, x=0),
-                yaxis=dict(title=unit_label, rangemode="tozero"),
-                yaxis2=dict(title="Margem %", overlaying="y", side="right", tickformat=".1%", showgrid=False),
-            )
-            _polish_chart(chart, height=390, x_title="", y_title=unit_label)
-            chart.update_layout(showlegend=True, legend=dict(orientation="h", y=1.12, x=0))
-            chart.update_xaxes(dtick="M1", tickformat="%b/%y")
-            show_chart(chart)
-        with table_col:
-            st.caption("Resumo mensal para conferência")
+        chart = px.line(monthly, x="Mês", y=selected, markers=True, title=f"{selected} nos últimos 12 meses")
+        chart.update_traces(line=dict(color="#F36A2D", width=3), marker=dict(size=7))
+        if selected == "Margem %":
+            chart.update_yaxes(tickformat=".2%")
+        elif selected == "Preço médio/kg":
+            chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f")
+        elif selected == "Faturamento":
+            chart.update_yaxes(tickprefix="R$ ", tickformat=",.0f")
+        _polish_chart(chart, height=370, x_title="", y_title=selected)
+        chart.update_xaxes(dtick="M1", tickformat="%b/%y")
+        show_chart(chart)
+        with st.expander("Conferir valores mensais"):
             show_table(
-                monthly[["Mês referência", "Faturamento", "Peso", "Margem %"]].sort_values("Mês referência", ascending=False),
-                height=390, width="stretch", hide_index=True,
+                monthly[["Mês referência", "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados"]]
+                .iloc[::-1], height=390, width="stretch", hide_index=True,
             )
 
-    total = current["revenue"]
-    customer_classes = _classification_columns(data)
-    if customer_classes:
-        customer_class = st.selectbox(
-            "Classificação do cliente", customer_classes,
-            help="Segmento e Tipologia vêm do cadastro do cliente no GoodData; Curva Cliente representa somente valor A/B/C.",
-            key="command_customer_classification",
-        )
-        _breakdown_panel(data, customer_class, "Painel por grupo de clientes", total, show_chart, show_table)
-        st.caption(f"Classificação utilizada diretamente da base: {customer_class}.")
+    st.markdown("### Detalhamento")
+    dimensions = [column for column in ("Vendedor", "Grupo Produto", "Segmento Cliente", "UF", "Município") if column in data.columns]
+    dimension = st.selectbox("Analisar por", dimensions, key="executive_breakdown")
+    view = _summary(data, dimension, current["revenue"])
+    if view.empty:
+        st.info("Sem informações para o detalhamento selecionado.")
     else:
-        st.markdown("### Painel por grupo de clientes")
-        st.warning("A carga não possui uma classificação de cliente. Inclua Grupo/Segmento/Tipo Cliente na origem GoodData.")
-    _breakdown_panel(data, "Grupo Produto", "Painel por grupo de produtos", total, show_chart, show_table)
-    _breakdown_panel(data, "Vendedor", "Painel por vendedor", total, show_chart, show_table)
-    _breakdown_panel(data, "Município", "Painel por cidade", total, show_chart, show_table)
+        show_chart(_compact_bar(view, dimension, f"Top 10 por {dimension.lower()}"))
+        with st.expander("Ver tabela do detalhamento"):
+            show_table(
+                view[[dimension, "Faturamento", "Participação %", "Preço médio/kg", "Margem %", "Clientes positivados"]],
+                height=480, width="stretch", hide_index=True,
+            )
 
 
-def _daily(data, history, start_date, end_date, brl, pct, show_chart, show_table):
-    st.subheader("Performance do Dia")
+def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
+    st.subheader("Performance diária")
     day = pd.Timestamp(end_date)
     today = history[history["Data"].dt.normalize() == day]
-    prior = history[history["Data"].dt.normalize() == day - pd.Timedelta(days=1)]
-    tm, pm = metrics(today), metrics(prior)
-    cards = st.columns(5)
-    cards[0].metric("Faturamento do dia", brl(tm["revenue"]), delta=brl(tm["revenue"] - pm["revenue"]))
-    cards[1].metric("Peso do dia", f"{tm['weight']:,.0f} kg".replace(",", "."))
-    cards[2].metric("Margem %", pct(tm["margin_pct"]))
-    cards[3].metric("Clientes compradores", f"{tm['clients']:,}".replace(",", "."))
-    cards[4].metric("Notas fiscais", f"{tm['invoices']:,}".replace(",", "."))
-    daily = data.groupby(data["Data"].dt.normalize()).agg(Faturamento=("Faturamento", "sum"), Peso=("Peso", "sum"), Margem=("Margem", "sum")).reset_index(names="Data")
+    previous_dates = history.loc[history["Data"].dt.normalize() < day, "Data"].dropna()
+    prior_day = previous_dates.max().normalize() if not previous_dates.empty else day - pd.Timedelta(days=1)
+    prior = history[history["Data"].dt.normalize() == prior_day]
+    current, before = _period_metrics(today), _period_metrics(prior)
+    cards = st.columns(4)
+    cards[0].metric("Faturamento", brl(current["revenue"]), _comparison_text(_relative(current["revenue"], before["revenue"])))
+    cards[1].metric("Preço médio/kg", brl2(current["price_kg"]), _comparison_text(_relative(current["price_kg"], before["price_kg"])))
+    cards[2].metric("Margem %", pct(current["margin_pct"]), _comparison_text((current["margin_pct"] - before["margin_pct"]) * 100, points=True))
+    cards[3].metric("Clientes positivados", current["positive_clients"], _comparison_text(_relative(current["positive_clients"], before["positive_clients"])))
+    st.caption(f"Comparação com o último dia disponível: {prior_day.strftime('%d/%m/%Y')}.")
+    daily = data.groupby(data["Data"].dt.normalize()).agg(Faturamento=("Faturamento", "sum"), Margem=("Margem", "sum")).reset_index(names="Data")
     if not daily.empty:
-        daily["Margem %"] = daily["Margem"] / daily["Faturamento"].replace(0, pd.NA)
-        chart_col, table_col = st.columns([1.4, 1], gap="large")
-        with chart_col:
-            chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário de faturamento")
-            chart.update_traces(line=dict(color="#F36A2D", width=3), marker=dict(size=7))
-            _polish_chart(chart, height=380, x_title="", y_title="Faturamento (R$)")
-            show_chart(chart)
-        with table_col:
-            st.caption("Fechamento diário do período")
-            show_table(daily.sort_values("Data", ascending=False), height=380, width="stretch", hide_index=True)
-    for dimension in ("Vendedor", "Cliente", "Grupo Produto"):
-        view = _summary(today, dimension, tm["revenue"])
-        if not view.empty:
-            st.markdown(f"### Resultado do dia por {dimension.lower()}")
-            show_table(view.head(100), height=330, width="stretch", hide_index=True)
+        chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário de faturamento")
+        chart.update_traces(line=dict(color="#F36A2D", width=3))
+        show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
+        with st.expander("Conferir fechamento diário"):
+            daily["Margem %"] = daily["Margem"] / daily["Faturamento"].replace(0, pd.NA)
+            show_table(daily.sort_values("Data", ascending=False), height=420, width="stretch", hide_index=True)
 
 
-def _seller_view(data, history, start_date, end_date, brl, pct, pp, show_chart, show_table):
-    st.subheader("Visão por Vendedor")
-    comparison = compare_periods(history, start_date, end_date, "Vendedor", 1000)
-    current = _summary(comparison["current"], "Vendedor", comparison["current_metrics"]["revenue"])
-    previous = group_metrics(comparison["previous"], "Vendedor")[["Vendedor", "faturamento", "margem_pct"]].rename(columns={"faturamento": "Faturamento anterior", "margem_pct": "Margem % anterior"}) if not comparison["previous"].empty else pd.DataFrame(columns=["Vendedor", "Faturamento anterior", "Margem % anterior"])
-    team = current.merge(previous, on="Vendedor", how="outer").fillna(0)
-    team["Variação %"] = (team["Faturamento"] - team["Faturamento anterior"]) / team["Faturamento anterior"].replace(0, pd.NA)
-    team["Δ Margem p.p."] = (team["Margem %"] - team["Margem % anterior"]) * 100
-    team["Performance"] = np.select(
-        [(team["Variação %"] >= 0) & (team["Δ Margem p.p."] >= 0), (team["Variação %"] >= 0), (team["Δ Margem p.p."] >= 0)],
-        ["Crescimento rentável", "Crescimento com pressão", "Queda com margem protegida"], default="Queda com pressão",
-    )
-    chart_col, table_col = st.columns([1.15, 1], gap="large")
-    with chart_col:
-        show_chart(_compact_bar(team, "Vendedor", "Top 10 vendedores por faturamento", color="#2F8FD8"))
-    with table_col:
-        st.caption("Performance e comparação com o período anterior")
-        show_table(team.head(10), height=420, width="stretch", hide_index=True)
-    with st.expander(f"Ver equipe completa ({len(team):,} vendedores)".replace(",", ".")):
-        show_table(team, height=520, width="stretch", hide_index=True)
-    st.download_button("Exportar vendedores", team.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "performance_vendedores.csv", "text/csv", width="stretch")
+def _seller_view(data, show_chart, show_table, can_export):
+    st.subheader("Visão por vendedor")
+    view = _summary(data, "Vendedor", data["Faturamento"].sum())
+    if view.empty:
+        st.info("Sem vendedores no período.")
+        return
+    show_chart(_compact_bar(view, "Vendedor", "Vendedores por faturamento"))
+    show_table(view, height=520, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button(
+            "Exportar vendedores", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "performance_vendedores.csv", "text/csv", width="stretch",
+        )
 
 
-def _pivot(data, show_table):
-    st.subheader("Tabela Dinâmica")
-    dimensions = [c for c in ["Vendedor", "Cliente", "Grupo Produto", "Tipo Produto", "Produto", "Filial", "UF", "Município", "Curva Cliente", "Mes"] if c in data.columns]
+def _pivot(data, show_table, can_export):
+    st.subheader("Tabela dinâmica")
+    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Produto", "Filial", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
-    metrics_selected = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes", "Produtos", "Notas fiscais"], default=["Faturamento", "Peso", "Margem"])
+    selected_metrics = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes"], default=["Faturamento", "Margem"])
     if not rows:
         st.info("Selecione pelo menos uma dimensão.")
         return
-    aggregations = {"Faturamento": ("Faturamento", "sum"), "Peso": ("Peso", "sum"), "Margem": ("Margem", "sum"), "Clientes": ("Cliente", "nunique"), "Produtos": ("Produto", "nunique"), "Notas fiscais": ("NF", "nunique")}
-    selected = {name: aggregations[name] for name in metrics_selected}
-    result = data.groupby(rows, dropna=False).agg(**selected).reset_index() if selected else data[rows].drop_duplicates()
+    definitions = {"Faturamento": ("Faturamento", "sum"), "Peso": ("Peso", "sum"), "Margem": ("Margem", "sum"), "Clientes": ("Cliente", "nunique")}
+    result = data.groupby(rows, dropna=False).agg(**{name: definitions[name] for name in selected_metrics}).reset_index()
     if "Faturamento" in result and "Margem" in result:
         result["Margem %"] = result["Margem"] / result["Faturamento"].replace(0, pd.NA)
     show_table(result, height=620, width="stretch", hide_index=True)
-    st.download_button("Exportar tabela dinâmica", result.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "tabela_dinamica.csv", "text/csv", width="stretch")
+    if can_export:
+        st.download_button("Exportar tabela", result.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "tabela_dinamica.csv", "text/csv", width="stretch")
 
 
 def _yoy(data, history, start_date, end_date, show_chart, show_table):
-    st.subheader("Comparativo com o mesmo período do ano anterior")
-    dimension = st.selectbox("Analisar por", ["Vendedor", "Cliente", "Grupo Produto", "Produto", "UF", "Município"])
-    current = data
-    prior_start, prior_end = pd.Timestamp(start_date) - pd.DateOffset(years=1), pd.Timestamp(end_date) - pd.DateOffset(years=1)
-    previous = history[(history["Data"] >= prior_start) & (history["Data"] < prior_end + pd.Timedelta(days=1))]
-    cur = group_metrics(current, dimension).set_index(dimension)[["faturamento", "margem"]]
-    prev = group_metrics(previous, dimension).set_index(dimension)[["faturamento", "margem"]]
-    result = cur.join(prev, how="outer", lsuffix=" atual", rsuffix=" anterior").fillna(0).reset_index()
-    result["Δ Faturamento"] = result["faturamento atual"] - result["faturamento anterior"]
-    result["Variação %"] = result["Δ Faturamento"] / result["faturamento anterior"].replace(0, pd.NA)
-    result["Margem % atual"] = result["margem atual"] / result["faturamento atual"].replace(0, pd.NA)
-    result = result.sort_values("Δ Faturamento", ascending=False)
-    ranked = result.reindex(result["Δ Faturamento"].abs().sort_values(ascending=False).index).head(12).sort_values("Δ Faturamento")
-    colors = np.where(ranked["Δ Faturamento"] >= 0, "#2F8FD8", "#F3B28F")
-    chart = go.Figure(go.Bar(
-        x=ranked["Δ Faturamento"], y=ranked[dimension], orientation="h",
-        marker_color=colors,
-        text=ranked["Δ Faturamento"].map(lambda value: f"{value / 1_000:+.0f} mil"), textposition="outside",
-        customdata=ranked[["faturamento atual", "faturamento anterior", "Variação %"]],
-        hovertemplate="%{y}<br>Variação: R$ %{x:,.0f}<br>Atual: R$ %{customdata[0]:,.0f}<br>Ano anterior: R$ %{customdata[1]:,.0f}<br>Variação: %{customdata[2]:.2%}<extra></extra>",
-    ))
-    _polish_chart(chart, height=470, x_title="Variação de faturamento (R$)", y_title="")
-    chart.update_layout(title="Movimentações de faturamento vs. ano anterior")
-    chart.update_xaxes(zeroline=True, zerolinewidth=1.5, zerolinecolor="#64748B")
-    chart_col, table_col = st.columns([1.15, 1], gap="large")
-    with chart_col:
-        show_chart(chart)
-    with table_col:
-        st.caption("Valores atuais, anteriores e variação")
-        show_table(result.head(12), height=470, width="stretch", hide_index=True)
-    with st.expander(f"Ver comparativo completo ({len(result):,} registros)".replace(",", ".")):
-        show_table(result, height=550, width="stretch", hide_index=True)
+    st.subheader("Comparativo com o ano anterior")
+    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "UF", "Município") if column in data.columns]
+    dimension = st.selectbox("Analisar por", dimensions, key="yoy_dimension")
+    previous = _shifted_period(history, start_date, end_date, years=1)
+    current_view = _summary(data, dimension, data["Faturamento"].sum()).set_index(dimension)
+    prior_view = _summary(previous, dimension, previous["Faturamento"].sum()).set_index(dimension)
+    result = current_view[["Faturamento", "Margem %", "Preço médio/kg", "Clientes positivados"]].join(
+        prior_view[["Faturamento", "Margem %", "Preço médio/kg", "Clientes positivados"]], how="outer", lsuffix=" atual", rsuffix=" ano anterior"
+    ).fillna(0).reset_index()
+    result["Variação faturamento %"] = np.where(
+        result["Faturamento ano anterior"] != 0,
+        result["Faturamento atual"] / result["Faturamento ano anterior"] - 1, np.nan,
+    )
+    result = result.sort_values("Faturamento atual", ascending=False)
+    chart = px.bar(result.head(12), x=dimension, y=["Faturamento atual", "Faturamento ano anterior"], barmode="group", title="Faturamento atual x ano anterior")
+    show_chart(_polish_chart(chart, height=430, x_title="", y_title="Faturamento (R$)"))
+    show_table(result, height=520, width="stretch", hide_index=True)
 
 
-def render(data, history, start_date, end_date, last_load, brl, pct, pp, show_chart, show_table):
-    """Renderiza somente as páginas operacionais autorizadas."""
-    tabs = st.tabs(["Command Center", "Performance do Dia", "Visão por Vendedor", "Tabela Dinâmica", "Comparativo YoY", "Assistente IA"])
-    with tabs[0]:
-        _command_center(data, history, start_date, end_date, last_load, brl, pct, pp, show_chart, show_table)
-    with tabs[1]:
-        _daily(data, history, start_date, end_date, brl, pct, show_chart, show_table)
-    with tabs[2]:
-        _seller_view(data, history, start_date, end_date, brl, pct, pp, show_chart, show_table)
-    with tabs[3]:
-        _pivot(data, show_table)
-    with tabs[4]:
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user):
+    """Exibe somente as páginas explicitamente liberadas ao usuário."""
+    pages = []
+    if "view_overview" in permissions:
+        pages.append(("Visão executiva", "view_overview"))
+    if "view_daily" in permissions:
+        pages.append(("Performance diária", "view_daily"))
+    if "view_sellers" in permissions:
+        pages.append(("Vendedores", "view_sellers"))
+    if "view_pivot" in permissions:
+        pages.append(("Tabela dinâmica", "view_pivot"))
+    if "view_yoy" in permissions:
+        pages.append(("Comparativo anual", "view_yoy"))
+    if "use_assistant" in permissions:
+        pages.append(("Assistente analítico", "use_assistant"))
+    if "manage_users" in permissions:
+        pages.append(("Usuários", "manage_users"))
+    if not pages:
+        st.error("Seu usuário não possui permissão para nenhuma visão. Procure um administrador.")
+        return
+
+    labels = [label for label, _ in pages]
+    selected = st.segmented_control("Navegação", labels, default=labels[0], key="mf_page")
+    permission = dict(pages)[selected]
+    can_export = "export_data" in permissions
+    if permission == "view_overview":
+        _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table)
+    elif permission == "view_daily":
+        _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
+    elif permission == "view_sellers":
+        _seller_view(data, show_chart, show_table, can_export)
+    elif permission == "view_pivot":
+        _pivot(data, show_table, can_export)
+    elif permission == "view_yoy":
         _yoy(data, history, start_date, end_date, show_chart, show_table)
-    with tabs[5]:
-        st.subheader("Assistente IA analítica")
-        st.caption(f"Contexto: {start_date.strftime('%d/%m/%Y')} a {end_date.strftime('%d/%m/%Y')} • última carga: {last_load}")
+    elif permission == "use_assistant":
+        st.subheader("Assistente analítico")
+        st.caption("Respostas calculadas a partir do período e dos filtros atuais.")
         if "chat" not in st.session_state:
             st.session_state.chat = []
         for role, message in st.session_state.chat:
             with st.chat_message(role):
                 st.markdown(message)
-        question = st.chat_input("Ex.: quais vendedores e grupos mais contribuíram para o resultado?")
+        question = st.chat_input("Ex.: quais vendedores mais contribuíram para o resultado?")
         if question:
             response = answer(question, data, history, start_date, end_date)
             st.session_state.chat.extend([("user", question), ("assistant", response)])
             st.rerun()
+    elif permission == "manage_users":
+        render_user_admin(current_user)
