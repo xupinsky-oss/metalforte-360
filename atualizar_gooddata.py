@@ -2,13 +2,14 @@ import io,json,logging,os,shutil,sys,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS
 from src.secure_credentials import load_credential
 from src.cloud_storage import upload_file,upload_status
 
 ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
+INDICATORS=DATA/'indicadores_comerciais.json'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
 DASHBOARD=os.getenv('TOTVS_DASHBOARD','11078478')
 BASE_URL=os.getenv('TOTVS_BASE_URL','https://analytics.totvs.com.br')
@@ -36,6 +37,28 @@ def parse_raw(content):
 
 def _key(series):
     return pd.to_numeric(series,errors='coerce').astype('Int64').astype('string')
+
+def _parse_indicator_value(value):
+    """Converte os formatos exportados pelo GoodData (R$ e Kg) em número."""
+    text=str(value).replace('\u00a0',' ').replace('R$','').replace('Kg','').replace('KG','').strip()
+    text=''.join(ch for ch in text if ch.isdigit() or ch in '.,-')
+    if not text or text in {'-','.',','}: return None
+    if ',' in text and '.' in text:
+        text=text.replace('.','').replace(',','.') if text.rfind(',')>text.rfind('.') else text.replace(',','')
+    elif ',' in text:
+        text=text.replace(',','.')
+    try: return float(text)
+    except ValueError: return None
+
+def extract_indicator(frame):
+    values=[]
+    for value in frame.astype(str).to_numpy().ravel():
+        parsed=_parse_indicator_value(value)
+        if parsed is not None: values.append(parsed)
+    if not values: raise ValueError('Indicador GoodData retornou sem valor numérico.')
+    # Relatórios de indicador possuem uma medida e eventualmente ano/mês no
+    # export. O maior valor absoluto é a medida, não o rótulo do período.
+    return max(values,key=abs)
 
 def consolidate(downloaded):
     fat=downloaded['faturamento'].copy(); fat.columns=['Filial','Data','Vendedor','Cliente','NF','Item','Produto','CFOP','TES','Faturamento','Peso','Preço Real Kg']
@@ -99,6 +122,13 @@ def main():
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame=parse_raw(content); frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
         downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
+    indicators={}
+    for name,report_id in INDICATOR_REPORTS.items():
+        logging.info('Baixando indicador %s (%s)',name,report_id)
+        content=con.raw_report(report_id,date_filter_obj=None,fixed_filters=[])
+        frame=parse_raw(content)
+        indicators[name]=round(extract_indicator(frame),4)
+        logging.info('%s: %s',name,indicators[name])
     main_df=consolidate(downloaded)
     if len(main_df)<300000: raise ValueError(f'Base consolidada abaixo do mínimo de segurança: {len(main_df):,} linhas')
     if main_df['Data'].notna().mean()<.99: raise ValueError('Cobertura de datas abaixo de 99%.')
@@ -111,8 +141,9 @@ def main():
     tmp=DATA/'metalforte_base.nova.csv.gz'; main_df.to_csv(tmp,index=False,compression='gzip')
     cloud_updated=upload_file(tmp)
     tmp.replace(ACTIVE)
+    INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':INDICATOR_REPORTS,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 

@@ -2,6 +2,17 @@ import os,time,requests
 
 FIXED_FILTERS=[2186,20811,2190,2188,2193,11127459,400287,32094813,32320838,11288138,36831947,3019,4491,4485,4489,30338385]
 REPORTS={"faturamento":"32915720","margem":"22637729","clientes_pedidos":"42959723","cliente_geo":"29087588","cliente_classificacao":"50868753","produto_classificacao":"20814355","preco_benchmark":"47742","regra_desconto":"854730"}
+# Indicadores oficiais exibidos no painel "Metas - GH - Comercial". Eles são
+# mantidos separados da base de notas fiscais porque representam meta e carteira
+# de pedidos (e não faturamento realizado).
+INDICATOR_REPORTS={
+    "meta_valor":"11096333",
+    "meta_peso":"11081459",
+    "pedidos_nao_faturados_valor":"11232871",
+    "pedidos_liberados_valor":"11228086",
+    "pedidos_nao_faturados_peso":"11232869",
+    "pedidos_liberados_peso":"11228084",
+}
 
 class TotvsGoodDataConnector:
     def __init__(self,base_url,workspace,dashboard,cookie=None):
@@ -19,7 +30,9 @@ class TotvsGoodDataConnector:
             if r.headers.get(header): self.session.headers[header]=r.headers[header]
         return True
     def raw_report(self,report_id,date_filter_obj=2142,offset_from=-55,offset_to=0,fixed_filters=None):
-        fixed_filters=FIXED_FILTERS if fixed_filters is None else fixed_filters; obj=lambda x:f"/gdc/md/{self.workspace}/obj/{x}"; payload={"report_req":{"report":obj(report_id),"context":{"filters":[{"uri":obj(date_filter_obj),"constraint":{"type":"floating","from":str(offset_from),"to":str(offset_to)}},*[{"uri":obj(x)} for x in fixed_filters]],"dashboard":obj(self.dashboard),"report":obj(report_id)}}}
+        fixed_filters=FIXED_FILTERS if fixed_filters is None else fixed_filters; obj=lambda x:f"/gdc/md/{self.workspace}/obj/{x}"
+        filters=[*([{"uri":obj(date_filter_obj),"constraint":{"type":"floating","from":str(offset_from),"to":str(offset_to)}}] if date_filter_obj else []),*[{"uri":obj(x)} for x in fixed_filters]]
+        payload={"report_req":{"report":obj(report_id),"context":{"filters":filters,"dashboard":obj(self.dashboard),"report":obj(report_id)}}}
         self.renew_token(); r=self.session.post(f"{self.base_url}/gdc/app/projects/{self.workspace}/execute/raw",json=payload,timeout=60); r.raise_for_status(); uri=r.json()["uri"]
         for _ in range(180):
             rr=self.session.get(self.base_url+uri if uri.startswith('/') else uri,timeout=60)
