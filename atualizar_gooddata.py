@@ -4,11 +4,13 @@ from pathlib import Path
 import pandas as pd
 from src.totvs import TotvsGoodDataConnector,REPORTS
 from src.secure_credentials import load_credential
-from src.cloud_storage import upload_file,upload_status
+from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
+from src.targets import consolidate_targets,merge_target_history
 
 ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
+ACTIVE_TARGETS=DATA/'metalforte_metas.csv.gz'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
 DASHBOARD=os.getenv('TOTVS_DASHBOARD','11078478')
 BASE_URL=os.getenv('TOTVS_BASE_URL','https://analytics.totvs.com.br')
@@ -93,13 +95,30 @@ def main():
     stamp=datetime.now().strftime('%Y%m%d_%H%M%S'); cred=credentials()
     con=TotvsGoodDataConnector(BASE_URL,WORKSPACE,DASHBOARD); con.login(cred['login'],cred['password'])
     downloaded={}
+    target_reports={'meta_kg_vendedor_grupo','meta_valor_total'}
+    report_offsets={name:(0,0) if name in target_reports else (-36,0) if name=='carteira_clientes' else (-60,0) for name in REPORTS}
     for name,report_id in REPORTS.items():
         logging.info('Baixando %s (%s)',name,report_id)
-        content=con.raw_report(report_id,offset_from=-60,offset_to=0)
+        offset_from,offset_to=report_offsets[name]
+        try:
+            content=con.raw_report(report_id,offset_from=offset_from,offset_to=offset_to)
+        except Exception:
+            if name=='carteira_clientes':
+                logging.warning('Fonte complementar de carteira indisponível; a base consolidada será usada.',exc_info=True)
+                continue
+            raise
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame=parse_raw(content); frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
         downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
     main_df=consolidate(downloaded)
+    current_targets=consolidate_targets(downloaded['meta_kg_vendedor_grupo'],downloaded['meta_valor_total'])
+    previous_targets=pd.DataFrame()
+    try:
+        if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
+        elif is_configured(): previous_targets=pd.read_csv(io.BytesIO(download_bytes(object_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz'))),compression='gzip',low_memory=False)
+    except Exception as exc:
+        logging.warning('Histórico anterior de metas indisponível: %s',type(exc).__name__)
+    target_df=merge_target_history(previous_targets,current_targets)
     if len(main_df)<300000: raise ValueError(f'Base consolidada abaixo do mínimo de segurança: {len(main_df):,} linhas')
     if main_df['Data'].notna().mean()<.99: raise ValueError('Cobertura de datas abaixo de 99%.')
     source_total=pd.to_numeric(downloaded['faturamento'].iloc[:,9],errors='coerce').sum(); final_total=main_df['Faturamento'].sum()
@@ -111,8 +130,13 @@ def main():
     tmp=DATA/'metalforte_base.nova.csv.gz'; main_df.to_csv(tmp,index=False,compression='gzip')
     cloud_updated=upload_file(tmp)
     tmp.replace(ACTIVE)
+    target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
+    target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
+    target_cloud_updated=upload_file(target_tmp,object_path=target_path)
+    target_tmp.replace(ACTIVE_TARGETS)
     logging.info('Base ativa substituída: %s linhas',len(main_df))
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    current_competence=current_targets['Competência'].max()
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_targets),'meta_kg':round(float(current_targets['Meta KG'].sum()),2),'meta_valor':round(float(current_targets['Meta R$'].sum()),2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 

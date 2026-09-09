@@ -1,9 +1,11 @@
 import io
+import os
 from pathlib import Path
 import pandas as pd
 from src.cloud_storage import download_bytes, is_configured
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
+DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
 
 def load_data(path=None):
@@ -23,6 +25,20 @@ def load_data(path=None):
     for c in ["UF","Município","Grupo Produto","Tipo Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
     return df
+
+def load_targets(path=None):
+    path=Path(path) if path else DEFAULT_TARGETS
+    try:
+        if path.exists(): source=path
+        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_TARGET_PATH", "bases/metalforte_metas.csv.gz")))
+        else: return pd.DataFrame()
+        result=pd.read_csv(source,low_memory=False,compression="gzip")
+    except Exception:
+        return pd.DataFrame()
+    if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
+    for column in ("Meta KG","Meta R$"):
+        if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
+    return result
 
 def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, vendedor=None, canal=None, grupo=None, tipo=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df

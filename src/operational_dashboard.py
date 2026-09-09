@@ -10,6 +10,7 @@ import streamlit as st
 from src.analytics import group_metrics, metrics
 from src.assistant import answer
 from src.auth import render_user_admin
+from src.targets import allocate_target, target_scope
 from src.commercial_intelligence import (
     actionable_insights,
     commercial_metrics,
@@ -28,6 +29,7 @@ PANEL_HELP = {
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
+    "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto são alocações proporcionais ao histórico dos 12 meses anteriores.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
@@ -542,7 +544,85 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
     show_table(result, height=520, width="stretch", hide_index=True)
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user):
+def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export):
+    st.subheader("Metas e orçamento", help=PANEL_HELP["targets"])
+    st.caption("ⓘ Meta oficial mensal; realizado segue o período e os filtros do painel. Em períodos parciais, o atingimento compara o acumulado à meta cheia do mês.")
+    scoped = target_scope(
+        targets, start_date, end_date,
+        sellers=(filters or {}).get("sellers"), groups=(filters or {}).get("groups"),
+    )
+    if scoped.empty:
+        st.info("A meta oficial ainda não foi publicada para o período e escopo selecionados. Execute primeiro a atualização em homologação.")
+        return
+
+    target_value = float(scoped["Meta R$"].sum())
+    target_kg = float(scoped["Meta KG"].sum())
+    actual_value = float(data["Faturamento"].sum()) if not data.empty else 0.0
+    actual_kg = float(data["Peso"].sum()) if not data.empty else 0.0
+    value_attainment = actual_value / target_value if target_value else 0.0
+    kg_attainment = actual_kg / target_kg if target_kg else 0.0
+    cards = st.columns(4)
+    cards[0].metric("Meta faturamento", brl(target_value), f"Realizado {brl(actual_value)}")
+    cards[1].metric("Atingimento R$", pct(value_attainment), f"Saldo {brl(actual_value-target_value)}")
+    cards[2].metric("Meta KG", f"{_quantity(target_kg)} kg", f"Realizado {_quantity(actual_kg)} kg")
+    cards[3].metric("Atingimento KG", pct(kg_attainment), f"Saldo {_quantity(actual_kg-target_kg)} kg")
+
+    competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
+    st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
+    dimension = st.segmented_control(
+        "Detalhar por", ["Vendedor", "Grupo Produto", "Cliente", "Produto"],
+        default="Vendedor", key="target_dimension",
+    )
+    allocation, unallocated = allocate_target(scoped, history, dimension)
+    if dimension == "Cliente":
+        selected = (filters or {}).get("client")
+        query = (filters or {}).get("client_text")
+        if selected:
+            allocation = allocation[allocation["Cliente"].astype(str) == str(selected)]
+        if query:
+            allocation = allocation[allocation["Cliente"].astype(str).str.contains(query, case=False, na=False)]
+    elif dimension == "Produto":
+        query = (filters or {}).get("product_text")
+        if query:
+            allocation = allocation[allocation["Produto"].astype(str).str.contains(query, case=False, na=False)]
+
+    if data.empty or dimension not in data:
+        actual = pd.DataFrame(columns=[dimension, "Realizado R$", "Realizado KG"])
+    else:
+        actual = data.groupby(dimension, dropna=False, as_index=False).agg(
+            **{"Realizado R$": ("Faturamento", "sum"), "Realizado KG": ("Peso", "sum")}
+        )
+    view = allocation.merge(actual, on=dimension, how="outer").fillna(0)
+    view["Atingimento R$ %"] = view["Realizado R$"] / view["Meta R$"].replace(0, pd.NA)
+    view["Saldo R$"] = view["Realizado R$"] - view["Meta R$"]
+    view["Atingimento KG %"] = view["Realizado KG"] / view["Meta KG"].replace(0, pd.NA)
+    view["Saldo KG"] = view["Realizado KG"] - view["Meta KG"]
+    view = view.sort_values("Meta R$", ascending=False)
+
+    if dimension in ("Cliente", "Produto"):
+        st.info(
+            "Este detalhamento é uma alocação gerencial: R$ usa a participação positiva de faturamento e KG usa a participação positiva de peso nos 12 meses anteriores, dentro de cada vendedor × grupo."
+        )
+        if unallocated["Meta R$"] or unallocated["Meta KG"]:
+            st.warning(f"Sem histórico para alocar: {brl(unallocated['Meta R$'])} e {_quantity(unallocated['Meta KG'])} kg.")
+    if view.empty:
+        st.info("Não há linhas para o detalhamento escolhido.")
+        return
+    chart_data = view.head(15).sort_values("Meta R$")
+    chart = px.bar(
+        chart_data, x=["Meta R$", "Realizado R$"], y=dimension, orientation="h", barmode="group",
+        title=f"Meta x realizado por {dimension.lower()}", color_discrete_sequence=["#94A3B8", "#F36A2D"],
+    )
+    show_chart(_polish_chart(chart, height=max(390, 31 * len(chart_data) + 130), x_title="Valor (R$)", y_title=""))
+    show_table(view, height=560, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button(
+            "Exportar metas", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "metas_orcamento.csv", "text/csv", width="stretch",
+        )
+
+
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
@@ -556,6 +636,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Performance diária", "view_daily"))
     if "view_sellers" in permissions:
         pages.append(("Vendedores", "view_sellers"))
+    if "view_targets" in permissions:
+        pages.append(("Metas", "view_targets"))
     if "view_insights" in permissions:
         pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
@@ -584,6 +666,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":
         _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_targets":
+        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":

@@ -38,10 +38,10 @@ def _headers(content_type=None):
     return headers
 
 
-def download_bytes(timeout=120):
+def download_bytes(timeout=120, object_path=None):
     if not is_configured():
         raise RuntimeError("Supabase não configurado.")
-    response = requests.get(_object_url(), headers=_headers(), timeout=timeout)
+    response = requests.get(_object_url(object_path), headers=_headers(), timeout=timeout)
     response.raise_for_status()
     return response.content
 
@@ -59,11 +59,12 @@ def download_status(timeout=30):
     return response.json()
 
 
-def upload_file(local_path, timeout=180):
+def upload_file(local_path, timeout=180, object_path=None):
     if not is_configured():
         return False
     source_path = Path(local_path)
-    base_url, api_key, bucket, object_path = _settings()
+    base_url, api_key, bucket, default_path = _settings()
+    object_path = object_path or default_path
     project_host = urlparse(base_url).hostname or ""
     project_ref = project_host.split(".", 1)[0]
     tus_url = f"https://{project_ref}.storage.supabase.co/storage/v1/upload/resumable"

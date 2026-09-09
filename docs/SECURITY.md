@@ -7,6 +7,7 @@
 - `SUPABASE_SERVICE_KEY`, `TOTVS_LOGIN` e `TOTVS_PASSWORD` existem apenas nos GitHub Actions secrets.
 - `GITHUB_DISPATCH_TOKEN` existe apenas nos secrets da Edge Function.
 - a base comercial bruta continua no bucket privado.
+- metas e alocações permanecem no mesmo bucket privado, em objeto separado; nenhum dado de carteira é incorporado ao código ou ao ZIP público.
 
 ## Proibições
 

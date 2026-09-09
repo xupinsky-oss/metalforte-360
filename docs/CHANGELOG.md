@@ -29,3 +29,10 @@
 - adicionada telemetria sanitizada no bucket privado;
 - adicionado botão de reconsulta do painel com `cache: no-store`;
 - preservadas rotinas oficiais de extração e geração do resumo.
+# v2.10 — Metas oficiais e alocação auditável
+
+- integração dos relatórios oficiais 044 (KG) e 045 (R$);
+- histórico mensal de metas em objeto privado separado;
+- aba Metas com realizado, atingimento e saldo em R$ e KG;
+- detalhamento oficial por vendedor e grupo e alocações identificadas por cliente e produto;
+- permissão independente `view_targets` e controles de reconciliação.

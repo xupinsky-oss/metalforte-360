@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import html
 import json
 from pathlib import Path
-from src.data import load_data,apply_filters
+from src.data import load_data,load_targets,apply_filters
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
 from src.cloud_storage import download_status
@@ -25,6 +25,8 @@ def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 @st.cache_data(ttl=300,show_spinner="Carregando Metalforte 360...")
 def get_data(): return load_data()
 @st.cache_data(ttl=300,show_spinner=False)
+def get_targets(): return load_targets()
+@st.cache_data(ttl=300,show_spinner=False)
 def get_load_status():
     try: return download_status()
     except Exception: return {}
@@ -34,7 +36,7 @@ def _is_fraction_percent(name):
 
 def _is_money_column(name):
     name=str(name).lower()
-    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial")) and not _is_fraction_percent(name) and "p.p." not in name
+    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial","r$")) and not _is_fraction_percent(name) and "p.p." not in name
 
 def _is_weight_column(name):
     name=str(name).lower()
@@ -116,6 +118,7 @@ def yoy_comparison(current,previous,dimension):
 
 access=require_login()
 df=get_data()
+targets=get_targets()
 if access["role"] == "seller":
     seller_scope = access.get("seller_scope", "")
     if not seller_scope:
@@ -228,6 +231,14 @@ f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
 monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp)
+target_filters={
+    "sellers": ([seller_scope] if access["role"] == "seller" else vend),
+    "groups": grupo,
+    "client": selected_client,
+    "client_text": ct,
+    "product_text": pt,
+}
 
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
@@ -235,6 +246,7 @@ if f.empty:
 render_operational_dashboard(
     f, monitor_scope, start_date, end_date, last_load,
     brl, brl2, pct, pp, show_chart, show_table,
-    permissions=access["permissions"], current_user=access["user"],
+    permissions=access["permissions"], current_user=access["user"], targets=targets,
+    target_history=target_history, target_filters=target_filters,
 )
 st.stop()

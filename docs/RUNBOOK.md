@@ -19,6 +19,14 @@ O workflow tenta até três vezes. Se todas falharem, preserve a última base v�
 
 Não reduza limites apenas para fazer a carga passar. Investigue linhas, datas, faturamento e cobertura de classificação. A base anterior deve permanecer válida.
 
+## Meta oficial não aparece ou não reconcilia
+
+1. Execute primeiro em homologação.
+2. Confirme a competência e compare `meta_kg` e `meta_valor` do status sanitizado com os cartões oficiais do dashboard TOTVS.
+3. Confirme se o relatório 044 está em toneladas; o multiplicador padrão para KG é `1000`.
+4. Se o relatório 045 retornar mais de uma linha, valide os filtros do dashboard antes de promover.
+5. Não altere o multiplicador ou distribua saldos manualmente apenas para forçar a conciliação.
+
 ## Resumo ou painel indisponível
 
 Verifique a publicação no bucket privado, a função `command-center` e a sessão do usuário. Não transforme o objeto em público.
