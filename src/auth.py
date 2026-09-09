@@ -219,8 +219,12 @@ def update_user(user_id, role, permissions, new_password="", existing_metadata=N
 
 def render_user_admin(current_user, seller_options=None):
     """Cadastro, redefinição de senha e permissões, disponível só ao administrador."""
-    st.subheader("Usuários e permissões")
-    st.caption("Senhas nunca são exibidas ou armazenadas pelo painel.")
+    st.subheader("Gestão de acessos")
+    st.caption("Crie usuários, defina perfis e escolha exatamente quais áreas cada pessoa pode acessar.")
+    st.info(
+        "Compartilhe o painel em https://metalforte-360.streamlit.app/ e envie a senha inicial "
+        "por um canal separado. Senhas nunca são exibidas ou armazenadas pelo painel."
+    )
 
     with st.expander("Criar usuário", expanded=True):
         with st.form("create_user"):
@@ -271,6 +275,9 @@ def render_user_admin(current_user, seller_options=None):
             "E-mail": user.get("email", ""),
             "Nome": (user.get("user_metadata") or {}).get("display_name", ""),
             "Perfil": ROLE_LABELS.get(access["role"], access["role"]),
+            "Permissões": ", ".join(
+                PERMISSION_LABELS[item] for item in sorted(access["permissions"])
+            ),
             "Último acesso": user.get("last_sign_in_at") or "—",
         })
     st.dataframe(rows, width="stretch", hide_index=True)
@@ -280,8 +287,9 @@ def render_user_admin(current_user, seller_options=None):
     if not editable:
         st.info("Não há outro usuário para editar.")
         return
+    st.markdown("#### Alterar perfil, permissões ou senha")
     selected_id = st.selectbox(
-        "Editar usuário", [user["id"] for user in editable],
+        "Selecione o usuário", [user["id"] for user in editable],
         format_func=lambda user_id: next(user.get("email", user_id) for user in editable if user["id"] == user_id),
     )
     selected = next(user for user in editable if user["id"] == selected_id)

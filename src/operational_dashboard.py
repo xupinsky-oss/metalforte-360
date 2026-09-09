@@ -543,7 +543,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     if "use_assistant" in permissions:
         pages.append(("Assistente analítico", "use_assistant"))
     if "manage_users" in permissions:
-        pages.append(("Usuários", "manage_users"))
+        pages.append(("Gestão de acessos", "manage_users"))
     if not pages:
         st.error("Seu usuário não possui permissão para nenhuma visão. Procure um administrador.")
         return
