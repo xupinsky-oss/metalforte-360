@@ -21,6 +21,27 @@ from src.commercial_intelligence import (
 )
 
 
+PANEL_HELP = {
+    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. As referências usam o mesmo intervalo deslocado.",
+    "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior, evitando comparar com um dia sem carga.",
+    "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses.",
+    "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
+    "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
+    "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
+    "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
+    "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
+    "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
+}
+
+
+INSIGHT_HELP = {
+    "reactivation": "Clientes que compraram no mesmo período do ano anterior e ainda não faturaram no período atual. O potencial é a diferença positiva entre faturamento de referência e atual.",
+    "declines": "Clientes ativos nos dois períodos cuja queda de faturamento é de 20% ou mais. O potencial é a parcela necessária para recuperar o nível do ano anterior.",
+    "seasonality": "Clientes cuja última compra ultrapassou 125% da cadência mediana entre compras. A cadência exige ao menos duas datas de compra e mínimo de 7 dias.",
+    "mix": "Clientes ativos cujo número de produtos distintos ficou abaixo do mesmo período do ano anterior. Produtos a recuperar é a diferença entre o mix de referência e o atual.",
+}
+
+
 def _polish_chart(chart, *, height=380, x_title=None, y_title=None):
     chart.update_layout(
         height=height, template="plotly_white", paper_bgcolor="rgba(0,0,0,0)",
@@ -163,7 +184,7 @@ def _compact_bar(view, dimension, title, limit=10):
 
 
 def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table):
-    st.subheader("Visão executiva")
+    st.subheader("Visão executiva", help=PANEL_HELP["overview"])
     st.caption(
         f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
         f"comparações usam o mesmo intervalo deslocado em 1 mês e 1 ano • carga: {last_load}"
@@ -236,7 +257,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
 
 
 def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
-    st.subheader("Performance diária")
+    st.subheader("Performance diária", help=PANEL_HELP["daily"])
     day = pd.Timestamp(end_date)
     today = history[history["Data"].dt.normalize() == day]
     previous_dates = history.loc[history["Data"].dt.normalize() < day, "Data"].dropna()
@@ -296,7 +317,7 @@ def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
 
 
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
-    st.subheader("Inteligência de clientes")
+    st.subheader("Inteligência de clientes", help=PANEL_HELP["clients"])
     available = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
     c1, c2 = st.columns([1.7, 1])
     selected = c1.selectbox("Cliente", ["Todos os clientes"] + available, key="client_page_scope")
@@ -372,7 +393,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 
 def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
-    st.subheader("Inteligência de produtos")
+    st.subheader("Inteligência de produtos", help=PANEL_HELP["products"])
     available = sorted(history["Produto"].dropna().astype(str).unique().tolist())
     selected = st.selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
     mode, reference_label = _reference_selector("product_reference")
@@ -417,7 +438,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
 
 
 def _insights_view(data, history, start_date, end_date, brl, show_table, can_export):
-    st.subheader("Insights e oportunidades")
+    st.subheader("Insights e oportunidades", help=PANEL_HELP["insights"])
     st.caption("Filas de ação calculadas com o mesmo período do ano anterior e a janela de compra dos últimos 12 meses.")
     insights = actionable_insights(data, history, start_date, end_date)
     reactivation = insights["reactivation"]
@@ -432,25 +453,26 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
 
     tabs = st.tabs(["Reativação", "Possíveis quedas", "Sazonalidade", "Recuperação de mix"])
     selections = [
-        (reactivation, ["Cliente", "Vendedor", "UF", "Última_compra", "Dias sem comprar", "Faturamento referência", "Potencial R$", "Ação"]),
-        (declines, ["Cliente", "Vendedor", "UF", "Faturamento atual", "Faturamento referência", "Variação faturamento %", "Margem % atual", "Δ Margem p.p.", "Potencial R$", "Ação"]),
-        (seasonality, ["Cliente", "Vendedor", "UF", "Última compra", "Dias sem comprar", "Cadência mediana (dias)", "Faturamento 12m", "Ação"]),
-        (mix, ["Cliente", "Vendedor", "Faturamento atual", "Mix atual", "Mix referência", "Produtos a recuperar", "Potencial R$", "Ação"]),
+        ("reactivation", reactivation, ["Cliente", "Vendedor", "UF", "Última_compra", "Dias sem comprar", "Faturamento referência", "Potencial R$", "Ação"]),
+        ("declines", declines, ["Cliente", "Vendedor", "UF", "Faturamento atual", "Faturamento referência", "Variação faturamento %", "Margem % atual", "Δ Margem p.p.", "Potencial R$", "Ação"]),
+        ("seasonality", seasonality, ["Cliente", "Vendedor", "UF", "Última compra", "Dias sem comprar", "Cadência mediana (dias)", "Faturamento 12m", "Ação"]),
+        ("mix", mix, ["Cliente", "Vendedor", "Faturamento atual", "Mix atual", "Mix referência", "Produtos a recuperar", "Potencial R$", "Ação"]),
     ]
-    for tab, (frame, columns) in zip(tabs, selections):
+    for tab, (insight_key, frame, columns) in zip(tabs, selections):
         with tab:
+            st.caption(f"ⓘ Metodologia: {INSIGHT_HELP[insight_key]}")
             if frame.empty:
                 st.success("Nenhuma ocorrência relevante encontrada neste recorte.")
             else:
                 visible = [column for column in columns if column in frame]
                 show_table(frame[visible], height=560, width="stretch", hide_index=True)
                 if can_export:
-                    file_name = f"insights_{visible[0].lower().replace(' ', '_')}.csv"
-                    st.download_button("Exportar lista", frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_{file_name}")
+                    file_name = f"insights_{insight_key}.csv"
+                    st.download_button("Exportar lista", frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_insights_{insight_key}")
 
 
 def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
-    st.subheader("Painel de indicadores por vendedor")
+    st.subheader("Painel de indicadores por vendedor", help=PANEL_HELP["sellers"])
     available = sorted(history["Vendedor"].dropna().astype(str).unique().tolist())
     selected = st.selectbox("Vendedor", ["Todos os vendedores"] + available, key="seller_page_scope")
     mode, reference_label = _reference_selector("seller_reference")
@@ -483,7 +505,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 
 def _pivot(data, show_table, can_export):
-    st.subheader("Tabela dinâmica")
+    st.subheader("Tabela dinâmica", help=PANEL_HELP["pivot"])
     dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Produto", "Filial", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
@@ -501,7 +523,7 @@ def _pivot(data, show_table, can_export):
 
 
 def _yoy(data, history, start_date, end_date, show_chart, show_table):
-    st.subheader("Comparativo com o ano anterior")
+    st.subheader("Comparativo com o ano anterior", help=PANEL_HELP["yoy"])
     dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "UF", "Município") if column in data.columns]
     dimension = st.selectbox("Analisar por", dimensions, key="yoy_dimension")
     previous = _shifted_period(history, start_date, end_date, years=1)
@@ -569,7 +591,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_yoy":
         _yoy(data, history, start_date, end_date, show_chart, show_table)
     elif permission == "use_assistant":
-        st.subheader("Assistente analítico")
+        st.subheader("Assistente analítico", help=PANEL_HELP["assistant"])
         st.caption("Respostas calculadas a partir do período e dos filtros atuais.")
         if "chat" not in st.session_state:
             st.session_state.chat = []

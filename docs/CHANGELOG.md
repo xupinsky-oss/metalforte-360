@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.9 — insights estáveis e experiência tablet
+
+- corrigida a colisão entre os botões de exportação das quatro filas de Insights;
+- restaurado o funcionamento das abas Sazonalidade e Recuperação de mix;
+- formatado o campo **Potencial R$** como moeda brasileira, com duas casas decimais;
+- adicionadas explicações de metodologia nos painéis e em cada fila de Insights;
+- adicionada a marca METALFORTE na tela de login;
+- otimizado o layout para tablets, com navegação adaptável, indicadores compactos e tabelas responsivas;
+- preservadas autenticação, permissões e credenciais exclusivamente no servidor.
+
 ## v2.8 — gestão de acessos
 
 - renomeada e destacada a área administrativa como **Gestão de acessos**;
