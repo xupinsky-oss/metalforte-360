@@ -28,6 +28,12 @@ A primeira tela reúne o comando executivo da operação:
 
 Todos os indicadores respeitam os filtros globais da barra lateral.
 
+## Gestão de acessos
+
+Administradores podem abrir **Gestão de acessos** para criar usuários, escolher perfis, liberar páginas individualmente, vincular vendedores às suas carteiras e redefinir senhas. O acesso é compartilhado pelo endereço `https://metalforte-360.streamlit.app/`; envie a senha inicial por um canal separado.
+
+O primeiro administrador é definido por `METALFORTE_ADMIN_EMAILS` nos Secrets do Streamlit. As permissões ficam em `app_metadata`, alterável somente pelo servidor administrativo. Nenhuma chave secreta é enviada ao navegador.
+
 
 ## v06.1
 - Corrigido filtro de Ano (`list` não usa `.tolist()`).
