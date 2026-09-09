@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.8 — gestão de acessos
+
+- renomeada e destacada a área administrativa como **Gestão de acessos**;
+- mantidos cadastro de usuários, perfis, permissões e redefinição de senha;
+- adicionada visualização das permissões efetivas na lista de usuários;
+- incluídas orientações de compartilhamento seguro dentro do painel;
+- preservada a autorização exclusivamente por `app_metadata` no servidor.
+
 ## v2.4 Operational Control Tower
 
 - adicionada Control Tower autenticada;
