@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import time
+from pathlib import Path
 
 import requests
 import streamlit as st
@@ -153,6 +154,9 @@ def require_login():
     if not session:
         left, center, right = st.columns([1, 1.15, 1])
         with center:
+            logo_path = Path(__file__).resolve().parents[1] / "LOGO_METALFORTE.jpg"
+            if logo_path.exists():
+                st.image(str(logo_path), width="stretch")
             st.title("METALFORTE 360")
             st.caption("Acesso ao painel comercial")
             with st.form("secure_login"):
@@ -219,7 +223,10 @@ def update_user(user_id, role, permissions, new_password="", existing_metadata=N
 
 def render_user_admin(current_user, seller_options=None):
     """Cadastro, redefinição de senha e permissões, disponível só ao administrador."""
-    st.subheader("Gestão de acessos")
+    st.subheader(
+        "Gestão de acessos",
+        help="Usuários são autenticados pelo Supabase Auth. Perfis, permissões e carteira do vendedor ficam em metadados protegidos do servidor e não são expostos no navegador.",
+    )
     st.caption("Crie usuários, defina perfis e escolha exatamente quais áreas cada pessoa pode acessar.")
     st.info(
         "Compartilhe o painel em https://metalforte-360.streamlit.app/ e envie a senha inicial "

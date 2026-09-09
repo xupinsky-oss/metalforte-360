@@ -34,7 +34,7 @@ def _is_fraction_percent(name):
 
 def _is_money_column(name):
     name=str(name).lower()
-    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto")) and not _is_fraction_percent(name) and "p.p." not in name
+    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial")) and not _is_fraction_percent(name) and "p.p." not in name
 
 def _is_weight_column(name):
     name=str(name).lower()
@@ -166,7 +166,25 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stDataFrame"]{border:1px solid #DCE3EC;border-radius:10px;overflow:hidden}
 .mf-funnel-note{padding:.85rem 1rem;background:#FFF4EE;border:1px solid #FFD5C2;border-radius:10px;color:#71371E;margin:.5rem 0 1rem}
 button,input,[role="combobox"]{font-size:.95rem!important}
-@media(max-width:900px){.block-container{padding-left:1rem;padding-right:1rem}[data-testid="stMetric"]{min-height:104px;padding:.8rem}[data-testid="stMetricValue"]{font-size:1.35rem!important}}
+@media(min-width:700px) and (max-width:1180px){
+  .block-container{padding:1.1rem 1.15rem 2.4rem;max-width:100%}
+  h1{font-size:1.9rem!important} h2{font-size:1.42rem!important} h3{font-size:1.16rem!important}
+  [data-testid="stSidebar"]{min-width:17rem!important;max-width:17rem!important}
+  [data-testid="stMetric"]{min-height:104px;padding:.78rem}
+  [data-testid="stMetricValue"]{font-size:1.3rem!important}
+  .mf-kpi{min-height:146px!important;padding:.82rem!important}
+  .mf-kpi-value{font-size:1.35rem!important}
+  .mf-kpi-compare{align-items:flex-start!important;flex-direction:column!important;gap:0!important;white-space:normal!important}
+  [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
+  [data-baseweb="tab-list"]{overflow-x:auto!important;scrollbar-width:thin}
+  [data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}
+}
+@media(max-width:699px){
+  .block-container{padding-left:.8rem;padding-right:.8rem}
+  [data-testid="stMetric"]{min-height:100px;padding:.75rem}
+  [data-testid="stMetricValue"]{font-size:1.28rem!important}
+  [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
+}
 </style>""",unsafe_allow_html=True)
 
 with st.sidebar:
