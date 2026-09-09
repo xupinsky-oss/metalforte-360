@@ -25,7 +25,7 @@
 - Cliente e produto não são metas nativas desses relatórios. O painel os identifica como alocações gerenciais usando participações positivas dos 12 meses anteriores. Células sem histórico permanecem como saldo não alocado.
 - `Fat. por clientes` (`51540859`) está catalogado como fonte complementar de carteira. A alocação operacional usa a base consolidada, que já contém vendedor, cliente, produto e grupo no mesmo grão e evita duplicidade de faturamento.
 
-O multiplicador de unidade do relatório 044 é configurado por `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas para KG). A homologação deve reconciliar o total do mês ao dashboard oficial antes da promoção para produção.
+O multiplicador de unidade do relatório 044 e dos cartões de peso da carteira é configurado por `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas para KG). A homologação deve reconciliar o total do mês ao dashboard oficial antes da promoção para produção.
 
 ## Garantias mantidas
 

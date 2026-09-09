@@ -16,6 +16,7 @@ from src.data import load_data
 
 
 OUTPUT_PATH = os.getenv("SUPABASE_DASHBOARD_PATH", "dashboard/command-center.json")
+INDICATORS_PATH = os.path.join(os.path.dirname(__file__), "data", "indicadores_comerciais.json")
 
 
 def _number(value):
@@ -66,6 +67,16 @@ def _breakdown(data, dimension, limit=10):
     return records
 
 
+def _load_indicators():
+    if not os.path.exists(INDICATORS_PATH):
+        return {}
+    try:
+        with open(INDICATORS_PATH, encoding="utf-8") as source:
+            return json.load(source).get("valores", {})
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def build_payload(data):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
@@ -82,6 +93,17 @@ def build_payload(data):
     current_metrics["delta_margem_pp"] = _number(
         (current_metrics["margem_pct"] - previous_metrics["margem_pct"]) * 100
     )
+    indicators = _load_indicators()
+    commercial = {
+        "meta_valor": _number(indicators.get("meta_valor", 0)),
+        "meta_peso": _number(indicators.get("meta_peso", 0)),
+        "pedidos_liberados_valor": _number(indicators.get("pedidos_liberados_valor", 0)),
+        "pedidos_liberados_peso": _number(indicators.get("pedidos_liberados_peso", 0)),
+        "pedidos_nao_faturados_valor": _number(indicators.get("pedidos_nao_faturados_valor", 0)),
+        "pedidos_nao_faturados_peso": _number(indicators.get("pedidos_nao_faturados_peso", 0)),
+    }
+    commercial["atingimento_valor_pct"] = _number(current_metrics["faturamento"] / commercial["meta_valor"]) if commercial["meta_valor"] else None
+    commercial["atingimento_peso_pct"] = _number(current_metrics["peso"] / commercial["meta_peso"]) if commercial["meta_peso"] else None
 
     monthly = data[data["Data"] >= month_start - pd.DateOffset(months=11)].copy()
     monthly["mes"] = monthly["Data"].dt.to_period("M").astype(str)
@@ -96,6 +118,7 @@ def build_payload(data):
         "atualizado_em": datetime.now().astimezone().isoformat(),
         "periodo": {"inicio": month_start.date().isoformat(), "fim": last_date.date().isoformat()},
         "overview": current_metrics,
+        "metas_e_pedidos": commercial,
         "mensal": monthly_records,
         "paineis": {
             "segmentos": _breakdown(current, "Segmento Cliente"),

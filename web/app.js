@@ -11,6 +11,22 @@ function renderKpis(o){
   const cards=[["Faturamento no período",money(o.faturamento)],["Margem",percent(o.margem_pct)],["Peso faturado",num.format(o.peso)+" kg"],["Clientes compradores",num.format(o.clientes)],["Preço médio",money(o.preco_medio_kg)+"/kg"],["Produtos vendidos",num.format(o.produtos)]];
   el("kpis").innerHTML=cards.map(function(c){return '<article class="kpi"><span>'+c[0]+'</span><strong>'+c[1]+'</strong></article>';}).join("");
 }
+function renderCommercial(o){
+  const section=el("metas-pedidos");
+  if(!o || !(o.meta_valor || o.meta_peso || o.pedidos_liberados_valor || o.pedidos_nao_faturados_valor)){section.hidden=true;return;}
+  const cards=[
+    ["Meta de faturamento",money(o.meta_valor)],
+    ["Atingimento da meta",o.atingimento_valor_pct==null?"—":percent(o.atingimento_valor_pct)],
+    ["Meta de peso",num.format(o.meta_peso)+" kg"],
+    ["Atingimento do peso",o.atingimento_peso_pct==null?"—":percent(o.atingimento_peso_pct)],
+    ["Pedidos liberados",money(o.pedidos_liberados_valor)],
+    ["Peso liberado",num.format(o.pedidos_liberados_peso)+" kg"],
+    ["A faturar",money(o.pedidos_nao_faturados_valor)],
+    ["Peso a faturar",num.format(o.pedidos_nao_faturados_peso)+" kg"]
+  ];
+  el("metas-pedidos-kpis").innerHTML=cards.map(function(c){return '<article class="kpi secondary"><span>'+c[0]+'</span><strong>'+c[1]+'</strong></article>';}).join("");
+  section.hidden=false;
+}
 function renderMonthly(rows){
   if(monthlyChart) monthlyChart.destroy();
   monthlyChart=new Chart(el("monthly-chart"),{data:{labels:rows.map(function(r){return new Intl.DateTimeFormat("pt-BR",{month:"short",year:"2-digit"}).format(new Date(r.mes+"-01T12:00:00"));}),datasets:[
@@ -34,7 +50,7 @@ async function loadDashboard(){
   const data=await response.json();
   el("periodo").textContent="Período: "+dateBR(data.periodo.inicio)+" a "+dateBR(data.periodo.fim);
   el("atualizado").textContent="Base atualizada em "+new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(data.atualizado_em));
-  renderKpis(data.overview);renderMonthly(data.mensal);renderPanels(data.paineis);
+  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderMonthly(data.mensal);renderPanels(data.paineis);
   el("login").hidden=true;el("dashboard").hidden=false;el("logout").hidden=false;
 }
 async function start(){

@@ -2,7 +2,7 @@ import io,json,logging,os,shutil,sys,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import consolidate_targets,merge_target_history
@@ -11,6 +11,7 @@ ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
 ACTIVE_TARGETS=DATA/'metalforte_metas.csv.gz'
+INDICATORS=DATA/'indicadores_comerciais.json'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
 DASHBOARD=os.getenv('TOTVS_DASHBOARD','11078478')
 BASE_URL=os.getenv('TOTVS_BASE_URL','https://analytics.totvs.com.br')
@@ -38,6 +39,28 @@ def parse_raw(content):
 
 def _key(series):
     return pd.to_numeric(series,errors='coerce').astype('Int64').astype('string')
+
+def _parse_indicator_value(value):
+    """Converte os formatos exportados pelo GoodData (R$ e Kg) em número."""
+    text=str(value).replace('\u00a0',' ').replace('R$','').replace('Kg','').replace('KG','').strip()
+    text=''.join(ch for ch in text if ch.isdigit() or ch in '.,-')
+    if not text or text in {'-','.',','}: return None
+    if ',' in text and '.' in text:
+        text=text.replace('.','').replace(',','.') if text.rfind(',')>text.rfind('.') else text.replace(',','')
+    elif ',' in text:
+        text=text.replace(',','.')
+    try: return float(text)
+    except ValueError: return None
+
+def extract_indicator(frame):
+    values=[]
+    for value in frame.astype(str).to_numpy().ravel():
+        parsed=_parse_indicator_value(value)
+        if parsed is not None: values.append(parsed)
+    if not values: raise ValueError('Indicador GoodData retornou sem valor numérico.')
+    # Relatórios de indicador possuem uma medida e eventualmente ano/mês no
+    # export. O maior valor absoluto é a medida, não o rótulo do período.
+    return max(values,key=abs)
 
 def consolidate(downloaded):
     fat=downloaded['faturamento'].copy(); fat.columns=['Filial','Data','Vendedor','Cliente','NF','Item','Produto','CFOP','TES','Faturamento','Peso','Preço Real Kg']
@@ -95,23 +118,39 @@ def main():
     stamp=datetime.now().strftime('%Y%m%d_%H%M%S'); cred=credentials()
     con=TotvsGoodDataConnector(BASE_URL,WORKSPACE,DASHBOARD); con.login(cred['login'],cred['password'])
     downloaded={}
-    target_reports={'meta_kg_vendedor_grupo','meta_valor_total'}
-    report_offsets={name:(0,0) if name in target_reports else (-36,0) if name=='carteira_clientes' else (-60,0) for name in REPORTS}
     for name,report_id in REPORTS.items():
         logging.info('Baixando %s (%s)',name,report_id)
-        offset_from,offset_to=report_offsets[name]
+        content=con.raw_report(report_id,offset_from=-60,offset_to=0)
+        (RAW/f'{name}_{stamp}.raw').write_bytes(content)
+        frame=parse_raw(content); frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
+        downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
+    indicators={}
+    indicator_frames={}
+    for name,report_id in INDICATOR_REPORTS.items():
+        logging.info('Baixando indicador %s (%s)',name,report_id)
+        content=con.raw_report(report_id,offset_from=0,offset_to=0)
+        frame=parse_raw(content)
+        indicator_frames[name]=frame
+        indicators[name]=round(extract_indicator(frame),4)
+        logging.info('%s: %s',name,indicators[name])
+    weight_multiplier=float(os.getenv('TOTVS_TARGET_KG_MULTIPLIER','1000'))
+    for name in ('meta_peso','pedidos_nao_faturados_peso','pedidos_liberados_peso'):
+        if name in indicators: indicators[name]=round(indicators[name]*weight_multiplier,4)
+    detail_frames={}
+    for name,report_id in DETAIL_REPORTS.items():
+        logging.info('Baixando detalhamento %s (%s)',name,report_id)
         try:
-            content=con.raw_report(report_id,offset_from=offset_from,offset_to=offset_to)
+            content=con.raw_report(report_id,offset_from=-36 if name=='carteira_clientes' else 0,offset_to=0)
         except Exception:
             if name=='carteira_clientes':
                 logging.warning('Fonte complementar de carteira indisponível; a base consolidada será usada.',exc_info=True)
                 continue
             raise
+        frame=parse_raw(content); detail_frames[name]=frame
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
-        frame=parse_raw(content); frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
-        downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
+        frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
     main_df=consolidate(downloaded)
-    current_targets=consolidate_targets(downloaded['meta_kg_vendedor_grupo'],downloaded['meta_valor_total'])
+    current_targets=consolidate_targets(detail_frames['meta_kg_vendedor_grupo'],indicator_frames['meta_valor'])
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
@@ -134,9 +173,10 @@ def main():
     target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
     target_cloud_updated=upload_file(target_tmp,object_path=target_path)
     target_tmp.replace(ACTIVE_TARGETS)
+    INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':INDICATOR_REPORTS,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=current_targets['Competência'].max()
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_targets),'meta_kg':round(float(current_targets['Meta KG'].sum()),2),'meta_valor':round(float(current_targets['Meta R$'].sum()),2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_targets),'meta_kg':round(float(current_targets['Meta KG'].sum()),2),'meta_valor':round(float(current_targets['Meta R$'].sum()),2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 
