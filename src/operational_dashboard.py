@@ -274,17 +274,19 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
     prior_day = previous_dates.max().normalize() if not previous_dates.empty else day - pd.Timedelta(days=1)
     prior = history[history["Data"].dt.normalize() == prior_day]
     current, before = _period_metrics(today), _period_metrics(prior)
-    cards = st.columns(4)
     daily_definitions = [
         ("Faturamento", "revenue", False), ("Preço médio/kg", "price_kg", False),
         ("Margem %", "margin_pct", True), ("Clientes positivados", "positive_clients", False),
     ]
-    for column, (label, key, points) in zip(cards, daily_definitions):
+    cards = []
+    for label, key, points in daily_definitions:
         change = ((current[key] - before[key]) * 100) if points else _relative(current[key], before[key])
-        with column:
-            _metric_card(label, _metric_value(key, current[key], brl, brl2, pct), [
+        cards.append(
+            (label, _metric_value(key, current[key], brl, brl2, pct), [
                 ("Dia ant.", _metric_value(key, before[key], brl, brl2, pct), change, points)
             ])
+        )
+    _metric_cards(cards)
     st.caption(f"Comparação com o último dia disponível: {prior_day.strftime('%d/%m/%Y')}.")
     daily = data.groupby(data["Data"].dt.normalize()).agg(Faturamento=("Faturamento", "sum"), Margem=("Margem", "sum")).reset_index(names="Data")
     if not daily.empty:
@@ -307,7 +309,6 @@ def _reference_selector(key):
 
 
 def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
-    cards = st.columns(5)
     definitions = [
         ("Faturamento", brl(current["revenue"]), "revenue", False),
         ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
@@ -315,15 +316,18 @@ def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
         ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
         ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
     ]
-    for column, (label, value, key, points) in zip(cards, definitions):
+    cards = []
+    for label, value, key, points in definitions:
         if points:
             delta = (current[key] - reference[key]) * 100
         else:
             delta = _relative(current[key], reference[key])
-        with column:
-            _metric_card(label, value, [
+        cards.append(
+            (label, value, [
                 (reference_label.capitalize(), _metric_value(key, reference[key], brl, brl2, pct), delta, points)
             ])
+        )
+    _metric_cards(cards)
 
 
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
