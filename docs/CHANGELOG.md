@@ -36,3 +36,4 @@
 - aba Metas com realizado, atingimento e saldo em R$ e KG;
 - detalhamento oficial por vendedor e grupo e alocações identificadas por cliente e produto;
 - permissão independente `view_targets` e controles de reconciliação.
+- correção do parser para aceitar relatórios-indicador legítimos com uma única coluna, mantendo relatórios transacionais sujeitos à validação multicoluna.

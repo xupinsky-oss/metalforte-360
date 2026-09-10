@@ -27,6 +27,8 @@ Não reduza limites apenas para fazer a carga passar. Investigue linhas, datas, 
 4. Se o relatório 045 retornar mais de uma linha, valide os filtros do dashboard antes de promover.
 5. Não altere o multiplicador ou distribua saldos manualmente apenas para forçar a conciliação.
 
+Relatórios de cartão do GoodData podem ter uma única coluna. O ETL aceita esse formato somente na etapa de indicadores; as fontes transacionais continuam exigindo múltiplas colunas para impedir que mensagens de erro sejam interpretadas como dados.
+
 ## Resumo ou painel indisponível
 
 Verifique a publicação no bucket privado, a função `command-center` e a sessão do usuário. Não transforme o objeto em público.

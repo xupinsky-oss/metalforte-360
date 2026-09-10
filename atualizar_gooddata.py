@@ -23,7 +23,7 @@ logging.basicConfig(filename=LOGS/'atualizacao_gooddata.log',level=logging.INFO,
 def credentials():
     return load_credential()
 
-def parse_raw(content):
+def parse_raw(content,allow_single_column=False):
     if content[:2]==b'PK':
         with zipfile.ZipFile(io.BytesIO(content)) as z:
             names=[n for n in z.namelist() if n.lower().endswith(('.csv','.txt'))]
@@ -33,7 +33,7 @@ def parse_raw(content):
         for sep in (',',';','\t'):
             try:
                 frame=pd.read_csv(io.BytesIO(content),encoding=encoding,sep=sep,low_memory=False)
-                if frame.shape[1]>1: return frame
+                if frame.shape[1]>1 or (allow_single_column and frame.shape[1]==1): return frame
             except Exception: pass
     raise ValueError('Formato RAW não reconhecido.')
 
@@ -129,7 +129,7 @@ def main():
     for name,report_id in INDICATOR_REPORTS.items():
         logging.info('Baixando indicador %s (%s)',name,report_id)
         content=con.raw_report(report_id,offset_from=0,offset_to=0)
-        frame=parse_raw(content)
+        frame=parse_raw(content,allow_single_column=True)
         indicator_frames[name]=frame
         indicators[name]=round(extract_indicator(frame),4)
         logging.info('%s: %s',name,indicators[name])
