@@ -157,7 +157,7 @@ def require_login():
         with center:
             logo_path = Path(__file__).resolve().parents[1] / "LOGO_METALFORTE.jpg"
             if logo_path.exists():
-                st.image(str(logo_path), width="stretch")
+                st.image(str(logo_path), width=220)
             st.title("METALFORTE 360")
             st.caption("Acesso ao painel comercial")
             with st.form("secure_login"):
