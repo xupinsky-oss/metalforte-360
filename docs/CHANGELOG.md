@@ -37,3 +37,5 @@
 - detalhamento oficial por vendedor e grupo e alocações identificadas por cliente e produto;
 - permissão independente `view_targets` e controles de reconciliação.
 - correção do parser para aceitar relatórios-indicador legítimos com uma única coluna, mantendo relatórios transacionais sujeitos à validação multicoluna.
+- layout responsivo para tablet com cartões que se reorganizam sem quebrar valores.
+- metas com seletor próprio de competências anteriores e futuras, detalhamento por vendedor, cliente e produto e pendências oficiais da carteira.

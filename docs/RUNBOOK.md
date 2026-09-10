@@ -29,6 +29,8 @@ Não reduza limites apenas para fazer a carga passar. Investigue linhas, datas, 
 
 Relatórios de cartão do GoodData podem ter uma única coluna. O ETL aceita esse formato somente na etapa de indicadores; as fontes transacionais continuam exigindo múltiplas colunas para impedir que mensagens de erro sejam interpretadas como dados.
 
+As metas são consultadas competência a competência, por padrão de 12 meses anteriores a 12 meses futuros. Competências sem orçamento positivo são registradas como indisponíveis e não são inventadas. Os limites podem ser ajustados por `TOTVS_TARGET_OFFSET_FROM` e `TOTVS_TARGET_OFFSET_TO`, entre -24 e 24 meses.
+
 ## Resumo ou painel indisponível
 
 Verifique a publicação no bucket privado, a função `command-center` e a sessão do usuário. Não transforme o objeto em público.

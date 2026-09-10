@@ -94,7 +94,7 @@ def _comparison_text(value, *, points=False):
     return f"{number:+.2f}{suffix}".replace(".", ",")
 
 
-def _metric_card(label, value, comparisons):
+def _metric_card_html(label, value, comparisons=()):
     comparison_html = []
     for comparison_label, reference_value, change, points in comparisons:
         direction = "neutral" if change is None or pd.isna(change) else ("up" if change >= 0 else "down")
@@ -104,14 +104,21 @@ def _metric_card(label, value, comparisons):
             f'{html.escape(reference_value)}</span><span class="mf-kpi-delta {direction}">'
             f'{arrow}{html.escape(_comparison_text(change, points=points))}</span></div>'
         )
-    st.markdown(
-        f"""
+    return f"""
         <div class="mf-kpi">
           <div class="mf-kpi-label">{html.escape(label)}</div>
           <div class="mf-kpi-value">{html.escape(value)}</div>
           {''.join(comparison_html)}
         </div>
-        """, unsafe_allow_html=True,
+        """
+
+
+def _metric_cards(cards):
+    st.markdown(
+        '<div class="mf-kpi-grid">' + ''.join(
+            _metric_card_html(label, value, comparisons) for label, value, comparisons in cards
+        ) + '</div>',
+        unsafe_allow_html=True,
     )
 
 
@@ -136,6 +143,7 @@ def _metric_value(key, value, brl, brl2, pct):
 def _inject_kpi_styles():
     st.markdown("""
     <style>
+    .mf-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:.8rem;margin:.45rem 0 1rem}
     .mf-kpi{background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:1rem;min-height:162px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
     .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
     .mf-kpi-compare{display:flex;align-items:center;justify-content:space-between;gap:.35rem;font-size:.72rem;line-height:1.55;white-space:nowrap}
@@ -195,7 +203,6 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     prior_month = _period_metrics(_shifted_period(history, start_date, end_date, months=1))
     prior_year = _period_metrics(_shifted_period(history, start_date, end_date, years=1))
 
-    cards = st.columns(5)
     definitions = [
         ("Faturamento", brl(current["revenue"]), "revenue", False),
         ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
@@ -203,18 +210,19 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
         ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
     ]
-    for column, (label, value, key, points) in zip(cards, definitions):
+    cards = []
+    for label, value, key, points in definitions:
         if points:
             mom = (current[key] - prior_month[key]) * 100
             yoy = (current[key] - prior_year[key]) * 100
         else:
             mom = _relative(current[key], prior_month[key])
             yoy = _relative(current[key], prior_year[key])
-        with column:
-            _metric_card(label, value, [
-                ("Mês ant.", _metric_value(key, prior_month[key], brl, brl2, pct), mom, points),
-                ("Ano ant.", _metric_value(key, prior_year[key], brl, brl2, pct), yoy, points),
-            ])
+        cards.append((label, value, [
+            ("Mês ant.", _metric_value(key, prior_month[key], brl, brl2, pct), mom, points),
+            ("Ano ant.", _metric_value(key, prior_year[key], brl, brl2, pct), yoy, points),
+        ]))
+    _metric_cards(cards)
 
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
@@ -544,21 +552,64 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
     show_table(result, height=520, width="stretch", hide_index=True)
 
 
-def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export):
+def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export, indicators=None):
     st.subheader("Metas e orçamento", help=PANEL_HELP["targets"])
-    st.caption("ⓘ Meta oficial mensal; realizado segue o período e os filtros do painel. Em períodos parciais, o atingimento compara o acumulado à meta cheia do mês.")
+    st.caption("ⓘ A competência da meta é independente do calendário de faturamento. Para meses futuros, o realizado permanece zerado até ocorrer faturamento.")
+    targets = targets.copy() if targets is not None else pd.DataFrame()
+    if targets.empty or "Competência" not in targets:
+        st.info("A meta oficial ainda não foi publicada. Execute primeiro a atualização em homologação.")
+        return
+    targets["Competência"] = pd.to_datetime(targets["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+    available = sorted(pd.Timestamp(value) for value in targets["Competência"].dropna().unique())
+    if not available:
+        st.info("A base de metas não possui competências válidas.")
+        return
+    labels = [value.strftime("%m/%Y") for value in available]
+    label_to_date = dict(zip(labels, available))
+    current_month = pd.Timestamp.today().to_period("M").start_time
+    default_date = current_month if current_month in available else max(
+        (value for value in available if value <= current_month), default=available[-1]
+    )
+    default_label = default_date.strftime("%m/%Y")
+    selected_range = st.select_slider(
+        "Competências da meta", options=labels, value=(default_label, default_label),
+        help="Selecione um mês ou arraste as extremidades para analisar metas anteriores e futuras.",
+        key="target_competence_range",
+    )
+    selected_start, selected_end = selected_range if isinstance(selected_range, (tuple, list)) else (selected_range, selected_range)
+    target_start, target_end = label_to_date[selected_start], label_to_date[selected_end]
     scoped = target_scope(
-        targets, start_date, end_date,
+        targets, target_start, target_end,
         sellers=(filters or {}).get("sellers"), groups=(filters or {}).get("groups"),
     )
     if scoped.empty:
         st.info("A meta oficial ainda não foi publicada para o período e escopo selecionados. Execute primeiro a atualização em homologação.")
         return
 
+    previous_count = sum(value < current_month for value in available)
+    future_count = sum(value > current_month for value in available)
+    st.caption(
+        f"Cobertura oficial: {labels[0]} a {labels[-1]} • {previous_count} competência(s) anterior(es) • "
+        f"{future_count} futura(s)."
+    )
+    actual_source = history.copy()
+    actual_source = actual_source[
+        (actual_source["Data"] >= target_start) & (actual_source["Data"] < target_end + pd.DateOffset(months=1))
+    ]
+    selected_client = (filters or {}).get("client")
+    client_query = (filters or {}).get("client_text")
+    product_query = (filters or {}).get("product_text")
+    if selected_client:
+        actual_source = actual_source[actual_source["Cliente"].astype(str) == str(selected_client)]
+    if client_query:
+        actual_source = actual_source[actual_source["Cliente"].astype(str).str.contains(client_query, case=False, na=False)]
+    if product_query:
+        actual_source = actual_source[actual_source["Produto"].astype(str).str.contains(product_query, case=False, na=False)]
+
     target_value = float(scoped["Meta R$"].sum())
     target_kg = float(scoped["Meta KG"].sum())
-    actual_value = float(data["Faturamento"].sum()) if not data.empty else 0.0
-    actual_kg = float(data["Peso"].sum()) if not data.empty else 0.0
+    actual_value = float(actual_source["Faturamento"].sum()) if not actual_source.empty else 0.0
+    actual_kg = float(actual_source["Peso"].sum()) if not actual_source.empty else 0.0
     value_attainment = actual_value / target_value if target_value else 0.0
     kg_attainment = actual_kg / target_kg if target_kg else 0.0
     cards = st.columns(4)
@@ -569,6 +620,15 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
 
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
     st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
+    indicators = indicators or {}
+    st.markdown("### Pendências comerciais")
+    st.caption("ⓘ Totais oficiais da carteira na última carga. Estes indicadores são globais e não seguem o detalhamento por cliente ou produto.")
+    _metric_cards([
+        ("Pedidos liberados", brl(float(indicators.get("pedidos_liberados_valor", 0) or 0)), ()),
+        ("Peso liberado", f"{_quantity(float(indicators.get('pedidos_liberados_peso', 0) or 0))} kg", ()),
+        ("Pedidos a faturar", brl(float(indicators.get("pedidos_nao_faturados_valor", 0) or 0)), ()),
+        ("Peso a faturar", f"{_quantity(float(indicators.get('pedidos_nao_faturados_peso', 0) or 0))} kg", ()),
+    ])
     dimension = st.segmented_control(
         "Detalhar por", ["Vendedor", "Grupo Produto", "Cliente", "Produto"],
         default="Vendedor", key="target_dimension",
@@ -586,10 +646,10 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         if query:
             allocation = allocation[allocation["Produto"].astype(str).str.contains(query, case=False, na=False)]
 
-    if data.empty or dimension not in data:
+    if actual_source.empty or dimension not in actual_source:
         actual = pd.DataFrame(columns=[dimension, "Realizado R$", "Realizado KG"])
     else:
-        actual = data.groupby(dimension, dropna=False, as_index=False).agg(
+        actual = actual_source.groupby(dimension, dropna=False, as_index=False).agg(
             **{"Realizado R$": ("Faturamento", "sum"), "Realizado KG": ("Peso", "sum")}
         )
     view = allocation.merge(actual, on=dimension, how="outer").fillna(0)
@@ -622,7 +682,7 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         )
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None):
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
@@ -667,7 +727,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_sellers":
         _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_targets":
-        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export)
+        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":

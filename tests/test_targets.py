@@ -45,6 +45,11 @@ class TargetTests(unittest.TestCase):
         result = target_scope(targets, "2026-09-01", "2026-09-30", sellers=["ANA"])
         self.assertEqual(result["Vendedor"].unique().tolist(), ["ANA"])
 
+    def test_scope_supports_future_competence(self):
+        future = consolidate_targets(self.meta_kg, self.meta_value, "2027-03-01")
+        result = target_scope(future, "2027-03-01", "2027-03-31")
+        self.assertEqual(result["Competência"].dt.strftime("%Y-%m").unique().tolist(), ["2027-03"])
+
     def test_invalid_official_value_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "meta mensal em R\\$ positiva"):
             consolidate_targets(self.meta_kg, pd.DataFrame({"Vlr Orçamento": [0]}), "2026-09-01")

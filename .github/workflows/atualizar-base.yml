@@ -58,6 +58,8 @@ jobs:
       SUPABASE_DATA_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_base.csv.gz' || 'bases/metalforte_base.csv.gz' }}
       SUPABASE_TARGET_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_metas.csv.gz' || 'bases/metalforte_metas.csv.gz' }}
       TOTVS_TARGET_KG_MULTIPLIER: "1000"
+      TOTVS_TARGET_OFFSET_FROM: "-12"
+      TOTVS_TARGET_OFFSET_TO: "12"
       SUPABASE_DASHBOARD_PATH: ${{ inputs.environment == 'homologacao' && 'dashboard/homologacao/command-center.json' || 'dashboard/command-center.json' }}
       ETL_REQUEST_ID: ${{ inputs.request_id || format('scheduled-{0}', github.run_id) }}
       ETL_ENVIRONMENT: ${{ inputs.environment || 'producao' }}

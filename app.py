@@ -169,15 +169,19 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stDataFrame"]{border:1px solid #DCE3EC;border-radius:10px;overflow:hidden}
 .mf-funnel-note{padding:.85rem 1rem;background:#FFF4EE;border:1px solid #FFD5C2;border-radius:10px;color:#71371E;margin:.5rem 0 1rem}
 button,input,[role="combobox"]{font-size:.95rem!important}
-@media(min-width:700px) and (max-width:1180px){
+@media(min-width:700px) and (max-width:1400px){
   .block-container{padding:1.1rem 1.15rem 2.4rem;max-width:100%}
   h1{font-size:1.9rem!important} h2{font-size:1.42rem!important} h3{font-size:1.16rem!important}
-  [data-testid="stSidebar"]{min-width:17rem!important;max-width:17rem!important}
+  [data-testid="stSidebar"]{min-width:14rem!important;max-width:14rem!important}
+  [data-testid="stSidebar"] [data-testid="stImage"] img{max-width:170px!important;height:auto!important}
+  [data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.75rem!important}
+  [data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{flex:1 1 min(100%,260px)!important;width:auto!important;min-width:min(100%,220px)!important}
   [data-testid="stMetric"]{min-height:104px;padding:.78rem}
   [data-testid="stMetricValue"]{font-size:1.3rem!important}
   .mf-kpi{min-height:146px!important;padding:.82rem!important}
   .mf-kpi-value{font-size:1.35rem!important}
   .mf-kpi-compare{align-items:flex-start!important;flex-direction:column!important;gap:0!important;white-space:normal!important}
+  .mf-kpi-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
   [data-baseweb="tab-list"]{overflow-x:auto!important;scrollbar-width:thin}
   [data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}
@@ -187,6 +191,7 @@ button,input,[role="combobox"]{font-size:.95rem!important}
   [data-testid="stMetric"]{min-height:100px;padding:.75rem}
   [data-testid="stMetricValue"]{font-size:1.28rem!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
+  .mf-kpi-grid{grid-template-columns:1fr!important}
 }
 </style>""",unsafe_allow_html=True)
 
@@ -248,5 +253,6 @@ render_operational_dashboard(
     brl, brl2, pct, pp, show_chart, show_table,
     permissions=access["permissions"], current_user=access["user"], targets=targets,
     target_history=target_history, target_filters=target_filters,
+    commercial_indicators=load_status.get("indicadores", {}),
 )
 st.stop()

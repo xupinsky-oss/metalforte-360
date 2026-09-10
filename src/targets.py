@@ -74,7 +74,7 @@ def consolidate_targets(meta_kg, meta_value, competence=None):
 
 
 def merge_target_history(existing, current):
-    """Substitui somente a competência corrente e preserva snapshots anteriores."""
+    """Substitui as competências consultadas e preserva as demais competências."""
     if existing is None or existing.empty:
         return current.copy()
     old = existing.copy()

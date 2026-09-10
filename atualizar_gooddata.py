@@ -62,6 +62,37 @@ def extract_indicator(frame):
     # export. O maior valor absoluto é a medida, não o rótulo do período.
     return max(values,key=abs)
 
+def collect_target_periods(con,current_detail,current_value):
+    """Lê metas mensais anteriores e futuras sem misturar competências."""
+    offset_from=int(os.getenv('TOTVS_TARGET_OFFSET_FROM','-12'))
+    offset_to=int(os.getenv('TOTVS_TARGET_OFFSET_TO','12'))
+    if offset_from>offset_to or offset_from < -24 or offset_to > 24:
+        raise ValueError('Intervalo de competências da meta inválido; use limites entre -24 e 24 meses.')
+    base_competence=pd.Timestamp.today().to_period('M').start_time
+    periods=[]
+    for offset in range(offset_from,offset_to+1):
+        competence=base_competence+pd.DateOffset(months=offset)
+        try:
+            if offset==0:
+                detail,value=current_detail,current_value
+            else:
+                detail=parse_raw(con.raw_report(
+                    DETAIL_REPORTS['meta_kg_vendedor_grupo'],offset_from=offset,offset_to=offset
+                ))
+                value=parse_raw(con.raw_report(
+                    INDICATOR_REPORTS['meta_valor'],offset_from=offset,offset_to=offset
+                ),allow_single_column=True)
+            period=consolidate_targets(detail,value,competence)
+            periods.append(period)
+            logging.info('Meta %s: %s linhas',competence.strftime('%Y-%m'),len(period))
+        except Exception as exc:
+            if offset==0:
+                raise
+            logging.warning('Meta %s indisponível (%s): %s',competence.strftime('%Y-%m'),type(exc).__name__,str(exc))
+    if not periods:
+        raise ValueError('Nenhuma competência válida de meta foi retornada pelo GoodData.')
+    return pd.concat(periods,ignore_index=True)
+
 def consolidate(downloaded):
     fat=downloaded['faturamento'].copy(); fat.columns=['Filial','Data','Vendedor','Cliente','NF','Item','Produto','CFOP','TES','Faturamento','Peso','Preço Real Kg']
     cli=downloaded['clientes_pedidos'].copy(); cli.columns=['Vendedor CP','Cod Cliente','Cliente CP','Data Pedido','Pedido','NF','Item','Produto CP','Peso CP','Faturamento CP','Preço CP','Margem CP %']
@@ -150,7 +181,7 @@ def main():
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
     main_df=consolidate(downloaded)
-    current_targets=consolidate_targets(detail_frames['meta_kg_vendedor_grupo'],indicator_frames['meta_valor'])
+    current_targets=collect_target_periods(con,detail_frames['meta_kg_vendedor_grupo'],indicator_frames['meta_valor'])
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
@@ -175,8 +206,9 @@ def main():
     target_tmp.replace(ACTIVE_TARGETS)
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':INDICATOR_REPORTS,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
-    current_competence=current_targets['Competência'].max()
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_targets),'meta_kg':round(float(current_targets['Meta KG'].sum()),2),'meta_valor':round(float(current_targets['Meta R$'].sum()),2),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    current_competence=pd.Timestamp.today().to_period('M').start_time
+    current_snapshot=current_targets[current_targets['Competência']==current_competence]
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':str(current_targets['Competência'].min().date()),'meta_cobertura_fim':str(current_targets['Competência'].max().date()),'cobertura_classificacao_clientes':round(classification_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 
