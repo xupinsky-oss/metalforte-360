@@ -103,7 +103,7 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
 
 
 def allocate_target(targets, history, dimension):
-    """Aloca vendedor×grupo para cliente/SKU pelas participações dos 12 meses anteriores."""
+    """Aloca vendedor×grupo para cliente/SKU pelo peso faturado nos 3 meses anteriores."""
     if targets.empty:
         return pd.DataFrame(), {"Meta R$": 0.0, "Meta KG": 0.0}
     if dimension in ("Vendedor", "Grupo Produto"):
@@ -114,7 +114,8 @@ def allocate_target(targets, history, dimension):
     allocations = []
     unallocated = {"Meta R$": 0.0, "Meta KG": 0.0}
     for competence, monthly_target in targets.groupby("Competência"):
-        start = competence - pd.DateOffset(months=12)
+        # Três meses-calendário completos imediatamente anteriores à competência.
+        start = competence - pd.DateOffset(months=3)
         end = competence - pd.Timedelta(days=1)
         base = history[(history["Data"] >= start) & (history["Data"] <= end)].copy()
         for (seller, group), cell in monthly_target.groupby(["Vendedor", "Grupo Produto"]):
@@ -125,16 +126,15 @@ def allocate_target(targets, history, dimension):
                 unallocated["Meta KG"] += float(cell["Meta KG"])
                 continue
             weights = reference.groupby(dimension, dropna=False).agg(
-                _revenue=("Faturamento", lambda values: values.clip(lower=0).sum()),
                 _weight=("Peso", lambda values: values.clip(lower=0).sum()),
             ).reset_index()
-            for metric, basis in (("Meta R$", "_revenue"), ("Meta KG", "_weight")):
-                total = float(weights[basis].sum())
+            total = float(weights["_weight"].sum())
+            for metric in ("Meta R$", "Meta KG"):
                 if total <= 0:
                     unallocated[metric] += float(cell[metric])
                     weights[metric] = 0.0
                 else:
-                    weights[metric] = float(cell[metric]) * weights[basis] / total
+                    weights[metric] = float(cell[metric]) * weights["_weight"] / total
             allocations.append(weights[[dimension, "Meta R$", "Meta KG"]])
     if not allocations:
         return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), unallocated

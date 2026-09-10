@@ -22,10 +22,10 @@
 - `Rel.045 Comercial - Indicador R$ Meta Venda` (`11096333`) fornece o total oficial mensal em reais.
 - O total em reais é distribuído no grão vendedor × grupo proporcionalmente à meta oficial de KG e reconciliado ao centavo antes da publicação.
 - A competência corrente substitui somente o mesmo mês; competências já publicadas são preservadas no histórico privado `metalforte_metas.csv.gz`.
-- Cliente e produto não são metas nativas desses relatórios. O painel os identifica como alocações gerenciais usando participações positivas dos 12 meses anteriores. Células sem histórico permanecem como saldo não alocado.
+- Cliente e produto não são metas nativas desses relatórios. O painel os identifica como alocações gerenciais: Meta R$ e Meta KG usam a participação positiva no peso faturado dos 3 meses-calendário anteriores à competência, sempre dentro da célula oficial vendedor × grupo. Células sem peso histórico permanecem como saldo não alocado.
 - `Fat. por clientes` (`51540859`) está catalogado como fonte complementar de carteira. A alocação operacional usa a base consolidada, que já contém vendedor, cliente, produto e grupo no mesmo grão e evita duplicidade de faturamento.
 
-O multiplicador de unidade do relatório 044 e dos cartões de peso da carteira é configurado por `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas para KG). A homologação deve reconciliar o total do mês ao dashboard oficial antes da promoção para produção.
+O relatório 044 usa `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas para KG). Os indicadores de peso da carteira usam `TOTVS_INDICATOR_WEIGHT_MULTIPLIER` (padrão `1`, pois já chegam em KG). A homologação deve reconciliar o total do mês ao dashboard oficial antes da promoção para produção.
 
 ## Garantias mantidas
 

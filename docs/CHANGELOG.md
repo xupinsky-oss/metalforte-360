@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.13 — Rateio de metas pelo peso recente
+
+- Meta R$ e Meta KG por cliente e produto passam a seguir a participação no peso faturado;
+- a janela usa os 3 meses-calendário completos anteriores a cada competência;
+- o cálculo continua restrito à célula oficial vendedor × grupo e preserva os totais oficiais;
+- valores sem peso histórico permanecem identificados como saldo não alocado.
+
 ## v2.9 — insights estáveis e experiência tablet
 
 - corrigida a colisão entre os botões de exportação das quatro filas de Insights;

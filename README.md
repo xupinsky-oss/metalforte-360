@@ -30,7 +30,7 @@ Todos os indicadores respeitam os filtros globais da barra lateral.
 
 ## Metas e orçamento
 
-A aba **Metas** compara os resultados às metas oficiais mensais. Vendedor e grupo de produto preservam o grão oficial. Cliente e produto são alocações gerenciais identificadas, calculadas pelas participações dos 12 meses anteriores, com saldo sem histórico mantido como não alocado.
+A aba **Metas** compara os resultados às metas oficiais mensais. Vendedor e grupo de produto preservam o grão oficial. Cliente e produto são alocações gerenciais identificadas, calculadas pela participação no peso faturado dos 3 meses-calendário anteriores à competência, com saldo sem histórico mantido como não alocado.
 
 ## Gestão de acessos
 

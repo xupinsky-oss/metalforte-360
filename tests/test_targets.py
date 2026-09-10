@@ -30,15 +30,26 @@ class TargetTests(unittest.TestCase):
     def test_client_allocation_preserves_target(self):
         targets = consolidate_targets(self.meta_kg.iloc[:1], self.meta_value, "2026-09-01")
         history = pd.DataFrame({
-            "Data": pd.to_datetime(["2026-01-10", "2026-02-10"]),
-            "Vendedor": ["ANA", "ANA"], "Grupo Produto": ["AÇO", "AÇO"],
-            "Cliente": ["CLIENTE 1", "CLIENTE 2"], "Produto": ["P1", "P2"],
-            "Faturamento": [300.0, 100.0], "Peso": [60.0, 40.0],
+            "Data": pd.to_datetime(["2026-05-31", "2026-06-10", "2026-08-10"]),
+            "Vendedor": ["ANA", "ANA", "ANA"], "Grupo Produto": ["AÇO", "AÇO", "AÇO"],
+            "Cliente": ["FORA DA JANELA", "CLIENTE 1", "CLIENTE 2"],
+            "Produto": ["P0", "P1", "P2"],
+            "Faturamento": [10000.0, 300.0, 100.0], "Peso": [10000.0, 60.0, 40.0],
         })
         result, reserve = allocate_target(targets, history, "Cliente")
         self.assertAlmostEqual(result["Meta R$"].sum(), targets["Meta R$"].sum())
         self.assertAlmostEqual(result["Meta KG"].sum(), targets["Meta KG"].sum())
         self.assertEqual(reserve, {"Meta R$": 0.0, "Meta KG": 0.0})
+        allocated = result.set_index("Cliente")
+        self.assertNotIn("FORA DA JANELA", allocated.index)
+        self.assertAlmostEqual(allocated.loc["CLIENTE 1", "Meta R$"], 24000.0)
+        self.assertAlmostEqual(allocated.loc["CLIENTE 2", "Meta R$"], 16000.0)
+
+        products, product_reserve = allocate_target(targets, history, "Produto")
+        product_allocated = products.set_index("Produto")
+        self.assertAlmostEqual(product_allocated.loc["P1", "Meta KG"] / targets["Meta KG"].sum(), 0.60)
+        self.assertAlmostEqual(product_allocated.loc["P2", "Meta KG"] / targets["Meta KG"].sum(), 0.40)
+        self.assertEqual(product_reserve, {"Meta R$": 0.0, "Meta KG": 0.0})
 
     def test_scope_uses_explicit_filters(self):
         targets = consolidate_targets(self.meta_kg, self.meta_value, "2026-09-01")

@@ -29,7 +29,7 @@ PANEL_HELP = {
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
-    "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto são alocações proporcionais ao histórico dos 12 meses anteriores.",
+    "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
@@ -667,7 +667,7 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
 
     if dimension in ("Cliente", "Produto"):
         st.info(
-            "Este detalhamento é uma alocação gerencial: R$ usa a participação positiva de faturamento e KG usa a participação positiva de peso nos 12 meses anteriores, dentro de cada vendedor × grupo."
+            "Este detalhamento é uma alocação gerencial: Meta R$ e Meta KG usam a participação do peso faturado nos 3 meses-calendário anteriores à competência, dentro de cada vendedor × grupo."
         )
         if unallocated["Meta R$"] or unallocated["Meta KG"]:
             st.warning(f"Sem histórico para alocar: {brl(unallocated['Meta R$'])} e {_quantity(unallocated['Meta KG'])} kg.")
