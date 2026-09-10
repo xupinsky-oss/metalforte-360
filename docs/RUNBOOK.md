@@ -31,6 +31,8 @@ Relatórios de cartão do GoodData podem ter uma única coluna. O ETL aceita ess
 
 As metas são consultadas competência a competência, por padrão de 12 meses anteriores a 12 meses futuros. Competências sem orçamento positivo são registradas como indisponíveis e não são inventadas. Os limites podem ser ajustados por `TOTVS_TARGET_OFFSET_FROM` e `TOTVS_TARGET_OFFSET_TO`, entre -24 e 24 meses.
 
+O relatório detalhado 044 entrega a meta em toneladas e usa `TOTVS_TARGET_KG_MULTIPLIER=1000`. Os cartões de meta e carteira já chegam em kg e usam `TOTVS_INDICATOR_WEIGHT_MULTIPLIER=1`. Não iguale os multiplicadores: isso infla as pendências em mil vezes.
+
 ## Resumo ou painel indisponível
 
 Verifique a publicação no bucket privado, a função `command-center` e a sessão do usuário. Não transforme o objeto em público.

@@ -164,7 +164,9 @@ def main():
         indicator_frames[name]=frame
         indicators[name]=round(extract_indicator(frame),4)
         logging.info('%s: %s',name,indicators[name])
-    weight_multiplier=float(os.getenv('TOTVS_TARGET_KG_MULTIPLIER','1000'))
+    # Os cartões 043/045 de peso já são exportados em kg. O multiplicador de
+    # tonelada para kg aplica-se somente ao detalhamento da meta (relatório 044).
+    weight_multiplier=float(os.getenv('TOTVS_INDICATOR_WEIGHT_MULTIPLIER','1'))
     for name in ('meta_peso','pedidos_nao_faturados_peso','pedidos_liberados_peso'):
         if name in indicators: indicators[name]=round(indicators[name]*weight_multiplier,4)
     detail_frames={}
