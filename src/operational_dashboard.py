@@ -104,13 +104,15 @@ def _metric_card_html(label, value, comparisons=()):
             f'{html.escape(reference_value)}</span><span class="mf-kpi-delta {direction}">'
             f'{arrow}{html.escape(_comparison_text(change, points=points))}</span></div>'
         )
-    return f"""
-        <div class="mf-kpi">
-          <div class="mf-kpi-label">{html.escape(label)}</div>
-          <div class="mf-kpi-value">{html.escape(value)}</div>
-          {''.join(comparison_html)}
-        </div>
-        """
+    # Mantenha o fragmento sem recuo: quatro espaços no início de uma linha
+    # fazem o Markdown tratar os cartões seguintes como bloco de código.
+    return (
+        '<div class="mf-kpi">'
+        f'<div class="mf-kpi-label">{html.escape(label)}</div>'
+        f'<div class="mf-kpi-value">{html.escape(value)}</div>'
+        f'{"".join(comparison_html)}'
+        '</div>'
+    )
 
 
 def _metric_cards(cards):

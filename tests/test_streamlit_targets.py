@@ -3,12 +3,16 @@ import inspect
 
 from streamlit.testing.v1 import AppTest
 
-from src.operational_dashboard import render
+from src.operational_dashboard import _metric_card_html, render
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
     def test_render_accepts_commercial_indicators_contract(self):
         self.assertIn("commercial_indicators", inspect.signature(render).parameters)
+
+    def test_metric_card_fragment_is_not_parsed_as_markdown_code(self):
+        fragment = _metric_card_html("Faturamento", "R$ 1.000,00")
+        self.assertNotRegex(fragment, r"(?m)^ {4}")
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''
