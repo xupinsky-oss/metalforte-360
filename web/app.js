@@ -3,7 +3,7 @@ const brl = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maxim
 const num = new Intl.NumberFormat("pt-BR",{maximumFractionDigits:0});
 const percent = (v) => new Intl.NumberFormat("pt-BR",{style:"percent",minimumFractionDigits:2,maximumFractionDigits:2}).format(v || 0);
 const money = (v) => brl.format(v || 0);
-let supa, monthlyChart;
+let supa, monthlyChart, funnelChart;
 const el = (id) => document.getElementById(id);
 function configMissing(){ return !cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY; }
 function dateBR(value){ return new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium"}).format(new Date(value+"T12:00:00")); }
@@ -25,6 +25,16 @@ function renderCommercial(o){
     ["Peso a faturar",num.format(o.pedidos_nao_faturados_peso)+" kg"]
   ];
   el("metas-pedidos-kpis").innerHTML=cards.map(function(c){return '<article class="kpi secondary"><span>'+c[0]+'</span><strong>'+c[1]+'</strong></article>';}).join("");
+  section.hidden=false;
+}
+function renderFunnel(rows){
+  const section=el("funil-acompanhamento");
+  const visible=(rows||[]).filter(function(r){return r.valor!=null || r.peso!=null;});
+  if(!visible.length){section.hidden=true;return;}
+  if(funnelChart) funnelChart.destroy();
+  const operational=visible.filter(function(r){return r.peso!=null && r.tipo!=="comercial" && !r.agregado;});
+  funnelChart=new Chart(el("funnel-chart"),{type:"bar",data:{labels:operational.map(function(r){return r.etapa;}),datasets:[{label:"Peso na etapa (kg)",data:operational.map(function(r){return r.peso;}),backgroundColor:operational.map(function(r){return r.tipo==="resultado"?"#147a52":"#f26b21"})}]},options:{indexAxis:"y",responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return num.format(ctx.raw)+" kg";}}}},scales:{x:{ticks:{callback:function(v){return num.format(v)+" kg";}},y:{ticks:{autoSkip:false}}}}}});
+  el("funnel-table").innerHTML='<div class="table-wrap"><table><thead><tr><th>Etapa</th><th>Valor</th><th>Peso</th></tr></thead><tbody>'+visible.map(function(r){return "<tr><td>"+r.etapa+"</td><td>"+(r.valor==null?"—":money(r.valor))+"</td><td>"+(r.peso==null?"—":num.format(r.peso)+" kg")+"</td></tr>";}).join("")+"</tbody></table></div>";
   section.hidden=false;
 }
 function renderMonthly(rows){
@@ -50,7 +60,7 @@ async function loadDashboard(){
   const data=await response.json();
   el("periodo").textContent="Período: "+dateBR(data.periodo.inicio)+" a "+dateBR(data.periodo.fim);
   el("atualizado").textContent="Base atualizada em "+new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(data.atualizado_em));
-  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderMonthly(data.mensal);renderPanels(data.paineis);
+  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderFunnel(data.funil_acompanhamento);renderMonthly(data.mensal);renderPanels(data.paineis);
   el("login").hidden=true;el("dashboard").hidden=false;el("logout").hidden=false;
 }
 async function start(){

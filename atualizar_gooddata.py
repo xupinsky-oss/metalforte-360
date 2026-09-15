@@ -2,7 +2,7 @@ import io,json,logging,os,shutil,sys,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import consolidate_targets,merge_target_history
@@ -61,6 +61,16 @@ def extract_indicator(frame):
     # Relatórios de indicador possuem uma medida e eventualmente ano/mês no
     # export. O maior valor absoluto é a medida, não o rótulo do período.
     return max(values,key=abs)
+
+def sum_detail_measure(frame, column_hint):
+    """Soma uma medida de relatório analítico sem misturar valor e peso."""
+    candidates=[column for column in frame.columns if column_hint.casefold() in str(column).casefold()]
+    if not candidates:
+        raise ValueError(f"Coluna '{column_hint}' não encontrada no detalhamento.")
+    values=frame[candidates[0]].map(_parse_indicator_value).dropna()
+    if values.empty:
+        raise ValueError(f"Coluna '{candidates[0]}' não retornou valores numéricos.")
+    return float(values.sum())
 
 def collect_target_periods(con,current_detail,current_value):
     """Lê metas mensais anteriores e futuras sem misturar competências."""
@@ -164,6 +174,22 @@ def main():
         indicator_frames[name]=frame
         indicators[name]=round(extract_indicator(frame),4)
         logging.info('%s: %s',name,indicators[name])
+    for name,report_id in FUNNEL_INDICATOR_REPORTS.items():
+        logging.info('Baixando etapa do funil %s (%s)',name,report_id)
+        try:
+            frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0),allow_single_column=True)
+            indicators[name]=round(extract_indicator(frame),4)
+        except Exception as exc:
+            # A ausência de uma etapa opcional não interrompe as cargas de
+            # faturamento. O painel a indicará como indisponível.
+            logging.warning('Etapa do funil indisponível %s: %s',name,type(exc).__name__)
+    for name,(report_id,column_hint) in FUNNEL_DETAIL_REPORTS.items():
+        logging.info('Baixando detalhamento do funil %s (%s)',name,report_id)
+        try:
+            frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0))
+            indicators[name]=round(sum_detail_measure(frame,column_hint),4)
+        except Exception as exc:
+            logging.warning('Detalhamento do funil indisponível %s: %s',name,type(exc).__name__)
     # Os cartões 043/045 de peso já são exportados em kg. O multiplicador de
     # tonelada para kg aplica-se somente ao detalhamento da meta (relatório 044).
     weight_multiplier=float(os.getenv('TOTVS_INDICATOR_WEIGHT_MULTIPLIER','1'))
@@ -206,7 +232,8 @@ def main():
     target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
     target_cloud_updated=upload_file(target_tmp,object_path=target_path)
     target_tmp.replace(ACTIVE_TARGETS)
-    INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':INDICATOR_REPORTS,'valores':indicators},ensure_ascii=False),encoding='utf-8')
+    indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()}}
+    INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=pd.Timestamp.today().to_period('M').start_time
     current_snapshot=current_targets[current_targets['Competência']==current_competence]

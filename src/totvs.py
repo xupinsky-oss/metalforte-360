@@ -17,6 +17,24 @@ DETAIL_REPORTS={
     "meta_kg_vendedor_grupo":"11081881",
     "carteira_clientes":"51540859",
 }
+# Etapas oficiais do painel "Pedidos & Orçamentos". Os itens de operação
+# foram publicados em kg; por isso não são convertidos artificialmente em R$.
+FUNNEL_INDICATOR_REPORTS={
+    "orcamentos_abertos_valor":"40646",
+    "orcamentos_abertos_peso":"40659",
+    "pedidos_pendentes_valor":"49462",
+    "pedidos_liberados_credito_valor":"49468",
+    "pedidos_faturados_valor":"52444",
+    "aguardando_os_peso":"7674329",
+    "aguardando_carga_cif_peso":"8084817",
+    "aguardando_carga_fob_peso":"8055931",
+    "aguardando_faturamento_peso":"41186",
+    "aguardando_faturamento_cif_peso":"7674334",
+    "aguardando_faturamento_fob_peso":"7674337",
+}
+# O kit é um detalhamento, não um cartão pronto no GoodData. A medida é
+# calculada exclusivamente pela coluna de peso desse relatório.
+FUNNEL_DETAIL_REPORTS={"aguardando_kit_peso": ("28736377", "peso")}
 
 class TotvsGoodDataConnector:
     def __init__(self,base_url,workspace,dashboard,cookie=None):

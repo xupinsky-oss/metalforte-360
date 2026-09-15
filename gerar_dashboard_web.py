@@ -77,6 +77,10 @@ def _load_indicators():
         return {}
 
 
+def _optional_number(indicators, key):
+    return _number(indicators[key]) if key in indicators else None
+
+
 def build_payload(data):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
@@ -104,6 +108,19 @@ def build_payload(data):
     }
     commercial["atingimento_valor_pct"] = _number(current_metrics["faturamento"] / commercial["meta_valor"]) if commercial["meta_valor"] else None
     commercial["atingimento_peso_pct"] = _number(current_metrics["peso"] / commercial["meta_peso"]) if commercial["meta_peso"] else None
+    funnel = [
+        {"etapa": "Orçamentos em aberto", "valor": _optional_number(indicators, "orcamentos_abertos_valor"), "peso": _optional_number(indicators, "orcamentos_abertos_peso"), "tipo": "comercial"},
+        {"etapa": "Pedidos pendentes", "valor": _optional_number(indicators, "pedidos_pendentes_valor"), "peso": None, "tipo": "comercial"},
+        {"etapa": "Liberados pelo crédito", "valor": _optional_number(indicators, "pedidos_liberados_credito_valor"), "peso": None, "tipo": "comercial"},
+        {"etapa": "Aguardando OS", "valor": None, "peso": _optional_number(indicators, "aguardando_os_peso"), "tipo": "operacao"},
+        {"etapa": "Aguardando kit", "valor": None, "peso": _optional_number(indicators, "aguardando_kit_peso"), "tipo": "operacao"},
+        {"etapa": "Aguardando carga CIF", "valor": None, "peso": _optional_number(indicators, "aguardando_carga_cif_peso"), "tipo": "operacao"},
+        {"etapa": "Aguardando carga FOB", "valor": None, "peso": _optional_number(indicators, "aguardando_carga_fob_peso"), "tipo": "operacao"},
+        {"etapa": "Aguardando faturamento (total)", "valor": None, "peso": _optional_number(indicators, "aguardando_faturamento_peso"), "tipo": "operacao", "agregado": True},
+        {"etapa": "Aguardando faturamento CIF", "valor": None, "peso": _optional_number(indicators, "aguardando_faturamento_cif_peso"), "tipo": "operacao"},
+        {"etapa": "Aguardando faturamento FOB", "valor": None, "peso": _optional_number(indicators, "aguardando_faturamento_fob_peso"), "tipo": "operacao"},
+        {"etapa": "Faturado no período", "valor": _optional_number(indicators, "pedidos_faturados_valor") if _optional_number(indicators, "pedidos_faturados_valor") is not None else current_metrics["faturamento"], "peso": current_metrics["peso"], "tipo": "resultado"},
+    ]
 
     monthly = data[data["Data"] >= month_start - pd.DateOffset(months=11)].copy()
     monthly["mes"] = monthly["Data"].dt.to_period("M").astype(str)
@@ -119,6 +136,7 @@ def build_payload(data):
         "periodo": {"inicio": month_start.date().isoformat(), "fim": last_date.date().isoformat()},
         "overview": current_metrics,
         "metas_e_pedidos": commercial,
+        "funil_acompanhamento": funnel,
         "mensal": monthly_records,
         "paineis": {
             "segmentos": _breakdown(current, "Segmento Cliente"),
