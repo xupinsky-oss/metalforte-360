@@ -17,6 +17,9 @@ class StreamlitTargetSmokeTests(unittest.TestCase):
     def test_funnel_keeps_missing_values_distinct_from_zero(self):
         frame = _funnel_frame({"orcamentos_abertos_valor": 0, "aguardando_os_peso": 1250})
         self.assertEqual(frame.loc[frame["Etapa"] == "Orçamentos em aberto", "Cobertura"].iloc[0], "Disponível")
+        self.assertIn("Orçamentos fechados", frame["Etapa"].tolist())
+        self.assertIn("Orçamentos perdidos", frame["Etapa"].tolist())
+        self.assertIn("Aguardando entrega", frame["Etapa"].tolist())
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando kit", "Cobertura"].iloc[0], "Indisponível")
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando OS", "Valor"].iloc[0], 1250)
 

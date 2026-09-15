@@ -151,6 +151,14 @@ def _inject_kpi_styles():
     .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
     .mf-kpi-compare{display:flex;align-items:center;justify-content:space-between;gap:.35rem;font-size:.72rem;line-height:1.55;white-space:nowrap}
     .mf-kpi-ref{color:#64748B}.mf-kpi-delta{font-weight:700}.mf-kpi-delta.up{color:#177245}.mf-kpi-delta.down{color:#B33A2B}.mf-kpi-delta.neutral{color:#64748B}
+    .mf-flow{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:.65rem;margin:.8rem 0 1.25rem;overflow-x:auto;padding:.2rem .05rem .65rem}
+    .mf-stage{position:relative;background:#fff;border:1px solid #DCE3EC;border-top:4px solid #F36A2D;border-radius:12px;padding:.8rem;min-height:180px;box-shadow:0 3px 12px rgba(23,32,51,.05)}
+    .mf-stage:not(:last-child)::after{content:"›";position:absolute;right:-.55rem;top:4.2rem;z-index:2;width:1rem;height:1rem;border-radius:50%;background:#fff;color:#F36A2D;font-size:1.35rem;font-weight:800;line-height:.78rem;text-align:center}
+    .mf-stage-number{font-size:.68rem;font-weight:800;color:#C54112;text-transform:uppercase;letter-spacing:.06em}.mf-stage-title{font-size:1rem;font-weight:800;color:#172033;margin:.15rem 0 .55rem}
+    .mf-stage-line{border-top:1px solid #EDF1F5;padding:.42rem 0}.mf-stage-label{display:flex;align-items:flex-start;gap:.32rem;font-size:.72rem;line-height:1.25;color:#52647A}.mf-stage-value{font-size:.92rem;font-weight:800;color:#172033;margin-top:.16rem}
+    .mf-stage-dot{flex:0 0 auto;color:#20A36A}.mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
+    @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
+    @media(max-width:699px){.mf-flow{grid-template-columns:repeat(6,minmax(210px,1fr))}.mf-stage:nth-child(3)::after{display:block}}
     </style>
     """, unsafe_allow_html=True)
 
@@ -689,36 +697,63 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         )
 
 
+FUNNEL_JOURNEY = ("Orçamento", "Crédito", "Produção", "Carga", "Faturamento", "Entrega")
 FUNNEL_STAGES = (
-    ("Comercial", "Orçamentos em aberto", "orcamentos_abertos_valor", "R$", False),
-    ("Comercial", "Pedidos pendentes", "pedidos_pendentes_valor", "R$", False),
-    ("Comercial", "Liberados pelo crédito", "pedidos_liberados_credito_valor", "R$", False),
-    ("Comercial", "Faturados", "pedidos_faturados_valor", "R$", False),
-    ("Operação", "Aguardando OS", "aguardando_os_peso", "kg", False),
-    ("Operação", "Aguardando kit", "aguardando_kit_peso", "kg", False),
-    ("Operação", "Aguardando carga CIF", "aguardando_carga_cif_peso", "kg", False),
-    ("Operação", "Aguardando carga FOB", "aguardando_carga_fob_peso", "kg", False),
-    ("Operação", "Aguardando faturamento", "aguardando_faturamento_peso", "kg", False),
-    ("Operação", "Aguardando faturamento CIF", "aguardando_faturamento_cif_peso", "kg", True),
-    ("Operação", "Aguardando faturamento FOB", "aguardando_faturamento_fob_peso", "kg", True),
+    ("Orçamento", "Comercial", "Orçamentos em aberto", "orcamentos_abertos_valor", "R$", False),
+    ("Orçamento", "Comercial", "Orçamentos fechados", "orcamentos_fechados_valor", "R$", False),
+    ("Orçamento", "Comercial", "Orçamentos perdidos", "orcamentos_perdidos_valor", "R$", False),
+    ("Crédito", "Comercial", "Pedidos aguardando crédito", "pedidos_pendentes_valor", "R$", False),
+    ("Crédito", "Comercial", "Crédito liberado", "pedidos_liberados_credito_valor", "R$", False),
+    ("Produção", "Operação", "Aguardando OS", "aguardando_os_peso", "kg", False),
+    ("Produção", "Operação", "Aguardando kit", "aguardando_kit_peso", "kg", False),
+    ("Carga", "Operação", "Aguardando carga CIF", "aguardando_carga_cif_peso", "kg", False),
+    ("Carga", "Operação", "Aguardando carga FOB", "aguardando_carga_fob_peso", "kg", False),
+    ("Faturamento", "Operação", "Aguardando faturamento", "aguardando_faturamento_peso", "kg", False),
+    ("Faturamento", "Operação", "Aguardando faturamento CIF", "aguardando_faturamento_cif_peso", "kg", True),
+    ("Faturamento", "Operação", "Aguardando faturamento FOB", "aguardando_faturamento_fob_peso", "kg", True),
+    ("Faturamento", "Comercial", "Faturado no período", "pedidos_faturados_valor", "R$", False),
+    ("Entrega", "Operação", "Aguardando entrega", "aguardando_entrega_peso", "kg", False),
+    ("Entrega", "Operação", "Entregue", "entregue_peso", "kg", False),
 )
 
 
 def _funnel_frame(indicators):
     indicators = indicators or {}
     rows = []
-    for sequence, (flow, stage, key, unit, subtotal) in enumerate(FUNNEL_STAGES, start=1):
+    for sequence, (journey, flow, stage, key, unit, subtotal) in enumerate(FUNNEL_STAGES, start=1):
         raw = indicators.get(key)
         try:
             value = float(raw) if raw is not None and not pd.isna(raw) else np.nan
         except (TypeError, ValueError):
             value = np.nan
         rows.append({
-            "Ordem": sequence, "Fluxo": flow, "Etapa": stage, "Chave": key,
+            "Ordem": sequence, "Macroetapa": journey, "Fluxo": flow, "Etapa": stage, "Chave": key,
             "Unidade": unit, "Valor": value, "Cobertura": "Disponível" if pd.notna(value) else "Indisponível",
             "É subtotal": subtotal,
         })
     return pd.DataFrame(rows)
+
+
+def _funnel_stage_cards(frame, brl):
+    cards = []
+    for stage_number, journey in enumerate(FUNNEL_JOURNEY, start=1):
+        lines = []
+        for row in frame[frame["Macroetapa"] == journey].itertuples(index=False):
+            available = pd.notna(row.Valor)
+            if available:
+                formatted = brl(row.Valor) if row.Unidade == "R$" else f"{_quantity(row.Valor)} kg"
+            else:
+                formatted = "Dado não publicado"
+            lines.append(
+                f'<div class="mf-stage-line{"" if available else " missing"}">'
+                f'<div class="mf-stage-label"><span class="mf-stage-dot">{"●" if available else "○"}</span>'
+                f'<span>{html.escape(row.Etapa)}</span></div><div class="mf-stage-value">{html.escape(formatted)}</div></div>'
+            )
+        cards.append(
+            f'<section class="mf-stage"><div class="mf-stage-number">Etapa {stage_number:02d}</div>'
+            f'<div class="mf-stage-title">{html.escape(journey)}</div>{"".join(lines)}</section>'
+        )
+    st.markdown('<div class="mf-flow">' + "".join(cards) + '</div>', unsafe_allow_html=True)
 
 
 def _funnel_chart(frame, title, unit):
@@ -743,7 +778,7 @@ def _funnel_chart(frame, title, unit):
 
 
 def _funnel_view(indicators, brl, show_chart, show_table, can_export):
-    st.subheader("Funil de acompanhamento", help=PANEL_HELP["funnel"])
+    st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
     st.caption("ⓘ Fotografia da última carga. Os números são globais e não seguem o calendário nem os filtros de faturamento da barra lateral.")
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
@@ -756,21 +791,18 @@ def _funnel_view(indicators, brl, show_chart, show_table, can_export):
     open_quotes = value_for("orcamentos_abertos_valor")
     pending_orders = value_for("pedidos_pendentes_valor")
     awaiting_invoice = value_for("aguardando_faturamento_peso")
-    operational_keys = {
-        "aguardando_os_peso", "aguardando_kit_peso", "aguardando_carga_cif_peso",
-        "aguardando_carga_fob_peso", "aguardando_faturamento_peso",
-    }
-    operational_queue = frame[(frame["Chave"].isin(operational_keys)) & frame["Valor"].notna()]["Valor"].sum()
     metric_cards = [
         ("Orçamentos em aberto", brl(open_quotes) if open_quotes is not None else "Indisponível", ()),
-        ("Pedidos pendentes", brl(pending_orders) if pending_orders is not None else "Indisponível", ()),
+        ("Aguardando crédito", brl(pending_orders) if pending_orders is not None else "Indisponível", ()),
         ("Aguardando faturamento", f"{_quantity(awaiting_invoice)} kg" if awaiting_invoice is not None else "Indisponível", ()),
-        ("Fila operacional mapeada", f"{_quantity(operational_queue)} kg" if operational_queue else "Indisponível", ()),
+        ("Cobertura do funil", f"{len(available)} de {len(frame)} indicadores", ()),
     ]
     _metric_cards(metric_cards)
+    st.markdown("### Jornada de acompanhamento")
+    _funnel_stage_cards(frame, brl)
     st.markdown(
-        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> os blocos mostram estoque na etapa, não conversão histórica. '
-        'CIF e FOB são aberturas do total “Aguardando faturamento” e não entram novamente na soma da fila.</div>',
+        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> ● indica dado publicado e ○ indica etapa já definida, mas ainda sem indicador na carga. '
+        'Os valores representam uma fotografia das filas; CIF e FOB são aberturas do total “Aguardando faturamento”.</div>',
         unsafe_allow_html=True,
     )
 
@@ -793,7 +825,7 @@ def _funnel_view(indicators, brl, show_chart, show_table, can_export):
             st.caption("Abertura informativa do faturamento por modalidade")
             show_table(subtotals, height=180, width="stretch", hide_index=True)
     with coverage_tab:
-        coverage = frame[["Fluxo", "Etapa", "Unidade", "Valor", "Cobertura"]].copy()
+        coverage = frame[["Macroetapa", "Fluxo", "Etapa", "Unidade", "Valor", "Cobertura"]].copy()
         coverage["Valor exibido"] = coverage.apply(
             lambda row: (brl(row["Valor"]) if row["Unidade"] == "R$" else f"{_quantity(row['Valor'])} kg")
             if pd.notna(row["Valor"]) else "—", axis=1,
