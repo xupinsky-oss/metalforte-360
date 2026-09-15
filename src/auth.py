@@ -21,6 +21,7 @@ PERMISSION_LABELS = {
     "view_daily": "Performance diária",
     "view_sellers": "Visão por vendedor",
     "view_targets": "Metas e orçamento",
+    "view_funnel": "Funil de acompanhamento",
     "view_insights": "Insights e oportunidades",
     "view_pivot": "Tabela dinâmica",
     "view_yoy": "Comparativo anual",
@@ -42,15 +43,17 @@ ROLE_PRESETS = {
     "seller": {
         "view_overview", "view_clients", "view_products", "view_daily",
         "view_sellers", "view_targets", "view_insights",
+        "view_funnel",
     },
     "analyst": {
         "view_overview", "view_clients", "view_products", "view_daily",
         "view_sellers", "view_targets", "view_insights", "view_yoy",
+        "view_funnel",
     },
     "manager": {
         "view_overview", "view_clients", "view_products", "view_daily",
         "view_sellers", "view_targets", "view_insights", "view_pivot", "view_yoy",
-        "use_assistant", "export_data",
+        "view_funnel", "use_assistant", "export_data",
     },
     "admin": set(PERMISSION_LABELS),
 }

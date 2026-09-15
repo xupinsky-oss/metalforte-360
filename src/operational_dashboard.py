@@ -30,6 +30,7 @@ PANEL_HELP = {
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
+    "funnel": "Acompanha o estoque atual de orçamentos, pedidos e filas operacionais. Etapas comerciais são exibidas em R$ e etapas de produção/logística em kg. A visão preserva a unidade oficial de cada relatório e não soma os subtotais CIF/FOB ao total de faturamento.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
@@ -688,6 +689,127 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         )
 
 
+FUNNEL_STAGES = (
+    ("Comercial", "Orçamentos em aberto", "orcamentos_abertos_valor", "R$", False),
+    ("Comercial", "Pedidos pendentes", "pedidos_pendentes_valor", "R$", False),
+    ("Comercial", "Liberados pelo crédito", "pedidos_liberados_credito_valor", "R$", False),
+    ("Comercial", "Faturados", "pedidos_faturados_valor", "R$", False),
+    ("Operação", "Aguardando OS", "aguardando_os_peso", "kg", False),
+    ("Operação", "Aguardando kit", "aguardando_kit_peso", "kg", False),
+    ("Operação", "Aguardando carga CIF", "aguardando_carga_cif_peso", "kg", False),
+    ("Operação", "Aguardando carga FOB", "aguardando_carga_fob_peso", "kg", False),
+    ("Operação", "Aguardando faturamento", "aguardando_faturamento_peso", "kg", False),
+    ("Operação", "Aguardando faturamento CIF", "aguardando_faturamento_cif_peso", "kg", True),
+    ("Operação", "Aguardando faturamento FOB", "aguardando_faturamento_fob_peso", "kg", True),
+)
+
+
+def _funnel_frame(indicators):
+    indicators = indicators or {}
+    rows = []
+    for sequence, (flow, stage, key, unit, subtotal) in enumerate(FUNNEL_STAGES, start=1):
+        raw = indicators.get(key)
+        try:
+            value = float(raw) if raw is not None and not pd.isna(raw) else np.nan
+        except (TypeError, ValueError):
+            value = np.nan
+        rows.append({
+            "Ordem": sequence, "Fluxo": flow, "Etapa": stage, "Chave": key,
+            "Unidade": unit, "Valor": value, "Cobertura": "Disponível" if pd.notna(value) else "Indisponível",
+            "É subtotal": subtotal,
+        })
+    return pd.DataFrame(rows)
+
+
+def _funnel_chart(frame, title, unit):
+    available = frame[(frame["Unidade"] == unit) & frame["Valor"].notna() & ~frame["É subtotal"]].copy()
+    if available.empty:
+        return None
+    available = available.sort_values("Ordem", ascending=False)
+    chart = px.bar(
+        available, x="Valor", y="Etapa", orientation="h", text="Valor", title=title,
+        color="Etapa", color_discrete_sequence=["#F36A2D", "#E58B55", "#D8A784", "#64748B", "#2F8FD8"],
+    )
+    chart.update_traces(
+        texttemplate="R$ %{text:,.2f}" if unit == "R$" else "%{text:,.0f} kg",
+        textposition="outside", cliponaxis=False, hovertemplate=(
+            "%{y}<br>R$ %{x:,.2f}<extra></extra>" if unit == "R$" else "%{y}<br>%{x:,.0f} kg<extra></extra>"
+        ),
+    )
+    return _polish_chart(
+        chart, height=max(360, 58 * len(available) + 120),
+        x_title="Valor (R$)" if unit == "R$" else "Peso (kg)", y_title="",
+    )
+
+
+def _funnel_view(indicators, brl, show_chart, show_table, can_export):
+    st.subheader("Funil de acompanhamento", help=PANEL_HELP["funnel"])
+    st.caption("ⓘ Fotografia da última carga. Os números são globais e não seguem o calendário nem os filtros de faturamento da barra lateral.")
+    frame = _funnel_frame(indicators)
+    available = frame[frame["Valor"].notna()]
+    missing = frame[frame["Valor"].isna()]
+
+    def value_for(key):
+        match = frame.loc[frame["Chave"] == key, "Valor"]
+        return None if match.empty or pd.isna(match.iloc[0]) else float(match.iloc[0])
+
+    open_quotes = value_for("orcamentos_abertos_valor")
+    pending_orders = value_for("pedidos_pendentes_valor")
+    awaiting_invoice = value_for("aguardando_faturamento_peso")
+    operational_keys = {
+        "aguardando_os_peso", "aguardando_kit_peso", "aguardando_carga_cif_peso",
+        "aguardando_carga_fob_peso", "aguardando_faturamento_peso",
+    }
+    operational_queue = frame[(frame["Chave"].isin(operational_keys)) & frame["Valor"].notna()]["Valor"].sum()
+    metric_cards = [
+        ("Orçamentos em aberto", brl(open_quotes) if open_quotes is not None else "Indisponível", ()),
+        ("Pedidos pendentes", brl(pending_orders) if pending_orders is not None else "Indisponível", ()),
+        ("Aguardando faturamento", f"{_quantity(awaiting_invoice)} kg" if awaiting_invoice is not None else "Indisponível", ()),
+        ("Fila operacional mapeada", f"{_quantity(operational_queue)} kg" if operational_queue else "Indisponível", ()),
+    ]
+    _metric_cards(metric_cards)
+    st.markdown(
+        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> os blocos mostram estoque na etapa, não conversão histórica. '
+        'CIF e FOB são aberturas do total “Aguardando faturamento” e não entram novamente na soma da fila.</div>',
+        unsafe_allow_html=True,
+    )
+
+    commercial_tab, operation_tab, coverage_tab = st.tabs(["Comercial · R$", "Operação · kg", "Cobertura da base"])
+    with commercial_tab:
+        chart = _funnel_chart(frame[frame["Fluxo"] == "Comercial"], "Orçamentos e pedidos", "R$")
+        if chart is None:
+            st.info("A carga atual ainda não publicou as etapas comerciais do funil.")
+        else:
+            show_chart(chart)
+    with operation_tab:
+        chart = _funnel_chart(frame[frame["Fluxo"] == "Operação"], "Fila de produção, carga e faturamento", "kg")
+        if chart is None:
+            st.info("A carga atual ainda não publicou as etapas operacionais do funil.")
+        else:
+            show_chart(chart)
+        subtotals = frame[(frame["É subtotal"]) & frame["Valor"].notna()][["Etapa", "Valor"]].copy()
+        if not subtotals.empty:
+            subtotals = subtotals.rename(columns={"Valor": "Peso"})
+            st.caption("Abertura informativa do faturamento por modalidade")
+            show_table(subtotals, height=180, width="stretch", hide_index=True)
+    with coverage_tab:
+        coverage = frame[["Fluxo", "Etapa", "Unidade", "Valor", "Cobertura"]].copy()
+        coverage["Valor exibido"] = coverage.apply(
+            lambda row: (brl(row["Valor"]) if row["Unidade"] == "R$" else f"{_quantity(row['Valor'])} kg")
+            if pd.notna(row["Valor"]) else "—", axis=1,
+        )
+        show_table(coverage.drop(columns="Valor"), height=470, width="stretch", hide_index=True)
+        st.caption(f"{len(available)} de {len(frame)} etapas disponíveis na última carga.")
+        if not missing.empty:
+            st.warning("Etapas ainda não publicadas: " + ", ".join(missing["Etapa"].tolist()) + ".")
+    if can_export:
+        export = frame.drop(columns=["Chave", "É subtotal"]).copy()
+        st.download_button(
+            "Exportar fotografia do funil", export.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "funil_acompanhamento.csv", "text/csv", width="stretch",
+        )
+
+
 def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
@@ -704,6 +826,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Vendedores", "view_sellers"))
     if "view_targets" in permissions:
         pages.append(("Metas", "view_targets"))
+    if "view_funnel" in permissions:
+        pages.append(("Funil", "view_funnel"))
     if "view_insights" in permissions:
         pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
@@ -734,6 +858,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_targets":
         _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
+    elif permission == "view_funnel":
+        _funnel_view(commercial_indicators, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":

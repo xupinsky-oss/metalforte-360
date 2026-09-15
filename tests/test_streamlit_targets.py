@@ -3,7 +3,7 @@ import inspect
 
 from streamlit.testing.v1 import AppTest
 
-from src.operational_dashboard import _metric_card_html, render
+from src.operational_dashboard import _funnel_frame, _metric_card_html, render
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
@@ -13,6 +13,27 @@ class StreamlitTargetSmokeTests(unittest.TestCase):
     def test_metric_card_fragment_is_not_parsed_as_markdown_code(self):
         fragment = _metric_card_html("Faturamento", "R$ 1.000,00")
         self.assertNotRegex(fragment, r"(?m)^ {4}")
+
+    def test_funnel_keeps_missing_values_distinct_from_zero(self):
+        frame = _funnel_frame({"orcamentos_abertos_valor": 0, "aguardando_os_peso": 1250})
+        self.assertEqual(frame.loc[frame["Etapa"] == "Orçamentos em aberto", "Cobertura"].iloc[0], "Disponível")
+        self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando kit", "Cobertura"].iloc[0], "Indisponível")
+        self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando OS", "Valor"].iloc[0], 1250)
+
+    def test_funnel_page_renders_with_partial_snapshot(self):
+        script = r'''
+import streamlit as st
+from src.operational_dashboard import _funnel_view
+_funnel_view(
+    {"orcamentos_abertos_valor": 100000, "pedidos_pendentes_valor": 65000,
+     "aguardando_os_peso": 12000, "aguardando_faturamento_peso": 7000},
+    lambda value: f"R$ {value:,.2f}", lambda fig: st.plotly_chart(fig),
+    lambda frame, **kwargs: st.dataframe(frame), False,
+)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertGreaterEqual(len(app.tabs), 3)
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''
