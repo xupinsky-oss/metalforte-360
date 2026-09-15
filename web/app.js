@@ -37,6 +37,20 @@ function renderFunnel(rows){
   el("funnel-table").innerHTML='<div class="table-wrap"><table><thead><tr><th>Etapa</th><th>Valor</th><th>Peso</th></tr></thead><tbody>'+visible.map(function(r){return "<tr><td>"+r.etapa+"</td><td>"+(r.valor==null?"—":money(r.valor))+"</td><td>"+(r.peso==null?"—":num.format(r.peso)+" kg")+"</td></tr>";}).join("")+"</tbody></table></div>";
   section.hidden=false;
 }
+function renderFlowDates(data){
+  let section=el("rastreabilidade-datas");
+  if(!section){
+    section=document.createElement("section");section.id="rastreabilidade-datas";section.className="card";
+    section.innerHTML='<h2>Rastreabilidade por datas</h2><p class="muted">Movimentações ocorridas no período e prazos medianos entre etapas.</p><div id="flow-date-kpis" class="kpis"></div><div id="flow-date-table"></div>';
+    el("funil-acompanhamento").after(section);
+  }
+  const stages=(data&&data.etapas)||[];
+  if(!stages.length){section.hidden=true;return;}
+  const delays=(data.prazos||[]);
+  el("flow-date-kpis").innerHTML=delays.map(function(r){return '<article class="kpi secondary"><span>'+r.etapa+'</span><strong>'+num.format(r.dias_medianos)+' dias</strong><small>'+num.format(r.amostra)+' registros</small></article>';}).join("");
+  el("flow-date-table").innerHTML='<div class="table-wrap"><table><thead><tr><th>Movimentação</th><th>Registros</th><th>Peso</th><th>Valor</th></tr></thead><tbody>'+stages.map(function(r){return '<tr><td>'+r.etapa+'</td><td>'+num.format(r.registros)+'</td><td>'+num.format(r.peso)+' kg</td><td>'+money(r.valor)+'</td></tr>';}).join("")+'</tbody></table></div>';
+  section.hidden=false;
+}
 function renderMonthly(rows){
   if(monthlyChart) monthlyChart.destroy();
   monthlyChart=new Chart(el("monthly-chart"),{data:{labels:rows.map(function(r){return new Intl.DateTimeFormat("pt-BR",{month:"short",year:"2-digit"}).format(new Date(r.mes+"-01T12:00:00"));}),datasets:[
@@ -60,7 +74,7 @@ async function loadDashboard(){
   const data=await response.json();
   el("periodo").textContent="Período: "+dateBR(data.periodo.inicio)+" a "+dateBR(data.periodo.fim);
   el("atualizado").textContent="Base atualizada em "+new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(data.atualizado_em));
-  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderFunnel(data.funil_acompanhamento);renderMonthly(data.mensal);renderPanels(data.paineis);
+  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderFunnel(data.funil_acompanhamento);renderFlowDates(data.rastreabilidade_datas);renderMonthly(data.mensal);renderPanels(data.paineis);
   el("login").hidden=true;el("dashboard").hidden=false;el("logout").hidden=false;
 }
 async function start(){

@@ -35,6 +35,14 @@ FUNNEL_INDICATOR_REPORTS={
 # O kit é um detalhamento, não um cartão pronto no GoodData. A medida é
 # calculada exclusivamente pela coluna de peso desse relatório.
 FUNNEL_DETAIL_REPORTS={"aguardando_kit_peso": ("28736377", "peso")}
+# Relatórios analíticos do painel "Datas". O grão é pedido × item; eles
+# preservam as datas reais do processo e não apenas a posição atual da fila.
+FUNNEL_DATE_REPORTS={
+    "fluxo_liberados_cif":"38943094",
+    "fluxo_liberados_fob":"38943353",
+    "op_sob_encomenda":"1236344",
+    "orcamentos_abertos_detalhe":"3257",
+}
 
 class TotvsGoodDataConnector:
     def __init__(self,base_url,workspace,dashboard,cookie=None):

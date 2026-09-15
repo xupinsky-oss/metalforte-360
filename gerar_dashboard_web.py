@@ -17,6 +17,7 @@ from src.data import load_data
 
 OUTPUT_PATH = os.getenv("SUPABASE_DASHBOARD_PATH", "dashboard/command-center.json")
 INDICATORS_PATH = os.path.join(os.path.dirname(__file__), "data", "indicadores_comerciais.json")
+FLOW_PATH = os.path.join(os.path.dirname(__file__), "data", "metalforte_fluxo.csv.gz")
 
 
 def _number(value):
@@ -81,6 +82,71 @@ def _optional_number(indicators, key):
     return _number(indicators[key]) if key in indicators else None
 
 
+def _load_flow():
+    """Lê a trilha agregável do funil, sem publicar linhas de pedido."""
+    if not os.path.exists(FLOW_PATH):
+        return pd.DataFrame()
+    try:
+        flow = pd.read_csv(FLOW_PATH, compression="gzip", low_memory=False)
+        for column in flow.columns:
+            if column.startswith("Data "):
+                flow[column] = pd.to_datetime(flow[column], errors="coerce")
+        for column in ("Peso", "Valor"):
+            if column in flow:
+                flow[column] = pd.to_numeric(flow[column], errors="coerce")
+        return flow
+    except (OSError, ValueError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _flow_payload(flow, start, end):
+    if flow.empty:
+        return {"etapas": [], "prazos": [], "cobertura": 0}
+    events = [
+        ("Orçamentos emitidos", "Data Orçamento"),
+        ("Pedidos emitidos", "Data Pedido"),
+        ("Pedidos liberados", "Data Liberação"),
+        ("OP emitidas", "Data Emissão OP"),
+        ("OP confirmadas", "Data Confirmação OP"),
+        ("Ordens de serviço", "Data OS"),
+        ("Cargas montadas", "Data Montagem Carga"),
+        ("Notas emitidas", "Data Emissão NF"),
+        ("Saídas realizadas", "Data Saída"),
+    ]
+    etapas = []
+    for label, column in events:
+        if column not in flow:
+            continue
+        scoped = flow[flow[column].between(start, end, inclusive="both")]
+        if scoped.empty:
+            continue
+        etapas.append({
+            "etapa": label,
+            "data": column,
+            "registros": int(len(scoped)),
+            "peso": _number(scoped["Peso"].sum()) if "Peso" in scoped else 0,
+            "valor": _number(scoped["Valor"].sum()) if "Valor" in scoped else 0,
+        })
+    transitions = [
+        ("Pedido → liberação", "Data Pedido", "Data Liberação"),
+        ("Liberação → OS", "Data Liberação", "Data OS"),
+        ("OS → montagem", "Data OS", "Data Montagem Carga"),
+        ("Montagem → NF", "Data Montagem Carga", "Data Emissão NF"),
+        ("NF → saída", "Data Emissão NF", "Data Saída"),
+    ]
+    prazos = []
+    for label, origin, destination in transitions:
+        if origin not in flow or destination not in flow:
+            continue
+        days = (flow[destination] - flow[origin]).dt.total_seconds() / 86400
+        days = days[days.between(0, 365)]
+        if not days.empty:
+            prazos.append({"etapa": label, "dias_medianos": _number(days.median()), "amostra": int(len(days))})
+    dated = flow[[column for column in flow.columns if column.startswith("Data ")]]
+    coverage = dated.notna().any(axis=1).mean() if not dated.empty else 0
+    return {"etapas": etapas, "prazos": prazos, "cobertura": _number(coverage)}
+
+
 def build_payload(data):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
@@ -98,6 +164,7 @@ def build_payload(data):
         (current_metrics["margem_pct"] - previous_metrics["margem_pct"]) * 100
     )
     indicators = _load_indicators()
+    flow = _load_flow()
     commercial = {
         "meta_valor": _number(indicators.get("meta_valor", 0)),
         "meta_peso": _number(indicators.get("meta_peso", 0)),
@@ -137,6 +204,7 @@ def build_payload(data):
         "overview": current_metrics,
         "metas_e_pedidos": commercial,
         "funil_acompanhamento": funnel,
+        "rastreabilidade_datas": _flow_payload(flow, month_start, last_date),
         "mensal": monthly_records,
         "paineis": {
             "segmentos": _breakdown(current, "Segmento Cliente"),
