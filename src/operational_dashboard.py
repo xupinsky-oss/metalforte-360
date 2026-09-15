@@ -156,7 +156,9 @@ def _inject_kpi_styles():
     .mf-stage:not(:last-child)::after{content:"›";position:absolute;right:-.55rem;top:4.2rem;z-index:2;width:1rem;height:1rem;border-radius:50%;background:#fff;color:#F36A2D;font-size:1.35rem;font-weight:800;line-height:.78rem;text-align:center}
     .mf-stage-number{font-size:.68rem;font-weight:800;color:#C54112;text-transform:uppercase;letter-spacing:.06em}.mf-stage-title{font-size:1rem;font-weight:800;color:#172033;margin:.15rem 0 .1rem}.mf-stage-ref{font-size:.65rem;line-height:1.25;color:#718096;min-height:2.1rem;margin-bottom:.25rem}
     .mf-stage-line{border-top:1px solid #EDF1F5;padding:.42rem 0}.mf-stage-label{display:flex;align-items:flex-start;gap:.32rem;font-size:.72rem;line-height:1.25;color:#52647A}.mf-stage-value{font-size:.92rem;font-weight:800;color:#172033;margin-top:.16rem}
-    .mf-stage-dot{flex:0 0 auto;color:#20A36A}.mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
+    .mf-stage-meta{font-size:.66rem;line-height:1.25;color:#748195;margin-top:.12rem}.mf-stage-dot{flex:0 0 auto;color:#20A36A}
+    .mf-stage-line.empty .mf-stage-dot{color:#D89A20}.mf-stage-line.empty .mf-stage-value{font-size:.76rem;font-weight:650;color:#7B6A3A}
+    .mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
     @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
     @media(max-width:699px){.mf-flow{grid-template-columns:repeat(6,minmax(210px,1fr))}.mf-stage:nth-child(3)::after{display:block}}
     </style>
@@ -756,20 +758,40 @@ def _funnel_frame(indicators):
     return pd.DataFrame(rows)
 
 
-def _funnel_stage_cards(frame, brl):
+def _funnel_stage_cards(date_summary, brl):
     cards = []
     for stage_number, journey in enumerate(FUNNEL_JOURNEY, start=1):
         lines = []
-        for row in frame[frame["Macroetapa"] == journey].itertuples(index=False):
-            available = pd.notna(row.Valor)
-            if available:
-                formatted = brl(row.Valor) if row.Unidade == "R$" else f"{_quantity(row.Valor)} kg"
+        stage_events = date_summary[date_summary["Macroetapa"] == journey] if not date_summary.empty else pd.DataFrame()
+        if stage_events.empty:
+            stage_events = pd.DataFrame([{
+                "Movimentação": "Eventos da etapa", "Situação": "Data não publicada",
+                "Registros": np.nan, "Documentos": np.nan, "Peso": np.nan, "Valor": np.nan,
+            }])
+        for _, row in stage_events.iterrows():
+            situation = row["Situação"]
+            if situation == "Data não publicada":
+                css_class, dot, formatted, meta = "missing", "○", "Data não publicada", ""
+            elif situation == "Sem movimento no período":
+                css_class, dot, formatted, meta = "empty", "○", "Sem movimento no período", ""
             else:
-                formatted = "Dado não publicado"
+                css_class, dot = "", "●"
+                value, weight = row.get("Valor"), row.get("Peso")
+                if journey in {"Orçamento", "Crédito", "Faturamento"} and pd.notna(value):
+                    formatted = brl(float(value))
+                elif pd.notna(weight):
+                    formatted = f"{_quantity(float(weight))} kg"
+                else:
+                    formatted = f"{_quantity(float(row['Registros']))} registros"
+                documents = int(row["Documentos"]) if pd.notna(row.get("Documentos")) else 0
+                records = int(row["Registros"]) if pd.notna(row.get("Registros")) else 0
+                meta = f"{documents} documento(s) · {records} registro(s)"
             lines.append(
-                f'<div class="mf-stage-line{"" if available else " missing"}">'
-                f'<div class="mf-stage-label"><span class="mf-stage-dot">{"●" if available else "○"}</span>'
-                f'<span>{html.escape(row.Etapa)}</span></div><div class="mf-stage-value">{html.escape(formatted)}</div></div>'
+                f'<div class="mf-stage-line {css_class}">'
+                f'<div class="mf-stage-label"><span class="mf-stage-dot">{dot}</span>'
+                f'<span>{html.escape(str(row["Movimentação"]))}</span></div>'
+                f'<div class="mf-stage-value">{html.escape(formatted)}</div>'
+                f'{f"<div class=\"mf-stage-meta\">{html.escape(meta)}</div>" if meta else ""}</div>'
             )
         cards.append(
             f'<section class="mf-stage"><div class="mf-stage-number">Etapa {stage_number:02d}</div>'
@@ -857,35 +879,35 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
     st.caption(
         f"ⓘ {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
-        "As movimentações usam a data própria de cada etapa; as caixas de posição atual continuam sendo uma fotografia global da última carga."
+        "Cada cartão considera somente eventos cuja data própria está dentro do período. As filas atuais, que são uma fotografia global da última carga, ficam nas abas específicas."
     )
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
     missing = frame[frame["Valor"].isna()]
+    date_summary = _flow_event_summary(flow_events, start_date, end_date)
 
-    def value_for(key):
-        match = frame.loc[frame["Chave"] == key, "Valor"]
-        return None if match.empty or pd.isna(match.iloc[0]) else float(match.iloc[0])
+    def event_metric(label, field, formatter):
+        match = date_summary[date_summary["Movimentação"] == label]
+        if match.empty or match.iloc[0]["Situação"] == "Data não publicada" or pd.isna(match.iloc[0][field]):
+            return "Data não publicada"
+        return formatter(float(match.iloc[0][field]))
 
-    open_quotes = value_for("orcamentos_abertos_valor")
-    pending_orders = value_for("pedidos_pendentes_valor")
-    awaiting_invoice = value_for("aguardando_faturamento_peso")
     metric_cards = [
-        ("Orçamentos em aberto", brl(open_quotes) if open_quotes is not None else "Indisponível", ()),
-        ("Aguardando crédito", brl(pending_orders) if pending_orders is not None else "Indisponível", ()),
-        ("Aguardando faturamento", f"{_quantity(awaiting_invoice)} kg" if awaiting_invoice is not None else "Indisponível", ()),
-        ("Cobertura do funil", f"{len(available)} de {len(frame)} indicadores", ()),
+        ("Orçamentos emitidos no período", event_metric("Orçamentos emitidos", "Valor", brl), ()),
+        ("Pedidos emitidos no período", event_metric("Pedidos emitidos", "Valor", brl), ()),
+        ("Notas fiscais emitidas no período", event_metric("Notas fiscais emitidas", "Valor", brl), ()),
+        ("Saídas realizadas no período", event_metric("Saídas realizadas", "Peso", lambda value: f"{_quantity(value)} kg"), ()),
     ]
     _metric_cards(metric_cards)
-    st.markdown("### Jornada de acompanhamento")
-    _funnel_stage_cards(frame, brl)
+    st.markdown("### Jornada por data do evento")
+    _funnel_stage_cards(date_summary, brl)
     st.markdown(
-        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> ● indica dado publicado e ○ indica etapa já definida, mas ainda sem indicador na carga. '
-        'Os valores representam uma fotografia das filas; CIF e FOB são aberturas do total “Aguardando faturamento”.</div>',
+        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> ● indica movimento na data da etapa dentro do período; ○ amarelo indica zero movimento; '
+        '○ cinza indica que a data não foi publicada. Um pedido pode aparecer em várias etapas, portanto os cartões não devem ser somados. '
+        'A fotografia dos saldos atuais permanece nas abas “Filas · R$” e “Filas · kg”.</div>',
         unsafe_allow_html=True,
     )
 
-    date_summary = _flow_event_summary(flow_events, start_date, end_date)
     deadlines = _flow_deadlines(flow_events, start_date, end_date)
     dates_tab, deadlines_tab, commercial_tab, operation_tab, coverage_tab = st.tabs([
         "Movimentações por data", "Prazos entre etapas", "Filas · R$", "Filas · kg", "Cobertura da base",

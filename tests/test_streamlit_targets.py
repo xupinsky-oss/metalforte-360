@@ -46,6 +46,10 @@ _funnel_view(
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
         self.assertGreaterEqual(len(app.tabs), 5)
+        rendered = "\n".join(str(item.value) for item in app.markdown)
+        self.assertIn("Pedidos emitidos", rendered)
+        self.assertIn("Pedidos liberados", rendered)
+        self.assertNotIn("Orçamentos em aberto</span>", rendered)
 
     def test_flow_uses_the_reference_date_of_each_stage(self):
         flow = pd.DataFrame({
