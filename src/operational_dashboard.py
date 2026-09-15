@@ -154,7 +154,7 @@ def _inject_kpi_styles():
     .mf-flow{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:.65rem;margin:.8rem 0 1.25rem;overflow-x:auto;padding:.2rem .05rem .65rem}
     .mf-stage{position:relative;background:#fff;border:1px solid #DCE3EC;border-top:4px solid #F36A2D;border-radius:12px;padding:.8rem;min-height:180px;box-shadow:0 3px 12px rgba(23,32,51,.05)}
     .mf-stage:not(:last-child)::after{content:"›";position:absolute;right:-.55rem;top:4.2rem;z-index:2;width:1rem;height:1rem;border-radius:50%;background:#fff;color:#F36A2D;font-size:1.35rem;font-weight:800;line-height:.78rem;text-align:center}
-    .mf-stage-number{font-size:.68rem;font-weight:800;color:#C54112;text-transform:uppercase;letter-spacing:.06em}.mf-stage-title{font-size:1rem;font-weight:800;color:#172033;margin:.15rem 0 .55rem}
+    .mf-stage-number{font-size:.68rem;font-weight:800;color:#C54112;text-transform:uppercase;letter-spacing:.06em}.mf-stage-title{font-size:1rem;font-weight:800;color:#172033;margin:.15rem 0 .1rem}.mf-stage-ref{font-size:.65rem;line-height:1.25;color:#718096;min-height:2.1rem;margin-bottom:.25rem}
     .mf-stage-line{border-top:1px solid #EDF1F5;padding:.42rem 0}.mf-stage-label{display:flex;align-items:flex-start;gap:.32rem;font-size:.72rem;line-height:1.25;color:#52647A}.mf-stage-value{font-size:.92rem;font-weight:800;color:#172033;margin-top:.16rem}
     .mf-stage-dot{flex:0 0 auto;color:#20A36A}.mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
     @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
@@ -715,6 +715,28 @@ FUNNEL_STAGES = (
     ("Entrega", "Operação", "Aguardando entrega", "aguardando_entrega_peso", "kg", False),
     ("Entrega", "Operação", "Entregue", "entregue_peso", "kg", False),
 )
+FUNNEL_DATE_REFERENCES = {
+    "Orçamento": "Data do orçamento",
+    "Crédito": "Data do pedido e da liberação",
+    "Produção": "Data da OP, produção e OS",
+    "Carga": "Data da montagem da carga",
+    "Faturamento": "Data de emissão da NF",
+    "Entrega": "Data de saída e previsão de entrega",
+}
+FLOW_DATE_EVENTS = (
+    ("Orçamento", "Orçamentos emitidos", "Data Orçamento"),
+    ("Crédito", "Pedidos emitidos", "Data Pedido"),
+    ("Crédito", "Pedidos liberados", "Data Liberação"),
+    ("Produção", "OP emitidas", "Data Emissão OP"),
+    ("Produção", "OP confirmadas", "Data Confirmação OP"),
+    ("Produção", "Produção programada", "Data Produção"),
+    ("Produção", "Ordens de serviço", "Data OS"),
+    ("Carga", "Cargas montadas", "Data Montagem Carga"),
+    ("Faturamento", "Notas fiscais emitidas", "Data Emissão NF"),
+    ("Entrega", "Saídas realizadas", "Data Saída"),
+    ("Entrega", "Entregas previstas", "Data Previsão Entrega"),
+    ("Entrega", "Data desejada pelo cliente", "Data Desejo Cliente"),
+)
 
 
 def _funnel_frame(indicators):
@@ -751,7 +773,9 @@ def _funnel_stage_cards(frame, brl):
             )
         cards.append(
             f'<section class="mf-stage"><div class="mf-stage-number">Etapa {stage_number:02d}</div>'
-            f'<div class="mf-stage-title">{html.escape(journey)}</div>{"".join(lines)}</section>'
+            f'<div class="mf-stage-title">{html.escape(journey)}</div>'
+            f'<div class="mf-stage-ref">Referência: {html.escape(FUNNEL_DATE_REFERENCES[journey])}</div>'
+            f'{"".join(lines)}</section>'
         )
     st.markdown('<div class="mf-flow">' + "".join(cards) + '</div>', unsafe_allow_html=True)
 
@@ -777,9 +801,64 @@ def _funnel_chart(frame, title, unit):
     )
 
 
-def _funnel_view(indicators, brl, show_chart, show_table, can_export):
+def _flow_event_summary(flow, start_date, end_date):
+    columns = ["Ordem", "Macroetapa", "Movimentação", "Data de referência", "Registros", "Documentos", "Peso", "Valor", "Situação"]
+    if flow is None or flow.empty:
+        return pd.DataFrame(columns=columns)
+    start, end = pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(days=1)
+    rows = []
+    document = flow.get("Pedido", pd.Series(pd.NA, index=flow.index)).astype("string")
+    if "OP" in flow:
+        document = document.fillna(flow["OP"].astype("string"))
+    for order, (journey, label, date_column) in enumerate(FLOW_DATE_EVENTS, start=1):
+        if date_column not in flow:
+            rows.append({"Ordem": order, "Macroetapa": journey, "Movimentação": label, "Data de referência": date_column, "Registros": np.nan, "Documentos": np.nan, "Peso": np.nan, "Valor": np.nan, "Situação": "Data não publicada"})
+            continue
+        dates = pd.to_datetime(flow[date_column], errors="coerce")
+        mask = dates.ge(start) & dates.lt(end)
+        scoped = flow.loc[mask]
+        rows.append({
+            "Ordem": order, "Macroetapa": journey, "Movimentação": label, "Data de referência": date_column,
+            "Registros": int(mask.sum()), "Documentos": int(document.loc[mask].dropna().nunique()),
+            "Peso": float(pd.to_numeric(scoped.get("Peso"), errors="coerce").sum()) if "Peso" in scoped else np.nan,
+            "Valor": float(pd.to_numeric(scoped.get("Valor"), errors="coerce").sum()) if "Valor" in scoped else np.nan,
+            "Situação": "Com movimento" if mask.any() else "Sem movimento no período",
+        })
+    return pd.DataFrame(rows, columns=columns)
+
+
+def _flow_deadlines(flow, start_date, end_date):
+    columns = ["Transição", "Prazo mediano (dias)", "Amostra"]
+    if flow is None or flow.empty:
+        return pd.DataFrame(columns=columns)
+    transitions = (
+        ("Pedido → liberação", "Data Pedido", "Data Liberação"),
+        ("Liberação → OS", "Data Liberação", "Data OS"),
+        ("OS → montagem da carga", "Data OS", "Data Montagem Carga"),
+        ("Montagem da carga → NF", "Data Montagem Carga", "Data Emissão NF"),
+        ("NF → saída", "Data Emissão NF", "Data Saída"),
+    )
+    start, end = pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(days=1)
+    rows = []
+    for label, origin, destination in transitions:
+        if origin not in flow or destination not in flow:
+            continue
+        origin_dates = pd.to_datetime(flow[origin], errors="coerce")
+        destination_dates = pd.to_datetime(flow[destination], errors="coerce")
+        days = (destination_dates - origin_dates).dt.total_seconds() / 86400
+        valid = destination_dates.ge(start) & destination_dates.lt(end) & days.between(0, 365)
+        sample = days[valid]
+        if not sample.empty:
+            rows.append({"Transição": label, "Prazo mediano (dias)": float(sample.median()), "Amostra": int(len(sample))})
+    return pd.DataFrame(rows, columns=columns)
+
+
+def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export):
     st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
-    st.caption("ⓘ Fotografia da última carga. Os números são globais e não seguem o calendário nem os filtros de faturamento da barra lateral.")
+    st.caption(
+        f"ⓘ {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
+        "As movimentações usam a data própria de cada etapa; as caixas de posição atual continuam sendo uma fotografia global da última carga."
+    )
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
     missing = frame[frame["Valor"].isna()]
@@ -806,7 +885,55 @@ def _funnel_view(indicators, brl, show_chart, show_table, can_export):
         unsafe_allow_html=True,
     )
 
-    commercial_tab, operation_tab, coverage_tab = st.tabs(["Comercial · R$", "Operação · kg", "Cobertura da base"])
+    date_summary = _flow_event_summary(flow_events, start_date, end_date)
+    deadlines = _flow_deadlines(flow_events, start_date, end_date)
+    dates_tab, deadlines_tab, commercial_tab, operation_tab, coverage_tab = st.tabs([
+        "Movimentações por data", "Prazos entre etapas", "Filas · R$", "Filas · kg", "Cobertura da base",
+    ])
+    with dates_tab:
+        if flow_events is None or flow_events.empty:
+            st.info("A trilha de datas ainda não foi publicada. Execute uma nova atualização da base para habilitar esta visão.")
+        else:
+            st.caption("Escopo atual: trilha global. A origem ainda não publicou vendedor, cliente e produto nesta tabela; por isso somente o calendário é aplicado.")
+            measured = date_summary[date_summary["Registros"].notna()]
+            active = measured[measured["Registros"] > 0]
+            date_columns = [column for column in flow_events.columns if str(column).startswith("Data ")]
+            date_coverage = flow_events[date_columns].notna().any(axis=1).mean() if date_columns else 0
+            cards = st.columns(3)
+            cards[0].metric("Movimentações no período", _quantity(measured["Registros"].sum()), help="Soma dos eventos registrados em cada etapa; um mesmo pedido pode aparecer em mais de uma etapa.")
+            cards[1].metric("Etapas com movimento", f"{len(active)} de {len(measured)}")
+            cards[2].metric("Linhas com alguma data", f"{date_coverage * 100:.2f}%".replace(".", ","))
+            if active.empty:
+                st.info("Não houve movimentações nas datas selecionadas.")
+            else:
+                chart_data = active.sort_values("Ordem", ascending=False)
+                chart = px.bar(
+                    chart_data, x="Registros", y="Movimentação", orientation="h", color="Macroetapa",
+                    text="Registros", title="Movimentações ocorridas no período",
+                    color_discrete_sequence=["#F36A2D", "#D89A20", "#2F8FD8", "#7C6CC4", "#20A36A", "#64748B"],
+                )
+                chart.update_traces(textposition="outside", cliponaxis=False)
+                show_chart(_polish_chart(chart, height=max(390, 38 * len(chart_data) + 130), x_title="Registros", y_title=""))
+            show_table(date_summary.drop(columns="Ordem"), height=520, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button(
+                    "Exportar movimentações por data",
+                    date_summary.drop(columns="Ordem").to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                    "funil_movimentacoes_por_data.csv", "text/csv", width="stretch",
+                )
+    with deadlines_tab:
+        st.caption("ⓘ O prazo é calculado entre duas datas reais do mesmo registro. Valores negativos, ausentes ou acima de 365 dias são excluídos.")
+        if deadlines.empty:
+            st.info("Ainda não há pares de datas válidos no período para calcular os prazos entre etapas.")
+        else:
+            chart_data = deadlines.sort_values("Prazo mediano (dias)")
+            chart = px.bar(
+                chart_data, x="Prazo mediano (dias)", y="Transição", orientation="h", text="Prazo mediano (dias)",
+                title="Tempo mediano entre etapas", color_discrete_sequence=["#2F8FD8"],
+            )
+            chart.update_traces(texttemplate="%{text:.1f} dias", textposition="outside", cliponaxis=False)
+            show_chart(_polish_chart(chart, height=max(350, 48 * len(chart_data) + 120), x_title="Dias", y_title=""))
+            show_table(deadlines, height=300, width="stretch", hide_index=True)
     with commercial_tab:
         chart = _funnel_chart(frame[frame["Fluxo"] == "Comercial"], "Orçamentos e pedidos", "R$")
         if chart is None:
@@ -842,7 +969,7 @@ def _funnel_view(indicators, brl, show_chart, show_table, can_export):
         )
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None):
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
@@ -891,7 +1018,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_targets":
         _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
     elif permission == "view_funnel":
-        _funnel_view(commercial_indicators, brl, show_chart, show_table, can_export)
+        _funnel_view(commercial_indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":

@@ -1,14 +1,16 @@
 import unittest
 import inspect
+import pandas as pd
 
 from streamlit.testing.v1 import AppTest
 
-from src.operational_dashboard import _funnel_frame, _metric_card_html, render
+from src.operational_dashboard import _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html, render
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
     def test_render_accepts_commercial_indicators_contract(self):
         self.assertIn("commercial_indicators", inspect.signature(render).parameters)
+        self.assertIn("flow_events", inspect.signature(render).parameters)
 
     def test_metric_card_fragment_is_not_parsed_as_markdown_code(self):
         fragment = _metric_card_html("Faturamento", "R$ 1.000,00")
@@ -25,18 +27,40 @@ class StreamlitTargetSmokeTests(unittest.TestCase):
 
     def test_funnel_page_renders_with_partial_snapshot(self):
         script = r'''
+import pandas as pd
 import streamlit as st
 from src.operational_dashboard import _funnel_view
+flow = pd.DataFrame({
+    "Pedido": ["1"], "OP": [None], "Peso": [1000.0], "Valor": [5000.0],
+    "Data Pedido": pd.to_datetime(["2026-09-02"]),
+    "Data Liberação": pd.to_datetime(["2026-09-03"]),
+})
 _funnel_view(
     {"orcamentos_abertos_valor": 100000, "pedidos_pendentes_valor": 65000,
      "aguardando_os_peso": 12000, "aguardando_faturamento_peso": 7000},
+    flow, "2026-09-01", "2026-09-30",
     lambda value: f"R$ {value:,.2f}", lambda fig: st.plotly_chart(fig),
     lambda frame, **kwargs: st.dataframe(frame), False,
 )
 '''
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
-        self.assertGreaterEqual(len(app.tabs), 3)
+        self.assertGreaterEqual(len(app.tabs), 5)
+
+    def test_flow_uses_the_reference_date_of_each_stage(self):
+        flow = pd.DataFrame({
+            "Pedido": ["A", "B"], "OP": [None, None], "Peso": [100.0, 200.0], "Valor": [1000.0, 2000.0],
+            "Data Orçamento": pd.to_datetime(["2026-08-31", "2026-09-10"]),
+            "Data Pedido": pd.to_datetime(["2026-09-05", "2026-10-01"]),
+            "Data Liberação": pd.to_datetime(["2026-09-07", "2026-10-02"]),
+        })
+        summary = _flow_event_summary(flow, "2026-09-01", "2026-09-30")
+        counts = summary.set_index("Movimentação")["Registros"]
+        self.assertEqual(counts["Orçamentos emitidos"], 1)
+        self.assertEqual(counts["Pedidos emitidos"], 1)
+        self.assertEqual(counts["Pedidos liberados"], 1)
+        deadlines = _flow_deadlines(flow, "2026-09-01", "2026-09-30")
+        self.assertEqual(deadlines.loc[deadlines["Transição"] == "Pedido → liberação", "Prazo mediano (dias)"].iloc[0], 2)
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''

@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import html
 import json
 from pathlib import Path
-from src.data import load_data,load_targets,apply_filters
+from src.data import load_data,load_targets,load_flow,apply_filters
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
 from src.cloud_storage import download_status
@@ -26,6 +26,8 @@ def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
 def get_data(): return load_data()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_targets(): return load_targets()
+@st.cache_data(ttl=300,show_spinner=False)
+def get_flow(): return load_flow()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_load_status():
     try: return download_status()
@@ -119,6 +121,7 @@ def yoy_comparison(current,previous,dimension):
 access=require_login()
 df=get_data()
 targets=get_targets()
+flow_events=get_flow()
 if access["role"] == "seller":
     seller_scope = access.get("seller_scope", "")
     if not seller_scope:
@@ -254,5 +257,6 @@ render_operational_dashboard(
     permissions=access["permissions"], current_user=access["user"], targets=targets,
     target_history=target_history, target_filters=target_filters,
     commercial_indicators=load_status.get("indicadores", {}),
+    flow_events=flow_events,
 )
 st.stop()

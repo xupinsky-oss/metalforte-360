@@ -6,6 +6,7 @@ from src.cloud_storage import download_bytes, is_configured
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
 DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
+DEFAULT_FLOW = Path(__file__).resolve().parents[1] / "data" / "metalforte_fluxo.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
 
 def load_data(path=None):
@@ -37,6 +38,23 @@ def load_targets(path=None):
         return pd.DataFrame()
     if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
     for column in ("Meta KG","Meta R$"):
+        if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
+    return result
+
+def load_flow(path=None):
+    """Carrega a trilha privada do funil e preserva cada data do processo."""
+    path=Path(path) if path else DEFAULT_FLOW
+    try:
+        if path.exists(): source=path
+        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_FLOW_PATH", "bases/metalforte_fluxo.csv.gz")))
+        else: return pd.DataFrame()
+        result=pd.read_csv(source,low_memory=False,compression="gzip")
+    except Exception:
+        return pd.DataFrame()
+    for column in result.columns:
+        if str(column).startswith("Data "):
+            result[column]=pd.to_datetime(result[column],errors="coerce")
+    for column in ("Peso","Valor"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
 
