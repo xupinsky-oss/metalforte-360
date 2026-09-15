@@ -5,7 +5,14 @@ import plotly.graph_objects as go
 import html
 import json
 from pathlib import Path
-from src.data import load_data,load_targets,load_flow,apply_filters
+from src.data import load_data,load_targets,apply_filters
+try:
+    # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
+    # quando app.py pode reiniciar antes de src/data.py ser recarregado.
+    from src.data import load_flow
+except ImportError:
+    def load_flow():
+        return pd.DataFrame()
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
 from src.cloud_storage import download_status
