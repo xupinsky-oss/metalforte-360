@@ -4,7 +4,10 @@ import pandas as pd
 
 from streamlit.testing.v1 import AppTest
 
-from src.operational_dashboard import _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html, render
+from src.operational_dashboard import (
+    _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
+    _monthly_activity_matrix, render,
+)
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
@@ -65,6 +68,21 @@ _funnel_view(
         self.assertEqual(counts["Pedidos liberados"], 1)
         deadlines = _flow_deadlines(flow, "2026-09-01", "2026-09-30")
         self.assertEqual(deadlines.loc[deadlines["Transição"] == "Pedido → liberação", "Prazo mediano (dias)"].iloc[0], 2)
+
+    def test_monthly_activity_uses_net_revenue_for_positivation(self):
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-08-05", "2026-08-06", "2026-09-02", "2026-09-03"]),
+            "Cliente": ["A", "A", "A", "B"], "Produto": ["P1", "P1", "P1", "P1"],
+            "Canal": ["Varejo"] * 4, "Faturamento": [100.0, -100.0, 50.0, 75.0],
+        })
+        client, _ = _monthly_activity_matrix(sales, "Cliente", "Positivação", "2026-09-30", 2, 10)
+        self.assertEqual(client.loc["A", pd.Timestamp("2026-08-01")], 0)
+        self.assertEqual(client.loc["A", pd.Timestamp("2026-09-01")], 1)
+        product, _ = _monthly_activity_matrix(sales, "Produto", "Positivação", "2026-09-30", 2, 10)
+        self.assertEqual(product.loc["P1", pd.Timestamp("2026-09-01")], 2)
+        revenue, _ = _monthly_activity_matrix(sales, "Canal", "Faturamento", "2026-09-30", 2, 10)
+        self.assertEqual(revenue.loc["Varejo", pd.Timestamp("2026-08-01")], 0)
+        self.assertEqual(revenue.loc["Varejo", pd.Timestamp("2026-09-01")], 125)
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''

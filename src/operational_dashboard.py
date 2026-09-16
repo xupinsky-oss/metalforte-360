@@ -31,6 +31,7 @@ PANEL_HELP = {
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "Acompanha o estoque atual de orçamentos, pedidos e filas operacionais. Etapas comerciais são exibidas em R$ e etapas de produção/logística em kg. A visão preserva a unidade oficial de cada relatório e não soma os subtotais CIF/FOB ao total de faturamento.",
+    "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
@@ -160,6 +161,7 @@ def _inject_kpi_styles():
     .mf-stage-line.empty .mf-stage-dot{color:#D89A20}.mf-stage-line.empty .mf-stage-value{font-size:.76rem;font-weight:650;color:#7B6A3A}
     .mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
     @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
+    @media(min-width:700px) and (max-width:1400px){[data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.75rem!important}[data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{flex:1 1 min(100%,260px)!important;width:auto!important;min-width:min(100%,220px)!important}}
     @media(max-width:699px){.mf-flow{grid-template-columns:repeat(6,minmax(210px,1fr))}.mf-stage:nth-child(3)::after{display:block}}
     </style>
     """, unsafe_allow_html=True)
@@ -179,6 +181,137 @@ def _monthly_summary(data):
     totals["Clientes positivados"] = totals["Mês"].map(clients).fillna(0).astype(int)
     totals["Mês referência"] = totals["Mês"].dt.strftime("%m/%Y")
     return totals.sort_values("Mês")
+
+
+def _monthly_activity_matrix(history, dimension, metric, end_date, months=12, limit=20):
+    """Matriz completa entidade × mês, preservando meses sem atividade como zero estrutural."""
+    if history is None or history.empty or dimension not in history.columns:
+        return pd.DataFrame(), pd.Series(dtype="float64")
+    end = pd.Timestamp(end_date)
+    end_month = end.to_period("M").start_time
+    start_month = end_month - pd.DateOffset(months=max(int(months), 1) - 1)
+    month_axis = pd.date_range(start_month, end_month, freq="MS")
+    source = history[
+        (history["Data"] >= start_month) & (history["Data"] < end + pd.Timedelta(days=1))
+    ].dropna(subset=["Data", dimension]).copy()
+    if source.empty:
+        return pd.DataFrame(columns=month_axis), pd.Series(dtype="float64")
+    source[dimension] = source[dimension].astype(str)
+    source["Mês"] = source["Data"].dt.to_period("M").dt.to_timestamp()
+    revenue = source.groupby([dimension, "Mês"], dropna=False)["Faturamento"].sum()
+    revenue_matrix = revenue.unstack(fill_value=0).reindex(columns=month_axis, fill_value=0)
+    if metric == "Faturamento":
+        matrix = revenue_matrix
+        ranking = revenue_matrix.sum(axis=1)
+    elif dimension == "Cliente":
+        matrix = revenue_matrix.gt(0).astype(int)
+        ranking = matrix.sum(axis=1)
+    else:
+        client_revenue = source.groupby([dimension, "Mês", "Cliente"], dropna=False)["Faturamento"].sum()
+        positive = client_revenue.gt(0).groupby(level=[0, 1]).sum()
+        matrix = positive.unstack(fill_value=0).reindex(columns=month_axis, fill_value=0).astype(int)
+        ranking = matrix.sum(axis=1)
+    selected = ranking.sort_values(ascending=False).head(max(int(limit), 1)).index
+    matrix = matrix.reindex(selected)
+    return matrix, ranking.reindex(selected)
+
+
+def _short_label(value, length=30):
+    value = str(value)
+    return value if len(value) <= length else value[:length - 1] + "…"
+
+
+def _month_label(value):
+    names = ("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
+    month = pd.Timestamp(value)
+    return f"{names[month.month - 1]}/{month.strftime('%y')}"
+
+
+def _activity_heatmap_chart(matrix, dimension, metric):
+    display = matrix.copy()
+    full_labels = [str(value) for value in display.index]
+    display.index = [_short_label(value) for value in full_labels]
+    display.columns = [_month_label(value) for value in display.columns]
+    color_scale = [[0, "#EEF1F5"], [0.01, "#FFE2D4"], [0.48, "#F59668"], [1, "#C54112"]]
+    positive_max = max(float(np.nanmax(display.to_numpy())), 1.0)
+    chart = px.imshow(
+        display, aspect="auto", color_continuous_scale=color_scale,
+        range_color=(0, positive_max),
+        labels={"x": "Mês", "y": dimension, "color": "Faturamento (R$)" if metric == "Faturamento" else "Positivação"},
+    )
+    full_names = np.repeat(np.array(full_labels, dtype=object)[:, None], len(display.columns), axis=1)
+    if metric == "Faturamento":
+        hover = "<b>%{customdata}</b><br>%{x}<br>Faturamento: R$ %{z:,.2f}<extra></extra>"
+        chart.update_coloraxes(colorbar_title="R$", colorbar_tickprefix="R$ ", colorbar_tickformat="~s")
+    else:
+        unit = "Clientes positivados" if dimension != "Cliente" else "Positivado"
+        hover = f"<b>%{{customdata}}</b><br>%{{x}}<br>{unit}: %{{z:,.0f}}<extra></extra>"
+        text = np.where(display.to_numpy() > 0, "●", "")
+        chart.update_traces(text=text, texttemplate="%{text}", textfont=dict(color="#7B2B11", size=11))
+        chart.update_coloraxes(colorbar_title="Clientes" if dimension != "Cliente" else "Ativo")
+    chart.update_traces(customdata=full_names, hovertemplate=hover, xgap=4, ygap=4)
+    _polish_chart(chart, height=max(300, 30 * len(display) + 145), x_title="", y_title="")
+    chart.update_layout(
+        title=f"{metric} mensal por {dimension.lower()}",
+        margin=dict(l=155, r=40, t=58, b=52),
+        coloraxis_colorbar=dict(thickness=12, len=.72),
+    )
+    chart.update_xaxes(side="top", showgrid=False, tickangle=0)
+    chart.update_yaxes(showgrid=False, autorange="reversed")
+    return chart
+
+
+def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export):
+    st.subheader("Mapa mensal de atividade", help=PANEL_HELP["heatmap"])
+    st.caption("Visual em formato batalha naval: cada célula representa uma entidade em um mês. A janela termina na data final selecionada e respeita todos os filtros laterais.")
+    controls = st.columns([1.35, 1, 1])
+    metric = controls[0].segmented_control(
+        "Indicador", ["Positivação", "Faturamento"], default="Positivação", key="activity_metric",
+    )
+    months = controls[1].selectbox("Janela", [6, 12, 18, 24], index=1, format_func=lambda value: f"{value} meses", key="activity_months")
+    limit = controls[2].selectbox("Entidades", [10, 15, 20, 30, 50], index=2, format_func=lambda value: f"Top {value}", key="activity_limit")
+    tabs = st.tabs(["Clientes", "Produtos", "Canais"])
+    for tab, (label, dimension) in zip(tabs, (("Clientes", "Cliente"), ("Produtos", "Produto"), ("Canais", "Canal"))):
+        with tab:
+            if dimension not in history.columns:
+                st.info(f"A dimensão {dimension.lower()} não está disponível na base atual.")
+                continue
+            matrix, _ = _monthly_activity_matrix(history, dimension, metric, end_date, months, limit)
+            if matrix.empty:
+                st.info("Sem dados para montar o mapa mensal com os filtros atuais.")
+                continue
+            positive_cells = int((matrix > 0).sum().sum())
+            total_cells = int(matrix.size)
+            latest = matrix.iloc[:, -1]
+            summary = st.columns(3)
+            summary[0].metric("Entidades exibidas", _quantity(len(matrix)))
+            summary[1].metric("Células com atividade", f"{positive_cells / total_cells * 100:.2f}%".replace(".", ","))
+            if metric == "Faturamento":
+                summary[2].metric("Último mês", brl(float(latest.sum())))
+            elif dimension == "Cliente":
+                summary[2].metric("Positivados no último mês", _quantity(int(latest.sum())))
+            else:
+                summary[2].metric("Soma de positivação no último mês", _quantity(int(latest.sum())), help="Soma por entidade; o mesmo cliente pode comprar mais de um produto ou canal.")
+            show_chart(_activity_heatmap_chart(matrix, dimension, metric))
+            st.caption(
+                "ⓘ Cliente positivado = faturamento líquido mensal maior que zero. "
+                + ("As células mostram 1 para mês positivado e cinza para mês sem positivação." if dimension == "Cliente" and metric == "Positivação" else
+                   "As células mostram clientes distintos positivados em cada mês." if metric == "Positivação" else
+                   "A intensidade representa o faturamento líquido positivo do mês; células cinza incluem valores zerados ou negativos. Valores exatos aparecem ao tocar ou passar o cursor.")
+            )
+            with st.expander("Conferir valores do mapa"):
+                exact = matrix.copy()
+                exact.columns = [pd.Timestamp(column).strftime("%m/%Y") for column in exact.columns]
+                exact.index.name = dimension
+                exact = exact.reset_index()
+                show_table(exact, height=520, width="stretch", hide_index=True)
+                if can_export:
+                    st.download_button(
+                        f"Exportar mapa de {label.lower()}",
+                        exact.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                        f"mapa_mensal_{dimension.lower()}.csv", "text/csv", key=f"export_activity_{dimension}_{metric}",
+                        width="stretch",
+                    )
 
 
 def _summary(data, dimension, total):
@@ -1009,6 +1142,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Metas", "view_targets"))
     if "view_funnel" in permissions:
         pages.append(("Funil", "view_funnel"))
+    if "view_heatmap" in permissions:
+        pages.append(("Mapa mensal", "view_heatmap"))
     if "view_insights" in permissions:
         pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
@@ -1041,6 +1176,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
     elif permission == "view_funnel":
         _funnel_view(commercial_indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export)
+    elif permission == "view_heatmap":
+        _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":
