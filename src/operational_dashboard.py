@@ -198,10 +198,21 @@ def _monthly_activity_matrix(history, dimension, metric, end_date, months=12, li
         return pd.DataFrame(columns=month_axis), pd.Series(dtype="float64")
     source[dimension] = source[dimension].astype(str)
     source["Mês"] = source["Data"].dt.to_period("M").dt.to_timestamp()
-    revenue = source.groupby([dimension, "Mês"], dropna=False)["Faturamento"].sum()
+    groups = [dimension, "Mês"]
+    revenue = source.groupby(groups, dropna=False)["Faturamento"].sum()
     revenue_matrix = revenue.unstack(fill_value=0).reindex(columns=month_axis, fill_value=0)
     if metric == "Faturamento":
         matrix = revenue_matrix
+        ranking = revenue_matrix.sum(axis=1)
+    elif metric == "Preço médio/kg":
+        weight = source.groupby(groups, dropna=False)["Peso"].sum()
+        weight_matrix = weight.unstack().reindex(columns=month_axis)
+        matrix = revenue_matrix.div(weight_matrix.replace(0, pd.NA)).astype(float)
+        ranking = revenue_matrix.sum(axis=1)
+    elif metric == "Margem %":
+        margin = source.groupby(groups, dropna=False)["Margem"].sum()
+        margin_matrix = margin.unstack().reindex(columns=month_axis)
+        matrix = margin_matrix.div(revenue_matrix.replace(0, pd.NA)).astype(float)
         ranking = revenue_matrix.sum(axis=1)
     elif dimension == "Cliente":
         matrix = revenue_matrix.gt(0).astype(int)
@@ -233,16 +244,32 @@ def _activity_heatmap_chart(matrix, dimension, metric):
     display.index = [_short_label(value) for value in full_labels]
     display.columns = [_month_label(value) for value in display.columns]
     color_scale = [[0, "#EEF1F5"], [0.01, "#FFE2D4"], [0.48, "#F59668"], [1, "#C54112"]]
-    positive_max = max(float(np.nanmax(display.to_numpy())), 1.0)
+    finite_values = display.to_numpy(dtype=float)
+    finite_values = finite_values[np.isfinite(finite_values)]
+    positive_max = max(float(finite_values.max()), 1.0) if finite_values.size else 1.0
+    labels = {
+        "Faturamento": "Faturamento (R$)",
+        "Preço médio/kg": "Preço médio/kg (R$)",
+        "Margem %": "Margem %",
+        "Positivação": "Positivação",
+    }
     chart = px.imshow(
         display, aspect="auto", color_continuous_scale=color_scale,
-        range_color=(0, positive_max),
-        labels={"x": "Mês", "y": dimension, "color": "Faturamento (R$)" if metric == "Faturamento" else "Positivação"},
+        range_color=(0, positive_max) if metric != "Margem %" else None,
+        color_continuous_midpoint=0 if metric == "Margem %" else None,
+        labels={"x": "Mês", "y": dimension, "color": labels[metric]},
     )
     full_names = np.repeat(np.array(full_labels, dtype=object)[:, None], len(display.columns), axis=1)
     if metric == "Faturamento":
         hover = "<b>%{customdata}</b><br>%{x}<br>Faturamento: R$ %{z:,.2f}<extra></extra>"
         chart.update_coloraxes(colorbar_title="R$", colorbar_tickprefix="R$ ", colorbar_tickformat="~s")
+    elif metric == "Preço médio/kg":
+        hover = "<b>%{customdata}</b><br>%{x}<br>Preço médio/kg: R$ %{z:,.2f}<extra></extra>"
+        chart.update_coloraxes(colorbar_title="R$/kg", colorbar_tickprefix="R$ ", colorbar_tickformat=".2f")
+    elif metric == "Margem %":
+        chart.update_coloraxes(colorscale=[[0, "#C93C3C"], [.5, "#F3F5F7"], [1, "#168553"]])
+        hover = "<b>%{customdata}</b><br>%{x}<br>Margem: %{z:.2%}<extra></extra>"
+        chart.update_coloraxes(colorbar_title="Margem", colorbar_tickformat=".2%")
     else:
         unit = "Clientes positivados" if dimension != "Cliente" else "Positivado"
         hover = f"<b>%{{customdata}}</b><br>%{{x}}<br>{unit}: %{{z:,.0f}}<extra></extra>"
@@ -266,7 +293,8 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
     st.caption("Visual em formato batalha naval: cada célula representa uma entidade em um mês. A janela termina na data final selecionada e respeita todos os filtros laterais.")
     controls = st.columns([1.35, 1, 1])
     metric = controls[0].segmented_control(
-        "Indicador", ["Positivação", "Faturamento"], default="Positivação", key="activity_metric",
+        "Indicador", ["Positivação", "Faturamento", "Preço médio/kg", "Margem %"],
+        default="Positivação", key="activity_metric",
     )
     months = controls[1].selectbox("Janela", [6, 12, 18, 24], index=1, format_func=lambda value: f"{value} meses", key="activity_months")
     limit = controls[2].selectbox("Entidades", [10, 15, 20, 30, 50], index=2, format_func=lambda value: f"Top {value}", key="activity_limit")
@@ -280,7 +308,11 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
             if matrix.empty:
                 st.info("Sem dados para montar o mapa mensal com os filtros atuais.")
                 continue
-            positive_cells = int((matrix > 0).sum().sum())
+            positive_cells = int(
+                matrix.notna().sum().sum()
+                if metric in {"Preço médio/kg", "Margem %"}
+                else (matrix > 0).sum().sum()
+            )
             total_cells = int(matrix.size)
             latest = matrix.iloc[:, -1]
             summary = st.columns(3)
@@ -288,6 +320,21 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
             summary[1].metric("Células com atividade", f"{positive_cells / total_cells * 100:.2f}%".replace(".", ","))
             if metric == "Faturamento":
                 summary[2].metric("Último mês", brl(float(latest.sum())))
+            elif metric in {"Preço médio/kg", "Margem %"}:
+                latest_month = pd.Timestamp(matrix.columns[-1])
+                latest_source = history[
+                    (history["Data"].dt.to_period("M").dt.to_timestamp() == latest_month)
+                    & history[dimension].astype(str).isin(matrix.index.astype(str))
+                ]
+                revenue = float(latest_source["Faturamento"].sum())
+                if metric == "Preço médio/kg":
+                    weight = float(latest_source["Peso"].sum())
+                    value = revenue / weight if weight else 0
+                    summary[2].metric("Preço médio no último mês", brl(value))
+                else:
+                    margin = float(latest_source["Margem"].sum())
+                    value = margin / revenue if revenue else 0
+                    summary[2].metric("Margem no último mês", f"{value * 100:.2f}%".replace(".", ","))
             elif dimension == "Cliente":
                 summary[2].metric("Positivados no último mês", _quantity(int(latest.sum())))
             else:
@@ -297,6 +344,8 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
                 "ⓘ Cliente positivado = faturamento líquido mensal maior que zero. "
                 + ("As células mostram 1 para mês positivado e cinza para mês sem positivação." if dimension == "Cliente" and metric == "Positivação" else
                    "As células mostram clientes distintos positivados em cada mês." if metric == "Positivação" else
+                   "Preço médio é o faturamento dividido pelo peso faturado; células sem peso ficam vazias." if metric == "Preço médio/kg" else
+                   "Margem % é a margem em reais dividida pelo faturamento; a escala separa margens negativas e positivas." if metric == "Margem %" else
                    "A intensidade representa o faturamento líquido positivo do mês; células cinza incluem valores zerados ou negativos. Valores exatos aparecem ao tocar ou passar o cursor.")
             )
             with st.expander("Conferir valores do mapa"):

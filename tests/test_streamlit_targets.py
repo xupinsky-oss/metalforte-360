@@ -84,6 +84,21 @@ _funnel_view(
         self.assertEqual(revenue.loc["Varejo", pd.Timestamp("2026-08-01")], 0)
         self.assertEqual(revenue.loc["Varejo", pd.Timestamp("2026-09-01")], 125)
 
+    def test_monthly_activity_calculates_weighted_price_and_margin(self):
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-09-02", "2026-09-03", "2026-09-04"]),
+            "Cliente": ["A", "A", "B"], "Produto": ["P1", "P1", "P2"],
+            "Canal": ["Varejo", "Varejo", "Varejo"],
+            "Faturamento": [100.0, 300.0, 200.0], "Peso": [10.0, 20.0, 20.0],
+            "Margem": [10.0, 90.0, -20.0],
+        })
+        price, _ = _monthly_activity_matrix(sales, "Cliente", "Preço médio/kg", "2026-09-30", 1, 10)
+        margin, _ = _monthly_activity_matrix(sales, "Cliente", "Margem %", "2026-09-30", 1, 10)
+        month = pd.Timestamp("2026-09-01")
+        self.assertAlmostEqual(price.loc["A", month], 400 / 30)
+        self.assertAlmostEqual(margin.loc["A", month], 100 / 400)
+        self.assertAlmostEqual(margin.loc["B", month], -20 / 200)
+
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''
 import pandas as pd
