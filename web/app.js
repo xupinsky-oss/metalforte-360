@@ -66,6 +66,32 @@ function renderPanels(panels){
   el("panels").innerHTML=sets.map(function(s){return '<section class="card"><h2>'+s[0]+'</h2><div class="panel-grid"><div class="chart-wrap"><canvas id="'+s[2]+'"></canvas></div>'+table(s[1])+"</div></section>";}).join("");
   sets.forEach(function(s){new Chart(el(s[2]),{type:"bar",data:{labels:s[1].map(function(r){return r.nome;}),datasets:[{label:"Faturamento",data:s[1].map(function(r){return r.faturamento;}),backgroundColor:"#274c77"}]},options:{indexAxis:"y",responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return money(ctx.raw);}}}},scales:{x:{ticks:{callback:function(v){return money(v);}}},y:{ticks:{autoSkip:false}}}}});});
 }
+function escapeHtml(value){return String(value==null?"—":value).replace(/[&<>'"]/g,function(char){return ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"})[char];});}
+function unifiedValue(column,value){
+  if(value==null||value==="") return "—";
+  if(column==="Margem %") return percent(value);
+  if(column.includes("(R$)")) return money(value);
+  if(column.includes("(kg)")) return num.format(value)+" kg";
+  if(column==="Clientes"||column==="Produtos"||column==="Registros"||column==="Prazo mediano (dias)") return num.format(value);
+  return escapeHtml(value);
+}
+function renderUnified(rows){
+  let section=el("consulta-unificada");
+  if(!section){section=document.createElement("section");section.id="consulta-unificada";section.className="card";el("panels").after(section);}
+  const sourceRows=rows||[];
+  if(!sourceRows.length){section.hidden=true;return;}
+  const sources=[...new Set(sourceRows.map(function(row){return row.Fonte;}))];
+  section.innerHTML='<h2>Consulta unificada</h2><p class="muted">Recorte agregado das informações publicadas. Selecione a fonte e exporte o resultado; dados detalhados permanecem protegidos.</p><label>Fonte <select id="unified-source"><option value="">Todas</option>'+sources.map(function(source){return '<option value="'+escapeHtml(source)+'">'+escapeHtml(source)+'</option>';}).join("")+'</select></label> <button id="export-unified" type="button">Exportar recorte</button><div id="unified-table"></div>';
+  const render=function(){
+    const selected=el("unified-source").value;
+    const view=selected?sourceRows.filter(function(row){return row.Fonte===selected;}):sourceRows;
+    const columns=["Fonte","Recorte","Item","Faturamento (R$)","Peso (kg)","Margem (R$)","Margem %","Meta (R$)","Meta (kg)","Valor da carteira (R$)","Peso da carteira (kg)","Clientes","Produtos","Registros","Prazo mediano (dias)"];
+    const available=columns.filter(function(column){return view.some(function(row){return row[column]!=null;});});
+    el("unified-table").innerHTML='<div class="table-wrap"><table><thead><tr>'+available.map(function(column){return '<th>'+escapeHtml(column)+'</th>';}).join("")+'</tr></thead><tbody>'+view.map(function(row){return '<tr>'+available.map(function(column){return '<td>'+unifiedValue(column,row[column])+'</td>';}).join("")+'</tr>';}).join("")+'</tbody></table></div>';
+    el("export-unified").onclick=function(){const csv=[available.join(";")].concat(view.map(function(row){return available.map(function(column){return '"'+String(row[column]??"").replaceAll('"','""')+'"';}).join(";")})).join("\n");const link=document.createElement("a");link.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));link.download="consulta_unificada_metalforte.csv";link.click();URL.revokeObjectURL(link.href);};
+  };
+  el("unified-source").onchange=render;render();section.hidden=false;
+}
 async function loadDashboard(){
   const session=(await supa.auth.getSession()).data.session;
   if(!session) return;
@@ -74,7 +100,7 @@ async function loadDashboard(){
   const data=await response.json();
   el("periodo").textContent="Período: "+dateBR(data.periodo.inicio)+" a "+dateBR(data.periodo.fim);
   el("atualizado").textContent="Base atualizada em "+new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(data.atualizado_em));
-  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderFunnel(data.funil_acompanhamento);renderFlowDates(data.rastreabilidade_datas);renderMonthly(data.mensal);renderPanels(data.paineis);
+  renderKpis(data.overview);renderCommercial(data.metas_e_pedidos);renderFunnel(data.funil_acompanhamento);renderFlowDates(data.rastreabilidade_datas);renderMonthly(data.mensal);renderPanels(data.paineis);renderUnified(data.consulta_unificada);
   el("login").hidden=true;el("dashboard").hidden=false;el("logout").hidden=false;
 }
 async function start(){

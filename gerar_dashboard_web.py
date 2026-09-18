@@ -147,6 +147,34 @@ def _flow_payload(flow, start, end):
     return {"etapas": etapas, "prazos": prazos, "cobertura": _number(coverage)}
 
 
+def _unified_snapshot(overview, commercial, funnel, flow_dates, monthly, panels):
+    """Tabela agregada para a página HTML; não inclui linhas privadas da base."""
+    rows = [{
+        "Fonte": "Resumo do período", "Recorte": "Período atual", "Item": "Faturamento realizado",
+        "Faturamento (R$)": overview.get("faturamento", 0), "Peso (kg)": overview.get("peso", 0),
+        "Margem (R$)": overview.get("margem", 0), "Margem %": overview.get("margem_pct", 0),
+        "Clientes": overview.get("clientes", 0), "Produtos": overview.get("produtos", 0),
+    }]
+    rows.extend([
+        {"Fonte": "Metas e carteira", "Recorte": "Período atual", "Item": "Meta de faturamento", "Meta (R$)": commercial.get("meta_valor")},
+        {"Fonte": "Metas e carteira", "Recorte": "Período atual", "Item": "Meta de peso", "Meta (kg)": commercial.get("meta_peso")},
+        {"Fonte": "Metas e carteira", "Recorte": "Período atual", "Item": "Pedidos liberados", "Valor da carteira (R$)": commercial.get("pedidos_liberados_valor"), "Peso da carteira (kg)": commercial.get("pedidos_liberados_peso")},
+        {"Fonte": "Metas e carteira", "Recorte": "Período atual", "Item": "A faturar", "Valor da carteira (R$)": commercial.get("pedidos_nao_faturados_valor"), "Peso da carteira (kg)": commercial.get("pedidos_nao_faturados_peso")},
+    ])
+    for row in funnel:
+        rows.append({"Fonte": "Funil", "Recorte": row.get("tipo", "etapa").title(), "Item": row.get("etapa"), "Valor da carteira (R$)": row.get("valor"), "Peso da carteira (kg)": row.get("peso")})
+    for row in flow_dates.get("etapas", []):
+        rows.append({"Fonte": "Eventos por data", "Recorte": "Período atual", "Item": row.get("etapa"), "Registros": row.get("registros"), "Valor da carteira (R$)": row.get("valor"), "Peso da carteira (kg)": row.get("peso")})
+    for row in flow_dates.get("prazos", []):
+        rows.append({"Fonte": "Prazos do processo", "Recorte": "Mediana", "Item": row.get("etapa"), "Prazo mediano (dias)": row.get("dias_medianos"), "Registros": row.get("amostra")})
+    for row in monthly:
+        rows.append({"Fonte": "Evolução mensal", "Recorte": row.get("mes"), "Item": "Resultado mensal", "Faturamento (R$)": row.get("faturamento"), "Peso (kg)": row.get("peso"), "Margem (R$)": row.get("margem"), "Margem %": row.get("margem_pct")})
+    for source, values in panels.items():
+        for row in values:
+            rows.append({"Fonte": source.title(), "Recorte": "Período atual", "Item": row.get("nome"), "Faturamento (R$)": row.get("faturamento"), "Peso (kg)": row.get("peso"), "Margem (R$)": row.get("margem"), "Margem %": row.get("margem_pct"), "Clientes": row.get("clientes"), "Produtos": row.get("produtos")})
+    return rows
+
+
 def build_payload(data):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
@@ -197,6 +225,13 @@ def build_payload(data):
     monthly["margem_pct"] = monthly["margem"] / monthly["faturamento"].replace(0, pd.NA)
     monthly_records = [{key: (_number(value) if key != "mes" else value) for key, value in item.items()}
                        for item in monthly.to_dict(orient="records")]
+    panels = {
+        "segmentos": _breakdown(current, "Segmento Cliente"),
+        "produtos": _breakdown(current, "Grupo Produto"),
+        "vendedores": _breakdown(current, "Vendedor"),
+        "cidades": _breakdown(current, "Município"),
+    }
+    flow_dates = _flow_payload(flow, month_start, last_date)
     return {
         "versao": 1,
         "atualizado_em": datetime.now().astimezone().isoformat(),
@@ -204,14 +239,10 @@ def build_payload(data):
         "overview": current_metrics,
         "metas_e_pedidos": commercial,
         "funil_acompanhamento": funnel,
-        "rastreabilidade_datas": _flow_payload(flow, month_start, last_date),
+        "rastreabilidade_datas": flow_dates,
         "mensal": monthly_records,
-        "paineis": {
-            "segmentos": _breakdown(current, "Segmento Cliente"),
-            "produtos": _breakdown(current, "Grupo Produto"),
-            "vendedores": _breakdown(current, "Vendedor"),
-            "cidades": _breakdown(current, "Município"),
-        },
+        "paineis": panels,
+        "consulta_unificada": _unified_snapshot(current_metrics, commercial, funnel, flow_dates, monthly_records, panels),
     }
 
 
