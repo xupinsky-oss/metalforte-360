@@ -19,6 +19,8 @@ def load_data(path=None):
         raise FileNotFoundError("Base não encontrada. Configure o Supabase ou disponibilize data/metalforte_base.csv.gz.")
     df=pd.read_csv(source,low_memory=False,compression=compression)
     df["Data"]=pd.to_datetime(df["Data"],errors="coerce")
+    if "Data Pedido" in df:
+        df["Data Pedido"]=pd.to_datetime(df["Data Pedido"],errors="coerce")
     if "Mes" not in df: df["Mes"]=df["Data"].dt.strftime("%Y-%m")
     if "Ano" not in df: df["Ano"]=df["Data"].dt.year
     for c in NUMERIC:

@@ -33,6 +33,7 @@ PANEL_HELP = {
     "funnel": "Acompanha o estoque atual de orçamentos, pedidos e filas operacionais. Etapas comerciais são exibidas em R$ e etapas de produção/logística em kg. A visão preserva a unidade oficial de cada relatório e não soma os subtotais CIF/FOB ao total de faturamento.",
     "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
+    "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
 }
@@ -731,6 +732,93 @@ def _pivot(data, show_table, can_export):
         st.download_button("Exportar tabela", result.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "tabela_dinamica.csv", "text/csv", width="stretch")
 
 
+def _unified_table(data, targets, flow_events, indicators, start_date, end_date):
+    """Cria uma consulta única preservando a origem e o grão de cada fato."""
+    frames = []
+    sales = data.copy()
+    if not sales.empty:
+        sales.insert(0, "Fonte", "Faturamento")
+        sales.insert(1, "Tipo de registro", "Nota faturada")
+        sales.insert(2, "Data de referência", sales.get("Data"))
+        sales = sales.rename(columns={
+            "Data": "Data faturamento", "Peso": "Peso faturado (kg)",
+            "Margem": "Margem (R$)", "Margem %": "Margem faturamento %",
+        })
+        frames.append(sales)
+
+    flow = flow_events.copy() if flow_events is not None else pd.DataFrame()
+    if not flow.empty:
+        date_columns = [column for column in flow.columns if str(column).startswith("Data ")]
+        if date_columns:
+            period_start, period_end = pd.Timestamp(start_date), pd.Timestamp(end_date)
+            in_period = flow[date_columns].apply(lambda series: series.between(period_start, period_end, inclusive="both")).any(axis=1)
+            flow = flow.loc[in_period].copy()
+        if not flow.empty:
+            flow.insert(0, "Fonte", "Funil")
+            flow.insert(1, "Tipo de registro", flow.get("Origem", pd.Series("Evento do funil", index=flow.index)).fillna("Evento do funil"))
+            flow.insert(2, "Data de referência", flow[date_columns].max(axis=1) if date_columns else pd.NaT)
+            flow = flow.rename(columns={"Peso": "Peso funil (kg)", "Valor": "Valor funil (R$)"})
+            frames.append(flow)
+
+    target_frame = targets.copy() if targets is not None else pd.DataFrame()
+    if not target_frame.empty and "Competência" in target_frame:
+        target_frame["Competência"] = pd.to_datetime(target_frame["Competência"], errors="coerce")
+        target_frame = target_frame[target_frame["Competência"].between(pd.Timestamp(start_date).to_period("M").start_time, pd.Timestamp(end_date).to_period("M").end_time, inclusive="both")].copy()
+        if not target_frame.empty:
+            target_frame.insert(0, "Fonte", "Meta oficial")
+            target_frame.insert(1, "Tipo de registro", "Meta mensal")
+            target_frame.insert(2, "Data de referência", target_frame["Competência"])
+            target_frame = target_frame.rename(columns={"Meta R$": "Meta (R$)", "Meta KG": "Meta (kg)"})
+            frames.append(target_frame)
+
+    snapshot = []
+    for metric, value in (indicators or {}).items():
+        if value is None:
+            continue
+        metric_name = str(metric).replace("_", " ").title()
+        is_weight = "peso" in str(metric).lower() or "kg" in str(metric).lower()
+        snapshot.append({
+            "Fonte": "Indicador", "Tipo de registro": "Fotografia da última carga",
+            "Data de referência": pd.Timestamp(end_date), "Métrica": metric_name,
+            "Indicador (kg)" if is_weight else "Indicador (R$)": value,
+        })
+    if snapshot:
+        frames.append(pd.DataFrame(snapshot))
+    return pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame()
+
+
+def _unified_view(data, targets, flow_events, indicators, start_date, end_date, show_table, can_export):
+    st.subheader("Base unificada", help=PANEL_HELP["unified"])
+    st.caption("Recorte do período e dos filtros ativos. As fontes não são somadas entre si: use a coluna Fonte para interpretar cada registro.")
+    unified = _unified_table(data, targets, flow_events, indicators, start_date, end_date)
+    if unified.empty:
+        st.info("Não há registros nas fontes disponíveis para o recorte selecionado.")
+        return
+    source_options = unified["Fonte"].dropna().unique().tolist()
+    selected_sources = st.multiselect("Fontes incluídas", source_options, default=source_options, key="unified_sources")
+    result = unified[unified["Fonte"].isin(selected_sources)].copy()
+    core = [
+        "Fonte", "Tipo de registro", "Data de referência", "Data faturamento", "Competência",
+        "Pedido", "NF", "OP", "Vendedor", "Cliente", "Segmento Cliente", "Grupo Produto", "Produto",
+        "Faturamento", "Peso faturado (kg)", "Margem (R$)", "Margem faturamento %",
+        "Meta (R$)", "Meta (kg)", "Valor funil (R$)", "Peso funil (kg)", "Métrica", "Indicador (R$)", "Indicador (kg)",
+    ]
+    available_core = [column for column in core if column in result.columns]
+    show_all = st.checkbox("Exibir todos os campos disponíveis", value=False, key="unified_all_fields")
+    visible_columns = list(result.columns) if show_all else available_core
+    max_rows = st.select_slider("Linhas exibidas", options=[250, 500, 1_000, 2_500, 5_000, 10_000], value=2_500, key="unified_rows")
+    st.caption(f"{len(result):,} registros no recorte • exibindo até {min(len(result), max_rows):,}.".replace(",", "."))
+    sort_columns = [column for column in ("Data de referência", "Fonte", "Tipo de registro") if column in result]
+    if sort_columns:
+        result = result.sort_values(sort_columns, ascending=[False] + [True] * (len(sort_columns) - 1), na_position="last")
+    show_table(result[visible_columns].head(max_rows), height=620, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button(
+            "Exportar recorte completo", result.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "base_unificada_metalforte.csv", "text/csv", width="stretch",
+        )
+
+
 def _yoy(data, history, start_date, end_date, show_chart, show_table):
     st.subheader("Comparativo com o ano anterior", help=PANEL_HELP["yoy"])
     dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "UF", "Município") if column in data.columns]
@@ -1197,6 +1285,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
         pages.append(("Tabela dinâmica", "view_pivot"))
+        pages.append(("Base unificada", "view_unified"))
     if "view_yoy" in permissions:
         pages.append(("Comparativo anual", "view_yoy"))
     if "use_assistant" in permissions:
@@ -1231,6 +1320,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_pivot":
         _pivot(data, show_table, can_export)
+    elif permission == "view_unified":
+        _unified_view(data, targets, flow_events, commercial_indicators, start_date, end_date, show_table, can_export)
     elif permission == "view_yoy":
         _yoy(data, history, start_date, end_date, show_chart, show_table)
     elif permission == "use_assistant":
