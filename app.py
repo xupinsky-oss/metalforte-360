@@ -153,7 +153,7 @@ with head_logo:
     if logo_path.exists(): st.image(str(logo_path),width=190)
 with head_title:
     st.title("METALFORTE 360")
-    st.caption(f"Painel comercial • visão executiva e comparativos  |  Última carga: {last_load}")
+    st.caption(f"Command Center e operação comercial em um único app  |  Última carga: {last_load}")
 st.markdown("""<style>
 html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}

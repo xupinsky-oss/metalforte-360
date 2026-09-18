@@ -390,9 +390,9 @@ def _compact_bar(view, dimension, title, limit=10):
 
 
 def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table):
-    st.subheader("Visão executiva", help=PANEL_HELP["overview"])
+    st.subheader("Command Center", help=PANEL_HELP["overview"])
     st.caption(
-        f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
+        f"Visão central do METALFORTE 360 • {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
         f"comparações usam o mesmo intervalo deslocado em 1 mês e 1 ano • carga: {last_load}"
     )
     current = _period_metrics(data)
@@ -1266,7 +1266,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     _inject_kpi_styles()
     pages = []
     if "view_overview" in permissions:
-        pages.append(("Visão executiva", "view_overview"))
+        pages.append(("Command Center", "view_overview"))
     if "view_clients" in permissions:
         pages.append(("Clientes", "view_clients"))
     if "view_products" in permissions:

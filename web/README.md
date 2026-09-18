@@ -1,4 +1,8 @@
-# Command Center HTML
+# Command Center HTML (redirecionamento)
+
+O Command Center foi consolidado ao METALFORTE 360. Este diretório preserva o
+endereço histórico do GitHub Pages e o redireciona para a aplicação única:
+https://metalforte-360.streamlit.app/
 
 Esta versão não usa GPT durante a operação. O navegador recebe apenas um resumo agregado e privado da carga automática.
 
