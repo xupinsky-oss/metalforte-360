@@ -8,7 +8,7 @@ import plotly.express as px
 import streamlit as st
 
 from src.analytics import group_metrics, metrics
-from src.assistant import answer
+from src.assistant import answer, SUGGESTED_QUESTIONS
 from src.auth import render_user_admin
 from src.targets import allocate_target, target_scope
 from src.commercial_intelligence import (
@@ -1326,13 +1326,21 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _yoy(data, history, start_date, end_date, show_chart, show_table)
     elif permission == "use_assistant":
         st.subheader("Assistente analítico", help=PANEL_HELP["assistant"])
-        st.caption("Respostas calculadas a partir do período e dos filtros atuais.")
+        st.caption("Respostas calculadas a partir do período e dos filtros atuais. Escolha uma pergunta pronta ou escreva sua própria pergunta.")
         if "chat" not in st.session_state:
             st.session_state.chat = []
         for role, message in st.session_state.chat:
             with st.chat_message(role):
                 st.markdown(message)
-        question = st.chat_input("Ex.: quais vendedores mais contribuíram para o resultado?")
+        st.markdown("##### Perguntas prontas")
+        question = None
+        prompt_columns = st.columns(3)
+        for index, (label, prompt) in enumerate(SUGGESTED_QUESTIONS):
+            if prompt_columns[index % 3].button(label, key=f"assistant_prompt_{index}", width="stretch"):
+                question = prompt
+        typed_question = st.chat_input("Ex.: quais vendedores mais contribuíram para o resultado?")
+        if typed_question:
+            question = typed_question
         if question:
             response = answer(question, data, history, start_date, end_date)
             st.session_state.chat.extend([("user", question), ("assistant", response)])

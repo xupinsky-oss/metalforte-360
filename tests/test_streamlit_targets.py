@@ -152,6 +152,34 @@ _daily(sales, sales, "2026-09-09", brl, brl2, pct,
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
 
+    def test_assistant_renders_ready_questions(self):
+        script = r'''
+import pandas as pd
+import streamlit as st
+from src.operational_dashboard import render
+
+sales = pd.DataFrame({
+    "Data": pd.to_datetime(["2026-09-08"]), "Cliente": ["A"], "Produto": ["P1"],
+    "Vendedor": ["ANA"], "Grupo Produto": ["TELHA"], "Faturamento": [1000.0],
+    "Peso": [100.0], "Margem": [200.0], "NF": [1], "Cod Cliente": ["C1"],
+    "Mes": [9], "UF": ["MG"], "Município": ["Betim"],
+    "Benchmark Grupo": [9.0], "Preço Real Kg": [10.0],
+})
+render(
+    sales, sales, "2026-09-01", "2026-09-30", "18/09/2026 às 15:00",
+    lambda value: f"R$ {value:,.2f}", lambda value: f"R$ {value:,.2f}",
+    lambda value: f"{value*100:.2f}%", lambda value: f"{value:+.2f} p.p.",
+    lambda fig: st.plotly_chart(fig), lambda frame, **kwargs: st.dataframe(frame),
+    permissions={"use_assistant"}, current_user={}, targets=pd.DataFrame(), target_history=sales,
+)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        labels = [button.label for button in app.button]
+        self.assertIn("Resumo do período", labels)
+        self.assertIn("Prioridades comerciais", labels)
+        self.assertIn("Projeção de fechamento", labels)
+
 
 if __name__ == "__main__":
     unittest.main()
