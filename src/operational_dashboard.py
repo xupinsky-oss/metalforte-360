@@ -30,7 +30,7 @@ PANEL_HELP = {
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
-    "funnel": "Acompanha o estoque atual de orçamentos, pedidos e filas operacionais. Etapas comerciais são exibidas em R$ e etapas de produção/logística em kg. A visão preserva a unidade oficial de cada relatório e não soma os subtotais CIF/FOB ao total de faturamento.",
+    "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
     "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
@@ -1010,6 +1010,28 @@ FLOW_DATE_EVENTS = (
     ("Entrega", "Data desejada pelo cliente", "Data Desejo Cliente"),
 )
 
+# A posição da carteira usa somente fatos concluídos do processo. Datas de
+# desejo e de previsão são compromissos, não movimentações do pedido.
+# Cada pedido/OP fica em uma única etapa: a mais avançada já registrada.
+CURRENT_POSITION_STAGES = (
+    (1, "Orçamento", "Orçamento em aberto", "Data Orçamento"),
+    (2, "Crédito", "Pedido emitido", "Data Pedido"),
+    (3, "Crédito", "Pedido liberado", "Data Liberação"),
+    (4, "Produção", "OP emitida", "Data Emissão OP"),
+    (5, "Produção", "OP confirmada", "Data Confirmação OP"),
+    (6, "Produção", "Produção programada", "Data Produção"),
+    (7, "Produção", "OS gerada", "Data OS"),
+    (8, "Carga", "Carga montada", "Data Montagem Carga"),
+    (9, "Faturamento", "NF emitida", "Data Emissão NF"),
+    (10, "Entrega", "Saída realizada", "Data Saída"),
+)
+
+POSITION_FALLBACKS = {
+    "Orçamento em aberto": (1, "Orçamento", "Orçamento em aberto"),
+    "Pedido liberado": (3, "Crédito", "Pedido liberado"),
+    "OP sob encomenda": (4, "Produção", "OP emitida"),
+}
+
 
 def _funnel_frame(indicators):
     indicators = indicators or {}
@@ -1026,6 +1048,119 @@ def _funnel_frame(indicators):
             "É subtotal": subtotal,
         })
     return pd.DataFrame(rows)
+
+
+def _flow_current_positions(flow):
+    """Localiza cada pedido/OP na última etapa concluída, sem duplicá-lo."""
+    position_columns = [
+        "Documento", "Origem", "Ordem", "Macroetapa", "Etapa", "Data da posição",
+        "Registros", "Peso", "Valor",
+    ]
+    summary_columns = [
+        "Ordem", "Macroetapa", "Etapa", "Documentos", "Registros", "Peso", "Valor", "Data mais recente",
+    ]
+    if flow is None or flow.empty:
+        return pd.DataFrame(columns=position_columns), pd.DataFrame(columns=summary_columns)
+
+    source = flow.copy().reset_index(drop=True)
+    for column, default in (("Origem", "Não informado"), ("Peso", np.nan), ("Valor", np.nan)):
+        if column not in source:
+            source[column] = default
+    source["_ordem"] = 0
+    source["_macroetapa"] = pd.NA
+    source["_etapa"] = pd.NA
+    source["_data_posicao"] = pd.NaT
+    for order, journey, stage, date_column in CURRENT_POSITION_STAGES:
+        if date_column not in source:
+            continue
+        dates = pd.to_datetime(source[date_column], errors="coerce")
+        moved = dates.notna()
+        # A ordem do processo é a regra de desempate: uma etapa posterior
+        # sempre substitui uma anterior, mesmo se a fonte registrar datas fora
+        # da sequência esperada.
+        source.loc[moved, "_ordem"] = order
+        source.loc[moved, "_macroetapa"] = journey
+        source.loc[moved, "_etapa"] = stage
+        source.loc[moved, "_data_posicao"] = dates[moved]
+
+    origins = source.get("Origem", pd.Series("", index=source.index)).fillna("").astype(str)
+    for origin, (order, journey, stage) in POSITION_FALLBACKS.items():
+        fallback = source["_ordem"].eq(0) & origins.eq(origin)
+        source.loc[fallback, "_ordem"] = order
+        source.loc[fallback, "_macroetapa"] = journey
+        source.loc[fallback, "_etapa"] = stage
+
+    # Orçamentos e pedidos têm chave pelo pedido; OPs sem vínculo confiável
+    # usam sua própria chave. Linhas sem chave permanecem separadas para não
+    # forçar uma união artificial entre documentos distintos.
+    pedido = source.get("Pedido", pd.Series(pd.NA, index=source.index)).astype("string").str.strip()
+    op = source.get("OP", pd.Series(pd.NA, index=source.index)).astype("string").str.strip()
+    invalid = {"", "<NA>", "nan", "None"}
+    document = pedido.where(~pedido.isin(invalid), op)
+    document = document.where(~document.isin(invalid), "LINHA-" + source.index.astype(str))
+    source["_documento"] = document.astype(str)
+
+    # Se um pedido tem mais de um item, todo o volume é mantido junto na
+    # posição mais avançada encontrada entre seus itens.
+    selected = (
+        source.sort_values(["_documento", "_ordem", "_data_posicao"], na_position="first")
+        .groupby("_documento", as_index=False, sort=False)
+        .tail(1)
+        .set_index("_documento")
+    )
+    totals = source.groupby("_documento", dropna=False).agg(
+        Origem=("Origem", "last"), Registros=("_documento", "size"),
+        Peso=("Peso", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
+        Valor=("Valor", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
+    )
+    positions = selected[["_ordem", "_macroetapa", "_etapa", "_data_posicao"]].join(totals, how="left").reset_index()
+    positions = positions.rename(columns={
+        "_documento": "Documento", "_ordem": "Ordem", "_macroetapa": "Macroetapa",
+        "_etapa": "Etapa", "_data_posicao": "Data da posição",
+    })
+    positions = positions[positions["Ordem"].gt(0)].copy()
+    if positions.empty:
+        return pd.DataFrame(columns=position_columns), pd.DataFrame(columns=summary_columns)
+
+    positions["Data da posição"] = pd.to_datetime(positions["Data da posição"], errors="coerce")
+    summary = positions.groupby(["Ordem", "Macroetapa", "Etapa"], as_index=False, dropna=False).agg(
+        Documentos=("Documento", "nunique"), Registros=("Registros", "sum"),
+        Peso=("Peso", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
+        Valor=("Valor", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
+        **{"Data mais recente": ("Data da posição", "max")},
+    ).sort_values("Ordem")
+    return positions[position_columns], summary[summary_columns]
+
+
+def _position_stage_cards(position_summary, brl):
+    cards = []
+    for stage_number, journey in enumerate(FUNNEL_JOURNEY, start=1):
+        lines = []
+        stage_rows = position_summary[position_summary["Macroetapa"] == journey] if not position_summary.empty else pd.DataFrame()
+        if stage_rows.empty:
+            lines.append('<div class="mf-stage-line empty"><div class="mf-stage-value">Sem pedidos nesta posição</div></div>')
+        else:
+            for _, row in stage_rows.iterrows():
+                values = []
+                if pd.notna(row.get("Valor")):
+                    values.append(brl(float(row["Valor"])))
+                if pd.notna(row.get("Peso")):
+                    values.append(f"{_quantity(float(row['Peso']))} kg")
+                formatted = " · ".join(values) if values else f"{_quantity(row['Registros'])} registros"
+                meta = f"{int(row['Documentos'])} documento(s) · {int(row['Registros'])} linha(s)"
+                lines.append(
+                    '<div class="mf-stage-line">'
+                    f'<div class="mf-stage-label"><span class="mf-stage-dot">●</span><span>{html.escape(str(row["Etapa"]))}</span></div>'
+                    f'<div class="mf-stage-value">{html.escape(formatted)}</div>'
+                    f'<div class="mf-stage-meta">{html.escape(meta)}</div></div>'
+                )
+        cards.append(
+            f'<section class="mf-stage"><div class="mf-stage-number">Etapa {stage_number:02d}</div>'
+            f'<div class="mf-stage-title">{html.escape(journey)}</div>'
+            '<div class="mf-stage-ref">Posição atual da última carga</div>'
+            f'{"".join(lines)}</section>'
+        )
+    st.markdown('<div class="mf-flow">' + "".join(cards) + '</div>', unsafe_allow_html=True)
 
 
 def _funnel_stage_cards(date_summary, brl):
@@ -1149,12 +1284,13 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
     st.caption(
         f"ⓘ {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
-        "Cada cartão considera somente eventos cuja data própria está dentro do período. As filas atuais, que são uma fotografia global da última carga, ficam nas abas específicas."
+        "A posição da carteira é uma fotografia da última carga; as movimentações por data continuam disponíveis para analisar o fluxo no período."
     )
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
     missing = frame[frame["Valor"].isna()]
     date_summary = _flow_event_summary(flow_events, start_date, end_date)
+    current_positions, position_summary = _flow_current_positions(flow_events)
 
     def event_metric(label, field, formatter):
         match = date_summary[date_summary["Movimentação"] == label]
@@ -1169,19 +1305,34 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         ("Saídas realizadas no período", event_metric("Saídas realizadas", "Peso", lambda value: f"{_quantity(value)} kg"), ()),
     ]
     _metric_cards(metric_cards)
-    st.markdown("### Jornada por data do evento")
-    _funnel_stage_cards(date_summary, brl)
+    st.markdown("### Posição atual da carteira")
+    _position_stage_cards(position_summary, brl)
     st.markdown(
-        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> ● indica movimento na data da etapa dentro do período; ○ amarelo indica zero movimento; '
-        '○ cinza indica que a data não foi publicada. Um pedido pode aparecer em várias etapas, portanto os cartões não devem ser somados. '
-        'A fotografia dos saldos atuais permanece nas abas “Filas · R$” e “Filas · kg”.</div>',
+        '<div class="mf-funnel-note"><strong>Leitura correta:</strong> cada pedido ou OP aparece em apenas uma caixa: a etapa mais avançada '
+        'registrada na última carga. Ao receber uma nova movimentação, o volume sai da caixa anterior e passa para a próxima. '
+        'A aba “Movimentações por data” é histórica e pode registrar o mesmo documento em várias etapas.</div>',
         unsafe_allow_html=True,
     )
 
     deadlines = _flow_deadlines(flow_events, start_date, end_date)
-    dates_tab, deadlines_tab, commercial_tab, operation_tab, coverage_tab = st.tabs([
-        "Movimentações por data", "Prazos entre etapas", "Filas · R$", "Filas · kg", "Cobertura da base",
+    position_tab, dates_tab, deadlines_tab, commercial_tab, operation_tab, coverage_tab = st.tabs([
+        "Posição atual", "Movimentações por data", "Prazos entre etapas", "Filas · R$", "Filas · kg", "Cobertura da base",
     ])
+    with position_tab:
+        if current_positions.empty:
+            st.info("A carga atual ainda não publicou documentos com uma etapa de processo identificável.")
+        else:
+            st.caption("Cada documento é exibido uma vez, na etapa mais avançada já registrada. O calendário não recorta esta fotografia atual.")
+            show_table(
+                current_positions.sort_values(["Ordem", "Data da posição"], ascending=[False, False]),
+                height=560, width="stretch", hide_index=True,
+            )
+            if can_export:
+                st.download_button(
+                    "Exportar posição atual da carteira",
+                    current_positions.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                    "funil_posicao_atual.csv", "text/csv", width="stretch",
+                )
     with dates_tab:
         if flow_events is None or flow_events.empty:
             st.info("A trilha de datas ainda não foi publicada. Execute uma nova atualização da base para habilitar esta visão.")

@@ -6,7 +6,7 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _monthly_activity_matrix, render,
+    _flow_current_positions, _monthly_activity_matrix, render,
 )
 
 
@@ -51,7 +51,8 @@ _funnel_view(
         self.assertGreaterEqual(len(app.tabs), 5)
         rendered = "\n".join(str(item.value) for item in app.markdown)
         self.assertIn("Pedidos emitidos", rendered)
-        self.assertIn("Pedidos liberados", rendered)
+        self.assertIn("Posição atual da carteira", rendered)
+        self.assertIn("Pedido liberado", rendered)
         self.assertNotIn("Orçamentos em aberto</span>", rendered)
 
     def test_flow_uses_the_reference_date_of_each_stage(self):
@@ -68,6 +69,31 @@ _funnel_view(
         self.assertEqual(counts["Pedidos liberados"], 1)
         deadlines = _flow_deadlines(flow, "2026-09-01", "2026-09-30")
         self.assertEqual(deadlines.loc[deadlines["Transição"] == "Pedido → liberação", "Prazo mediano (dias)"].iloc[0], 2)
+
+    def test_current_funnel_moves_each_order_to_one_latest_box(self):
+        flow = pd.DataFrame({
+            "Origem": ["Pedido liberado", "Pedido liberado", "Pedido liberado", "Pedido liberado", "Orçamento em aberto"],
+            "Pedido": ["A", "A", "B", "C", "Q1"], "OP": [None] * 5,
+            "Peso": [100.0, 150.0, 200.0, 300.0, 50.0],
+            "Valor": [1000.0, 1500.0, 2500.0, 3500.0, 700.0],
+            "Data Orçamento": pd.to_datetime([None, None, None, None, "2026-09-01"]),
+            "Data Pedido": pd.to_datetime(["2026-09-02", "2026-09-02", "2026-09-03", "2026-09-04", None]),
+            "Data Liberação": pd.to_datetime(["2026-09-03", "2026-09-03", "2026-09-04", "2026-09-05", None]),
+            "Data OS": pd.to_datetime(["2026-09-06", None, None, None, None]),
+            "Data Montagem Carga": pd.to_datetime([None] * 5),
+            "Data Emissão NF": pd.to_datetime([None, None, "2026-09-07", None, None]),
+            "Data Saída": pd.to_datetime([None, None, None, "2026-09-08", None]),
+        })
+        positions, summary = _flow_current_positions(flow)
+        by_document = positions.set_index("Documento")
+        self.assertEqual(by_document.loc["A", "Etapa"], "OS gerada")
+        self.assertEqual(by_document.loc["B", "Etapa"], "NF emitida")
+        self.assertEqual(by_document.loc["C", "Etapa"], "Saída realizada")
+        self.assertEqual(by_document.loc["Q1", "Etapa"], "Orçamento em aberto")
+        self.assertEqual(len(positions), 4)
+        self.assertEqual(int(summary["Documentos"].sum()), 4)
+        self.assertAlmostEqual(float(summary["Peso"].sum()), 800.0)
+        self.assertAlmostEqual(float(by_document.loc["A", "Peso"]), 250.0)
 
     def test_monthly_activity_uses_net_revenue_for_positivation(self):
         sales = pd.DataFrame({
