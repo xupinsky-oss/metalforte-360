@@ -1285,7 +1285,6 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Insights", "view_insights"))
     if "view_pivot" in permissions:
         pages.append(("Tabela dinâmica", "view_pivot"))
-        pages.append(("Base unificada", "view_unified"))
     if "view_yoy" in permissions:
         pages.append(("Comparativo anual", "view_yoy"))
     if "use_assistant" in permissions:
