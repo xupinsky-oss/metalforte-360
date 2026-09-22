@@ -220,12 +220,12 @@ def _monthly_activity_matrix(history, dimension, metric, end_date, months=12, li
     elif metric == "Preço médio/kg":
         weight = source.groupby(groups, dropna=False)["Peso"].sum()
         weight_matrix = weight.unstack().reindex(columns=month_axis)
-        matrix = revenue_matrix.div(weight_matrix.replace(0, pd.NA)).astype(float)
+        matrix = revenue_matrix.div(weight_matrix.replace(0, np.nan))
         ranking = revenue_matrix.sum(axis=1)
     elif metric == "Margem %":
         margin = source.groupby(groups, dropna=False)["Margem"].sum()
         margin_matrix = margin.unstack().reindex(columns=month_axis)
-        matrix = margin_matrix.div(revenue_matrix.replace(0, pd.NA)).astype(float)
+        matrix = margin_matrix.div(revenue_matrix.replace(0, np.nan))
         ranking = revenue_matrix.sum(axis=1)
     elif dimension == "Cliente":
         matrix = revenue_matrix.gt(0).astype(int)

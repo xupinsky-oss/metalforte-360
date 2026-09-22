@@ -125,6 +125,17 @@ _funnel_view(
         self.assertAlmostEqual(margin.loc["A", month], 100 / 400)
         self.assertAlmostEqual(margin.loc["B", month], -20 / 200)
 
+    def test_monthly_activity_preserves_undefined_ratios_as_nan(self):
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-09-02"]), "Cliente": ["A"],
+            "Produto": ["P1"], "Canal": ["Varejo"], "Faturamento": [0.0],
+            "Peso": [0.0], "Margem": [0.0],
+        })
+        price, _ = _monthly_activity_matrix(sales, "Cliente", "Preço médio/kg", "2026-09-30", 2, 10)
+        margin, _ = _monthly_activity_matrix(sales, "Cliente", "Margem %", "2026-09-30", 2, 10)
+        self.assertTrue(pd.isna(price.loc["A", pd.Timestamp("2026-09-01")]))
+        self.assertTrue(pd.isna(margin.loc["A", pd.Timestamp("2026-09-01")]))
+
     def test_municipal_map_reconciles_clients_and_unmet_potential(self):
         history = pd.DataFrame({
             "Data": pd.to_datetime(["2025-09-05", "2025-09-06", "2026-09-05", "2026-08-10"]),
