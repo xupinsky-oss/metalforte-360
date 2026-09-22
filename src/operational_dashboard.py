@@ -1,6 +1,8 @@
 """Painel comercial simplificado, comparável e controlado por permissões."""
 
 import html
+import unicodedata
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -32,6 +34,7 @@ PANEL_HELP = {
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
     "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
+    "map": "Consolida a carteira por município. Clientes totais usam o histórico até a data final; clientes ativos possuem faturamento líquido positivo no período. Potencial usa o faturamento positivo do mesmo período do ano anterior e potencial não atendido é a diferença positiva para o faturamento atual.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
@@ -44,6 +47,15 @@ INSIGHT_HELP = {
     "declines": "Clientes ativos nos dois períodos cuja queda de faturamento é de 20% ou mais. O potencial é a parcela necessária para recuperar o nível do ano anterior.",
     "seasonality": "Clientes cuja última compra ultrapassou 125% da cadência mediana entre compras. A cadência exige ao menos duas datas de compra e mínimo de 7 dias.",
     "mix": "Clientes ativos cujo número de produtos distintos ficou abaixo do mesmo período do ano anterior. Produtos a recuperar é a diferença entre o mix de referência e o atual.",
+}
+
+
+MUNICIPAL_COORDINATES = Path(__file__).resolve().parents[1] / "municipios_centroides.csv"
+IBGE_UF_CODES = {
+    11: "RO", 12: "AC", 13: "AM", 14: "RR", 15: "PA", 16: "AP", 17: "TO",
+    21: "MA", 22: "PI", 23: "CE", 24: "RN", 25: "PB", 26: "PE", 27: "AL",
+    28: "SE", 29: "BA", 31: "MG", 32: "ES", 33: "RJ", 35: "SP", 41: "PR",
+    42: "SC", 43: "RS", 50: "MS", 51: "MT", 52: "GO", 53: "DF",
 }
 
 
@@ -362,6 +374,156 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
                         f"mapa_mensal_{dimension.lower()}.csv", "text/csv", key=f"export_activity_{dimension}_{metric}",
                         width="stretch",
                     )
+
+
+def _geo_key(value):
+    text = unicodedata.normalize("NFKD", "" if pd.isna(value) else str(value))
+    return "".join(character for character in text if not unicodedata.combining(character)).strip().upper()
+
+
+@st.cache_data(show_spinner=False)
+def _municipal_coordinates():
+    """Centroides municipais públicos, usados somente para posicionamento visual."""
+    if not MUNICIPAL_COORDINATES.exists():
+        return pd.DataFrame(columns=["_municipio_key", "UF", "Latitude", "Longitude"])
+    coordinates = pd.read_csv(
+        MUNICIPAL_COORDINATES,
+        usecols=["nome", "latitude", "longitude", "codigo_uf"],
+    ).rename(columns={"latitude": "Latitude", "longitude": "Longitude"})
+    coordinates["UF"] = pd.to_numeric(coordinates["codigo_uf"], errors="coerce").map(IBGE_UF_CODES)
+    coordinates["_municipio_key"] = coordinates["nome"].map(_geo_key)
+    return coordinates[["_municipio_key", "UF", "Latitude", "Longitude"]].dropna()
+
+
+def _municipal_map_data(current, history, start_date, end_date):
+    """Consolida a carteira municipal sem multiplicar clientes ou percentuais."""
+    required = {"Data", "Cliente", "UF", "Município", "Faturamento", "Peso", "Margem"}
+    if current is None or history is None or history.empty or not required.issubset(history.columns):
+        return pd.DataFrame()
+    until_end = history[history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1)].copy()
+    until_end = until_end.dropna(subset=["Cliente"]).sort_values("Data")
+    if until_end.empty:
+        return pd.DataFrame()
+    locations = until_end.groupby("Cliente", dropna=False).agg(
+        UF=("UF", "last"), Município=("Município", "last"),
+    ).reset_index()
+    current_client = current.groupby("Cliente", dropna=False).agg(
+        Faturamento=("Faturamento", "sum"), Peso=("Peso", "sum"), Margem=("Margem", "sum"),
+    ).reset_index()
+    reference = _shifted_period(history, start_date, end_date, years=1)
+    reference_client = reference.groupby("Cliente", dropna=False)["Faturamento"].sum().rename("Faturamento referência").reset_index()
+    clients = locations.merge(current_client, on="Cliente", how="left").merge(reference_client, on="Cliente", how="left")
+    for column in ("Faturamento", "Peso", "Margem", "Faturamento referência"):
+        clients[column] = pd.to_numeric(clients[column], errors="coerce").fillna(0.0)
+    clients["Cliente ativo"] = clients["Faturamento"].gt(0).astype(int)
+    clients["Potencial R$"] = clients["Faturamento referência"].clip(lower=0)
+    clients["Potencial não atendido R$"] = clients["Faturamento referência"].sub(clients["Faturamento"]).clip(lower=0)
+    result = clients.groupby(["UF", "Município"], dropna=False).agg(
+        **{
+            "Clientes totais": ("Cliente", "nunique"),
+            "Clientes ativos": ("Cliente ativo", "sum"),
+            "Faturamento": ("Faturamento", "sum"),
+            "KG faturado": ("Peso", "sum"),
+            "Margem R$": ("Margem", "sum"),
+            "Potencial R$": ("Potencial R$", "sum"),
+            "Potencial não atendido R$": ("Potencial não atendido R$", "sum"),
+        }
+    ).reset_index()
+    result["Taxa de ativação"] = result["Clientes ativos"].div(result["Clientes totais"].replace(0, np.nan))
+    result["Preço médio/kg"] = result["Faturamento"].div(result["KG faturado"].replace(0, np.nan))
+    result["Margem %"] = result["Margem R$"].div(result["Faturamento"].replace(0, np.nan))
+    return result.sort_values(["Potencial não atendido R$", "Faturamento"], ascending=False)
+
+
+def _attach_municipal_coordinates(frame, coordinates=None):
+    if frame.empty:
+        return frame.copy()
+    coordinates = _municipal_coordinates() if coordinates is None else coordinates.copy()
+    result = frame.copy()
+    result["_municipio_key"] = result["Município"].map(_geo_key)
+    result["UF"] = result["UF"].astype(str).str.strip().str.upper()
+    return result.merge(coordinates, on=["_municipio_key", "UF"], how="left")
+
+
+def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Mapa comercial por município", help=PANEL_HELP["map"])
+    st.caption(
+        f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
+        "o tamanho dos pontos representa a carteira total e a cor representa a medida selecionada."
+    )
+    municipal = _municipal_map_data(current, history, start_date, end_date)
+    if municipal.empty:
+        st.info("Não há dados municipais disponíveis com os filtros atuais.")
+        return
+    metrics = [
+        "Faturamento", "Clientes totais", "Clientes ativos", "Taxa de ativação",
+        "Potencial R$", "Potencial não atendido R$", "KG faturado", "Preço médio/kg", "Margem %",
+    ]
+    selected = st.selectbox("Medida do mapa", metrics, index=5, key="municipal_map_metric")
+    cards = st.columns(4)
+    cards[0].metric("Municípios", _quantity(municipal[["UF", "Município"]].drop_duplicates().shape[0]))
+    cards[1].metric("Clientes totais", _quantity(municipal["Clientes totais"].sum()))
+    cards[2].metric("Clientes ativos", _quantity(municipal["Clientes ativos"].sum()))
+    cards[3].metric("Potencial não atendido", brl(float(municipal["Potencial não atendido R$"].sum())))
+
+    plotted = _attach_municipal_coordinates(municipal)
+    mapped = plotted.dropna(subset=["Latitude", "Longitude"]).copy()
+    coverage = len(mapped) / len(plotted) if len(plotted) else 0
+    if mapped.empty:
+        st.warning("Nenhum município da seleção possui coordenada reconhecida. Use a tabela abaixo para conferir os nomes publicados na base.")
+    else:
+        mapped["Local"] = mapped["Município"].astype(str) + " / " + mapped["UF"].astype(str)
+        mapped["Faturamento exibido"] = mapped["Faturamento"].map(brl2)
+        mapped["Potencial exibido"] = mapped["Potencial R$"].map(brl2)
+        mapped["Não atendido exibido"] = mapped["Potencial não atendido R$"].map(brl2)
+        mapped["Ativação exibida"] = mapped["Taxa de ativação"].map(pct)
+        mapped["Margem exibida"] = mapped["Margem %"].map(pct)
+        mapped["Preço exibido"] = mapped["Preço médio/kg"].map(lambda value: brl2(value) if pd.notna(value) else "—")
+        custom = [
+            "Clientes totais", "Clientes ativos", "Faturamento exibido", "Potencial exibido",
+            "Não atendido exibido", "Ativação exibida", "Margem exibida", "Preço exibido",
+        ]
+        color_scale = "RdYlGn" if selected == "Margem %" else ["#FFF0E8", "#F59668", "#C54112"]
+        center = {"lat": float(mapped["Latitude"].mean()), "lon": float(mapped["Longitude"].mean())}
+        zoom = 7 if len(mapped) == 1 else 5 if mapped["UF"].nunique() == 1 else 3.2
+        chart = px.scatter_map(
+            mapped, lat="Latitude", lon="Longitude", color=selected, size="Clientes totais",
+            hover_name="Local", custom_data=custom, color_continuous_scale=color_scale,
+            color_continuous_midpoint=0 if selected == "Margem %" else None,
+            size_max=42, zoom=zoom, center=center, map_style="carto-positron",
+            title=f"{selected} por município",
+        )
+        chart.update_traces(
+            marker={"opacity": .82},
+            hovertemplate=(
+                "<b>%{hovertext}</b><br>Clientes totais: %{customdata[0]:,.0f}"
+                "<br>Clientes ativos: %{customdata[1]:,.0f}<br>Faturamento: %{customdata[2]}"
+                "<br>Potencial: %{customdata[3]}<br>Potencial não atendido: %{customdata[4]}"
+                "<br>Taxa de ativação: %{customdata[5]}<br>Margem: %{customdata[6]}"
+                "<br>Preço médio/kg: %{customdata[7]}<extra></extra>"
+            ),
+        )
+        chart.update_layout(height=610, margin=dict(l=8, r=8, t=58, b=8), coloraxis_colorbar=dict(title=selected, thickness=12))
+        show_chart(chart)
+        st.caption(f"Cobertura geográfica: {coverage:.2%}".replace(".", ",") + " dos municípios exibidos possuem coordenada reconhecida.")
+
+    detail_columns = [
+        "UF", "Município", "Clientes totais", "Clientes ativos", "Taxa de ativação", "Faturamento",
+        "Potencial R$", "Potencial não atendido R$", "KG faturado", "Preço médio/kg", "Margem %",
+    ]
+    detail = municipal[detail_columns].sort_values(selected, ascending=False, na_position="last")
+    with st.expander("Detalhamento municipal", expanded=bool(mapped.empty)):
+        show_table(detail, height=520, width="stretch", hide_index=True)
+        if can_export:
+            st.download_button(
+                "Exportar visão municipal", detail.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                "mapa_municipal.csv", "text/csv", key="export_municipal_map", width="stretch",
+            )
+    st.caption(
+        "ⓘ Potencial = faturamento positivo do mesmo período do ano anterior. "
+        "Potencial não atendido = diferença positiva entre esse valor e o faturamento atual. "
+        "Clientes sem histórico no período de referência podem ter potencial igual a zero."
+    )
 
 
 def _summary(data, dimension, total):
@@ -1430,6 +1592,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Metas", "view_targets"))
     if "view_funnel" in permissions:
         pages.append(("Funil", "view_funnel"))
+    if "view_map" in permissions:
+        pages.append(("Mapa", "view_map"))
     if "view_heatmap" in permissions:
         pages.append(("Mapa mensal", "view_heatmap"))
     if "view_insights" in permissions:
@@ -1464,6 +1628,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
     elif permission == "view_funnel":
         _funnel_view(commercial_indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export)
+    elif permission == "view_map":
+        _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_heatmap":
         _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":

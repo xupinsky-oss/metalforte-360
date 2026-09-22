@@ -6,7 +6,7 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _flow_current_positions, _monthly_activity_matrix, render,
+    _flow_current_positions, _monthly_activity_matrix, _municipal_map_data, render,
 )
 
 
@@ -124,6 +124,47 @@ _funnel_view(
         self.assertAlmostEqual(price.loc["A", month], 400 / 30)
         self.assertAlmostEqual(margin.loc["A", month], 100 / 400)
         self.assertAlmostEqual(margin.loc["B", month], -20 / 200)
+
+    def test_municipal_map_reconciles_clients_and_unmet_potential(self):
+        history = pd.DataFrame({
+            "Data": pd.to_datetime(["2025-09-05", "2025-09-06", "2026-09-05", "2026-08-10"]),
+            "Cliente": ["A", "B", "A", "C"], "UF": ["SP"] * 4,
+            "Município": ["Campinas", "Campinas", "Campinas", "Santos"],
+            "Faturamento": [1000.0, 500.0, 600.0, 200.0],
+            "Peso": [100.0, 50.0, 60.0, 20.0], "Margem": [200.0, 50.0, 120.0, 30.0],
+        })
+        current = history[history["Data"].between("2026-09-01", "2026-09-30")]
+        result = _municipal_map_data(current, history, "2026-09-01", "2026-09-30")
+        campinas = result.set_index("Município").loc["Campinas"]
+        self.assertEqual(campinas["Clientes totais"], 2)
+        self.assertEqual(campinas["Clientes ativos"], 1)
+        self.assertEqual(campinas["Potencial R$"], 1500.0)
+        self.assertEqual(campinas["Potencial não atendido R$"], 900.0)
+        self.assertAlmostEqual(campinas["Taxa de ativação"], .5)
+
+    def test_municipal_map_page_renders_with_selectable_measure(self):
+        script = r'''
+import pandas as pd
+import streamlit as st
+from src.operational_dashboard import _municipal_map_view
+history = pd.DataFrame({
+    "Data": pd.to_datetime(["2025-09-05", "2026-09-05"]),
+    "Cliente": ["A", "A"], "UF": ["SP", "SP"],
+    "Município": ["Campinas", "Campinas"],
+    "Faturamento": [1000.0, 600.0], "Peso": [100.0, 60.0], "Margem": [200.0, 120.0],
+})
+current = history[history["Data"].dt.year == 2026]
+_municipal_map_view(
+    current, history, "2026-09-01", "2026-09-30",
+    lambda value: f"R$ {value:,.2f}", lambda value: f"R$ {value:,.2f}",
+    lambda value: f"{value:.2%}", lambda fig: st.plotly_chart(fig),
+    lambda frame, **kwargs: st.dataframe(frame), False,
+)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertEqual(app.selectbox[0].value, "Potencial não atendido R$")
+        self.assertEqual(len(app.metric), 4)
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''
