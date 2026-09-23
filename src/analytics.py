@@ -9,8 +9,8 @@ def metrics(df):
 
 def group_metrics(df, dim):
     g=df.groupby(dim,dropna=False).agg(faturamento=("Faturamento","sum"),margem=("Margem","sum"),peso=("Peso","sum"),clientes=("Cliente","nunique"),produtos=("Produto","nunique"),nfs=("NF","nunique")).reset_index()
-    g["margem_pct"]=np.where(g["faturamento"]!=0,g["margem"]/g["faturamento"],0)
-    g["preco_kg"]=np.where(g["peso"]!=0,g["faturamento"]/g["peso"],0)
+    g["margem_pct"]=np.where(g["faturamento"]!=0,g["margem"]/g["faturamento"],np.nan)
+    g["preco_kg"]=np.where(g["peso"]!=0,g["faturamento"]/g["peso"],np.nan)
     return g
 
 def client_classification(df, reference_date=None):

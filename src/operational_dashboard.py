@@ -1,6 +1,8 @@
 """Painel comercial simplificado, comparável e controlado por permissões."""
 
 import html
+import json
+import gzip
 import unicodedata
 from pathlib import Path
 
@@ -51,6 +53,7 @@ INSIGHT_HELP = {
 
 
 MUNICIPAL_COORDINATES = Path(__file__).resolve().parents[1] / "municipios_centroides.csv"
+MUNICIPAL_GEOJSON = Path(__file__).resolve().parents[1] / "municipios_brasil.geojson.gz"
 IBGE_UF_CODES = {
     11: "RO", 12: "AC", 13: "AM", 14: "RR", 15: "PA", 16: "AP", 17: "TO",
     21: "MA", 22: "PI", 23: "CE", 24: "RN", 25: "PB", 26: "PE", 27: "AL",
@@ -383,16 +386,47 @@ def _geo_key(value):
 
 @st.cache_data(show_spinner=False)
 def _municipal_coordinates():
-    """Centroides municipais públicos, usados somente para posicionamento visual."""
+    """Códigos e centroides públicos usados para conciliar município, UF e malha."""
     if not MUNICIPAL_COORDINATES.exists():
-        return pd.DataFrame(columns=["_municipio_key", "UF", "Latitude", "Longitude"])
+        return pd.DataFrame(columns=["_municipio_key", "UF", "Código IBGE", "Latitude", "Longitude"])
     coordinates = pd.read_csv(
         MUNICIPAL_COORDINATES,
-        usecols=["nome", "latitude", "longitude", "codigo_uf"],
-    ).rename(columns={"latitude": "Latitude", "longitude": "Longitude"})
+        usecols=["codigo_ibge", "nome", "latitude", "longitude", "codigo_uf"],
+        dtype={"codigo_ibge": "string"},
+    ).rename(columns={
+        "codigo_ibge": "Código IBGE", "latitude": "Latitude", "longitude": "Longitude",
+    })
+    coordinates["Código IBGE"] = coordinates["Código IBGE"].str.replace(r"\.0$", "", regex=True).str.zfill(7)
     coordinates["UF"] = pd.to_numeric(coordinates["codigo_uf"], errors="coerce").map(IBGE_UF_CODES)
     coordinates["_municipio_key"] = coordinates["nome"].map(_geo_key)
-    return coordinates[["_municipio_key", "UF", "Latitude", "Longitude"]].dropna()
+    return coordinates[["_municipio_key", "UF", "Código IBGE", "Latitude", "Longitude"]].dropna()
+
+
+@st.cache_data(show_spinner=False)
+def _municipal_geojson():
+    """Malha municipal pública; nunca contém dados comerciais ou credenciais."""
+    if not MUNICIPAL_GEOJSON.exists():
+        return {"type": "FeatureCollection", "features": []}
+    with gzip.open(MUNICIPAL_GEOJSON, "rt", encoding="utf-8") as source:
+        return json.load(source)
+
+
+def _municipal_color_settings(frame, selected):
+    """Escala legível e robusta a outliers, preservando o valor real no hover."""
+    values = pd.to_numeric(frame[selected], errors="coerce")
+    finite = values[np.isfinite(values)]
+    if finite.empty:
+        return [[0, "#6BAED6"], [1, "#08306B"]], None, None
+    if selected == "Margem %":
+        limit = float(finite.abs().quantile(.95))
+        limit = limit if np.isfinite(limit) and limit > 0 else max(float(finite.abs().max()), .01)
+        scale = [[0, "#8E1421"], [.42, "#E6614C"], [.5, "#F4D35E"], [.58, "#5DBB73"], [1, "#075B32"]]
+        return scale, (-limit, limit), 0
+    upper = float(finite.quantile(.95))
+    upper = upper if np.isfinite(upper) and upper > 0 else max(float(finite.max()), 1.0)
+    # O primeiro tom já é deliberadamente mais escuro que o fundo do painel.
+    scale = [[0, "#74B9D8"], [.28, "#3D8EBC"], [.58, "#1C6397"], [.82, "#0B3E6F"], [1, "#041F3D"]]
+    return scale, (0, upper), None
 
 
 def _municipal_map_data(current, history, start_date, end_date):
@@ -449,7 +483,7 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
     st.subheader("Mapa comercial por município", help=PANEL_HELP["map"])
     st.caption(
         f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
-        "o tamanho dos pontos representa a carteira total e a cor representa a medida selecionada."
+        "cada região representa um município e a intensidade da cor representa a medida selecionada."
     )
     municipal = _municipal_map_data(current, history, start_date, end_date)
     if municipal.empty:
@@ -467,11 +501,24 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
     cards[3].metric("Potencial não atendido", brl(float(municipal["Potencial não atendido R$"].sum())))
 
     plotted = _attach_municipal_coordinates(municipal)
-    mapped = plotted.dropna(subset=["Latitude", "Longitude"]).copy()
+    mapped = plotted.dropna(subset=["Código IBGE", "Latitude", "Longitude"]).copy()
     coverage = len(mapped) / len(plotted) if len(plotted) else 0
     if mapped.empty:
-        st.warning("Nenhum município da seleção possui coordenada reconhecida. Use a tabela abaixo para conferir os nomes publicados na base.")
+        st.warning("Nenhum município da seleção foi reconhecido na malha geográfica. Use a tabela abaixo para conferir os nomes publicados na base.")
     else:
+        geojson = _municipal_geojson()
+        mapped_ids = set(mapped["Código IBGE"].astype(str))
+        features = [
+            feature for feature in geojson.get("features", [])
+            if str(feature.get("properties", {}).get("id", "")) in mapped_ids
+        ]
+        available_ids = {str(feature.get("properties", {}).get("id", "")) for feature in features}
+        mapped = mapped[mapped["Código IBGE"].astype(str).isin(available_ids)].copy()
+        coverage = len(mapped) / len(plotted) if len(plotted) else 0
+        if mapped.empty:
+            st.warning("Os municípios foram identificados, mas seus polígonos não estão disponíveis na malha do mapa.")
+            features = []
+        regional_geojson = {"type": "FeatureCollection", "features": features}
         mapped["Local"] = mapped["Município"].astype(str) + " / " + mapped["UF"].astype(str)
         mapped["Faturamento exibido"] = mapped["Faturamento"].map(brl2)
         mapped["Potencial exibido"] = mapped["Potencial R$"].map(brl2)
@@ -483,29 +530,42 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
             "Clientes totais", "Clientes ativos", "Faturamento exibido", "Potencial exibido",
             "Não atendido exibido", "Ativação exibida", "Margem exibida", "Preço exibido",
         ]
-        color_scale = "RdYlGn" if selected == "Margem %" else ["#FFF0E8", "#F59668", "#C54112"]
-        center = {"lat": float(mapped["Latitude"].mean()), "lon": float(mapped["Longitude"].mean())}
-        zoom = 7 if len(mapped) == 1 else 5 if mapped["UF"].nunique() == 1 else 3.2
-        chart = px.scatter_map(
-            mapped, lat="Latitude", lon="Longitude", color=selected, size="Clientes totais",
-            hover_name="Local", custom_data=custom, color_continuous_scale=color_scale,
-            color_continuous_midpoint=0 if selected == "Margem %" else None,
-            size_max=42, zoom=zoom, center=center, map_style="carto-positron",
-            title=f"{selected} por município",
-        )
-        chart.update_traces(
-            marker={"opacity": .82},
-            hovertemplate=(
-                "<b>%{hovertext}</b><br>Clientes totais: %{customdata[0]:,.0f}"
-                "<br>Clientes ativos: %{customdata[1]:,.0f}<br>Faturamento: %{customdata[2]}"
-                "<br>Potencial: %{customdata[3]}<br>Potencial não atendido: %{customdata[4]}"
-                "<br>Taxa de ativação: %{customdata[5]}<br>Margem: %{customdata[6]}"
-                "<br>Preço médio/kg: %{customdata[7]}<extra></extra>"
-            ),
-        )
-        chart.update_layout(height=610, margin=dict(l=8, r=8, t=58, b=8), coloraxis_colorbar=dict(title=selected, thickness=12))
-        show_chart(chart)
-        st.caption(f"Cobertura geográfica: {coverage:.2%}".replace(".", ",") + " dos municípios exibidos possuem coordenada reconhecida.")
+        if features:
+            color_scale, color_range, color_midpoint = _municipal_color_settings(mapped, selected)
+            center = {"lat": float(mapped["Latitude"].mean()), "lon": float(mapped["Longitude"].mean())}
+            zoom = 7 if len(mapped) == 1 else 5 if mapped["UF"].nunique() == 1 else 3.2
+            chart = px.choropleth_map(
+                mapped, geojson=regional_geojson, locations="Código IBGE",
+                featureidkey="properties.id", color=selected, hover_name="Local", custom_data=custom,
+                color_continuous_scale=color_scale, range_color=color_range,
+                color_continuous_midpoint=color_midpoint, zoom=zoom, center=center,
+                map_style="carto-positron", opacity=.88, title=f"{selected} por município",
+            )
+            chart.update_traces(
+                marker_line_color="#FFFFFF", marker_line_width=1.05,
+                hovertemplate=(
+                    "<b>%{hovertext}</b><br>Clientes totais: %{customdata[0]:,.0f}"
+                    "<br>Clientes ativos: %{customdata[1]:,.0f}<br>Faturamento: %{customdata[2]}"
+                    "<br>Potencial: %{customdata[3]}<br>Potencial não atendido: %{customdata[4]}"
+                    "<br>Taxa de ativação: %{customdata[5]}<br>Margem: %{customdata[6]}"
+                    "<br>Preço médio/kg: %{customdata[7]}<extra></extra>"
+                ),
+            )
+            chart.update_layout(
+                height=610, margin=dict(l=8, r=8, t=58, b=8),
+                coloraxis_colorbar=dict(title=selected, thickness=14, bgcolor="rgba(255,255,255,.88)"),
+            )
+            if selected in {"Faturamento", "Potencial R$", "Potencial não atendido R$", "Preço médio/kg"}:
+                chart.update_coloraxes(colorbar_tickprefix="R$ ", colorbar_tickformat=",.2f")
+            elif selected in {"Taxa de ativação", "Margem %"}:
+                chart.update_coloraxes(colorbar_tickformat=".2%")
+            else:
+                chart.update_coloraxes(colorbar_tickformat=",.0f")
+            show_chart(chart)
+            st.caption(
+                f"Cobertura geográfica: {coverage:.2%}".replace(".", ",")
+                + " dos municípios exibidos possuem região reconhecida. A escala limita a influência dos 5% maiores valores apenas na cor; os valores exatos permanecem no detalhe e no hover."
+            )
 
     detail_columns = [
         "UF", "Município", "Clientes totais", "Clientes ativos", "Taxa de ativação", "Faturamento",
@@ -990,7 +1050,12 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
     prior_view = _summary(previous, dimension, previous["Faturamento"].sum()).set_index(dimension)
     result = current_view[["Faturamento", "Margem %", "Preço médio/kg", "Clientes positivados"]].join(
         prior_view[["Faturamento", "Margem %", "Preço médio/kg", "Clientes positivados"]], how="outer", lsuffix=" atual", rsuffix=" ano anterior"
-    ).fillna(0).reset_index()
+    ).reset_index()
+    additive_columns = [
+        "Faturamento atual", "Faturamento ano anterior",
+        "Clientes positivados atual", "Clientes positivados ano anterior",
+    ]
+    result[additive_columns] = result[additive_columns].fillna(0)
     result["Variação faturamento %"] = np.where(
         result["Faturamento ano anterior"] != 0,
         result["Faturamento atual"] / result["Faturamento ano anterior"] - 1, np.nan,

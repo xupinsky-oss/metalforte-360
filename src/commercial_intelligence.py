@@ -97,11 +97,11 @@ def entity_comparison(current, reference, dimension):
         result[f"Margem % {suffix}"] = (
             result[f"Margem {suffix}"]
             / result[f"Faturamento {suffix}"].replace(0, np.nan)
-        ).fillna(0.0)
+        )
         result[f"Preço médio {suffix}"] = (
             result[f"Faturamento {suffix}"]
             / result[f"KG {suffix}"].replace(0, np.nan)
-        ).fillna(0.0)
+        )
     result["Δ Faturamento"] = result["Faturamento atual"] - result["Faturamento referência"]
     result["Variação faturamento %"] = (
         result["Δ Faturamento"]

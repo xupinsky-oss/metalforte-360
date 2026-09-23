@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.15 — mapa regional e revisão de qualidade
+
+- substituído o mapa de bolhas por regiões municipais preenchidas e identificadas pelo código IBGE;
+- aumentados o contraste da escala, as bordas e a legibilidade de valores baixos;
+- limitada a influência visual dos 5% maiores valores sem alterar números, detalhes ou exportações;
+- padronizadas as legendas do mapa para R$, kg, contagem e percentuais;
+- preservados como sem base os preços médios e as margens sem denominador válido;
+- ampliada a validação automatizada para todas as páginas, inclusive gestão de acessos.
+
 ## v2.14 — Login compacto
 
 - reduzida a logo da tela de login para 220 px, preservando o formulário e a adaptação a telas menores.
