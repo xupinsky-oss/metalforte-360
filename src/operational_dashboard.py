@@ -4,6 +4,7 @@ import html
 import json
 import gzip
 import unicodedata
+from collections.abc import Mapping
 from pathlib import Path
 
 import numpy as np
@@ -302,6 +303,53 @@ def _activity_heatmap_chart(matrix, dimension, metric):
     chart.update_xaxes(side="top", showgrid=False, tickangle=0)
     chart.update_yaxes(showgrid=False, autorange="reversed")
     return chart
+
+
+def _selected_plotly_date(event):
+    """Extrai a data de um ponto selecionado sem depender da classe do Streamlit."""
+    if not isinstance(event, Mapping):
+        return None
+    selection = event.get("selection", {})
+    points = selection.get("points", []) if isinstance(selection, Mapping) else []
+    if not points:
+        return None
+    point = points[0]
+    value = point.get("x") if isinstance(point, Mapping) else None
+    selected = pd.to_datetime(value, errors="coerce")
+    return selected.normalize() if pd.notna(selected) else None
+
+
+def _selectable_chart(show_chart, figure, **kwargs):
+    """Mantem compatibilidade com renderizadores simples usados em testes/exportacoes."""
+    try:
+        return show_chart(figure, **kwargs)
+    except TypeError as error:
+        if "unexpected keyword argument" not in str(error):
+            raise
+        return show_chart(figure)
+
+
+def _daily_sales_detail(data, selected_day, show_table, *, title="Vendas faturadas no dia"):
+    """Mostra as linhas faturadas do dia escolhido no grafico."""
+    with st.expander(title, expanded=selected_day is not None):
+        if selected_day is None:
+            st.caption("Clique ou toque em um ponto do gráfico para abrir as vendas daquele dia.")
+            return pd.DataFrame()
+        detail = data[data["Data"].dt.normalize() == pd.Timestamp(selected_day)].copy()
+        columns = [column for column in [
+            "Data", "NF", "Cliente", "Vendedor", "Canal", "Produto", "Grupo Produto",
+            "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg",
+        ] if column in detail]
+        st.caption(
+            f"{pd.Timestamp(selected_day).strftime('%d/%m/%Y')} · "
+            f"{detail['NF'].nunique() if 'NF' in detail else len(detail)} documentos · "
+            f"{detail['Cliente'].nunique() if 'Cliente' in detail else 0} clientes"
+        )
+        if detail.empty:
+            st.info("Nenhuma venda faturada encontrada para o dia selecionado.")
+        else:
+            show_table(detail[columns].sort_values([column for column in ["NF", "Cliente", "Produto"] if column in columns]), height=480, width="stretch", hide_index=True)
+        return detail
 
 
 def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export):
@@ -710,7 +758,13 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
     if not daily.empty:
         chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário de faturamento")
         chart.update_traces(line=dict(color="#F36A2D", width=3))
-        show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
+        event = _selectable_chart(
+            show_chart,
+            _polish_chart(chart, x_title="", y_title="Faturamento (R$)"),
+            key="daily_sales_chart", on_select="rerun", selection_mode="points",
+        )
+        selected_day = _selected_plotly_date(event)
+        _daily_sales_detail(data, selected_day, show_table)
         with st.expander("Conferir fechamento diário"):
             daily["Margem %"] = daily["Margem"] / daily["Faturamento"].replace(0, pd.NA)
             show_table(daily.sort_values("Data", ascending=False), height=420, width="stretch", hide_index=True)
@@ -789,8 +843,16 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     )
     if not matrix.empty:
         if selected == "Todos os clientes":
-            top_clients = matrix.sum(axis=1).nlargest(25).index
-            heat = matrix.loc[top_clients]
+            display_options = ["Top 25", "Top 50", "Todos da carteira"]
+            default_option = "Todos da carteira" if history["Vendedor"].nunique() == 1 else "Top 25"
+            display_mode = st.selectbox(
+                "Clientes exibidos no mapa", display_options,
+                index=display_options.index(default_option), key="client_heatmap_scope",
+                help="A tabela da carteira sempre mantém todos os clientes. Use esta opção para ampliar também o mapa mensal.",
+            )
+            ordered = matrix.sum(axis=1).sort_values(ascending=False).index
+            limit = None if display_mode == "Todos da carteira" else int(display_mode.split()[-1])
+            heat = matrix.loc[ordered if limit is None else ordered[:limit]]
         else:
             heat = matrix
         heat_chart = px.imshow(
@@ -826,20 +888,57 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de produtos", help=PANEL_HELP["products"])
-    available = sorted(history["Produto"].dropna().astype(str).unique().tolist())
-    selected = st.selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
-    mode, reference_label = _reference_selector("product_reference")
-    current = data if selected == "Todos os produtos" else data[data["Produto"].astype(str) == selected]
-    product_history = history if selected == "Todos os produtos" else history[history["Produto"].astype(str) == selected]
+    controls = st.columns([1.2, 1.5, 1])
+    clients = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
+    selected_client = controls[0].selectbox(
+        "Cliente", ["Todos os clientes"] + clients, key="product_client_scope",
+        help="Filtra indicadores, curva, comparação e batalha naval pelo cliente escolhido.",
+    )
+    client_current = data if selected_client == "Todos os clientes" else data[data["Cliente"].astype(str) == selected_client]
+    client_history = history if selected_client == "Todos os clientes" else history[history["Cliente"].astype(str) == selected_client]
+    available = sorted(client_history["Produto"].dropna().astype(str).unique().tolist())
+    selected = controls[1].selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
+    options = {"Período anterior": "period", "Mês anterior": "month", "Ano anterior": "year"}
+    reference_name = controls[2].selectbox("Referência de comparação", list(options), key="product_reference")
+    mode, reference_label = options[reference_name], reference_name.lower()
+    current = client_current if selected == "Todos os produtos" else client_current[client_current["Produto"].astype(str) == selected]
+    product_history = client_history if selected == "Todos os produtos" else client_history[client_history["Produto"].astype(str) == selected]
     reference, ref_start, ref_end = reference_period(product_history, start_date, end_date, mode)
     st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
     _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
+
+    st.markdown("### Batalha naval de produtos")
+    st.caption(
+        "Cada célula representa o desempenho mensal de um produto"
+        + (f" para {selected_client}." if selected_client != "Todos os clientes" else ". Selecione um cliente acima para analisar seu mix isoladamente.")
+    )
+    heat_controls = st.columns([1.4, 1, 1])
+    heat_metric = heat_controls[0].segmented_control(
+        "Indicador", ["Faturamento", "Positivação", "Preço médio/kg", "Margem %"],
+        default="Faturamento", key="product_heatmap_metric",
+    )
+    heat_months = heat_controls[1].selectbox(
+        "Janela", [6, 12, 18, 24], index=1, format_func=lambda value: f"{value} meses",
+        key="product_heatmap_months",
+    )
+    heat_limit = heat_controls[2].selectbox(
+        "Produtos", [10, 20, 30, 50], index=1, format_func=lambda value: f"Top {value}",
+        key="product_heatmap_limit",
+    )
+    product_matrix, _ = _monthly_activity_matrix(
+        product_history, "Produto", heat_metric, end_date, heat_months, heat_limit,
+    )
+    if product_matrix.empty:
+        st.info("Sem histórico suficiente para montar a batalha naval com os filtros atuais.")
+    else:
+        show_chart(_activity_heatmap_chart(product_matrix, "Produto", heat_metric))
+        st.caption("ⓘ Valores exatos aparecem ao tocar ou passar o cursor sobre cada célula.")
 
     comparison = entity_comparison(current, reference, "Produto")
     if comparison.empty:
         st.info("Sem produtos no recorte selecionado.")
         return
-    if selected == "Todos os produtos":
+    if selected == "Todos os produtos" and not current.empty:
         curve = product_curve(current)
         st.markdown("### Curva e mix de produtos")
         chart = px.bar(
@@ -853,6 +952,8 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
             KG=("KG atual", "sum"),
         ).reset_index()
         show_table(curve_counts, width="stretch", hide_index=True)
+    elif selected == "Todos os produtos":
+        st.info("O cliente não teve produtos faturados no período atual. O histórico mensal permanece disponível acima.")
 
     st.markdown("### Performance por produto e categoria")
     dimension = st.segmented_control(
@@ -861,9 +962,12 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
     )
     view = entity_comparison(current, reference, dimension)
     chart_data = view.head(15).sort_values("Faturamento atual")
-    chart = px.bar(chart_data, x="Faturamento atual", y=dimension, orientation="h", title=f"Faturamento por {dimension.lower()}")
-    chart.update_traces(marker_color="#F36A2D")
-    show_chart(_polish_chart(chart, height=520, x_title="Faturamento (R$)", y_title=""))
+    if not chart_data.empty and chart_data["Faturamento atual"].abs().sum() > 0:
+        chart = px.bar(chart_data, x="Faturamento atual", y=dimension, orientation="h", title=f"Faturamento por {dimension.lower()}")
+        chart.update_traces(marker_color="#F36A2D")
+        show_chart(_polish_chart(chart, height=520, x_title="Faturamento (R$)", y_title=""))
+    else:
+        st.info("Sem faturamento atual para gerar o gráfico de performance. A tabela mantém a referência comparativa.")
     show_table(view, height=560, width="stretch", hide_index=True)
     if can_export:
         st.download_button("Exportar produtos", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "produtos.csv", "text/csv")
@@ -926,7 +1030,12 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     if not daily.empty:
         chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário do vendedor")
         chart.update_traces(line=dict(color="#F36A2D", width=3))
-        show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
+        event = _selectable_chart(
+            show_chart,
+            _polish_chart(chart, x_title="", y_title="Faturamento (R$)"),
+            key="seller_daily_sales_chart", on_select="rerun", selection_mode="points",
+        )
+        _daily_sales_detail(current, _selected_plotly_date(event), show_table)
     st.markdown("### Comparação da equipe")
     show_table(view, height=520, width="stretch", hide_index=True)
     if can_export:

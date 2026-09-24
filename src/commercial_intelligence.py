@@ -130,10 +130,27 @@ def entity_comparison(current, reference, dimension):
 
 def customer_portfolio(current, history, start_date, end_date, reference_mode="year"):
     reference, _, _ = reference_period(history, start_date, end_date, reference_mode)
-    result = entity_comparison(current, reference, "Cliente")
-    if result.empty:
-        return result
     history_until = history[history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1)]
+    if history_until.empty or "Cliente" not in history_until:
+        return pd.DataFrame()
+
+    # A carteira e uma dimensao historica: clientes sem compra no periodo atual
+    # ou na referencia continuam pertencendo ao vendedor e precisam permanecer
+    # visiveis no overview. As metricas aditivas desses clientes sao zero; taxas
+    # sem denominador continuam indefinidas (NaN).
+    universe = history_until[["Cliente"]].dropna().drop_duplicates()
+    comparison = entity_comparison(current, reference, "Cliente")
+    result = universe.merge(comparison, on="Cliente", how="left")
+    additive = [
+        "Faturamento atual", "KG atual", "Margem atual", "Pedidos atual", "Mix atual",
+        "Faturamento referência", "KG referência", "Margem referência",
+        "Pedidos referência", "Mix referência", "Δ Faturamento", "Δ KG",
+    ]
+    for column in additive:
+        if column in result:
+            result[column] = pd.to_numeric(result[column], errors="coerce").fillna(0.0)
+    if "Situação" in result:
+        result["Situação"] = result["Situação"].fillna("Sem compra no recorte")
     context_columns = {
         "Vendedor": ("Vendedor", "last"),
         "UF": ("UF", "last"),
@@ -161,25 +178,35 @@ def purchase_seasonality(history, end_date, clients=None, months=12):
     """Matriz cliente x mês e cadência histórica de compra."""
     end = pd.Timestamp(end_date).to_period("M").end_time.normalize()
     start = (end.to_period("M") - (months - 1)).start_time
-    source = history[(history["Data"] >= start) & (history["Data"] <= end)].copy()
+    history_until = history[history["Data"] <= end].copy()
     if clients:
-        source = source[source["Cliente"].isin(clients)]
+        history_until = history_until[history_until["Cliente"].astype(str).isin(set(map(str, clients)))]
+    history_until["Cliente"] = history_until["Cliente"].astype(str)
+    universe = sorted(history_until["Cliente"].dropna().astype(str).unique().tolist())
+    source = history_until[history_until["Data"] >= start].copy()
     month_index = pd.date_range(start=start, end=end, freq="MS")
-    if source.empty:
+    if not universe:
         return pd.DataFrame(), pd.DataFrame()
-    source["Mês"] = source["Data"].dt.to_period("M").dt.to_timestamp()
-    matrix = source.groupby(["Cliente", "Mês"])["Faturamento"].sum().unstack(fill_value=0)
-    matrix = matrix.reindex(columns=month_index, fill_value=0)
+    if source.empty:
+        matrix = pd.DataFrame(0.0, index=universe, columns=month_index)
+    else:
+        source["Mês"] = source["Data"].dt.to_period("M").dt.to_timestamp()
+        matrix = source.groupby(["Cliente", "Mês"])["Faturamento"].sum().unstack(fill_value=0)
+        matrix = matrix.reindex(index=universe, columns=month_index, fill_value=0)
     matrix.columns = [column.strftime("%m/%Y") for column in matrix.columns]
-    purchases = source[source["Faturamento"] > 0].groupby("Cliente")["Data"].apply(
+    purchases = history_until[history_until["Faturamento"] > 0].groupby("Cliente")["Data"].apply(
         lambda values: sorted(pd.Series(values).dt.normalize().drop_duplicates().tolist())
     )
     rows = []
-    for client, dates in purchases.items():
-        intervals = pd.Series(dates).diff().dropna().dt.days
+    for client in universe:
+        dates = purchases.get(client, [])
+        intervals = (
+            pd.Series(pd.to_datetime(dates)).diff().dropna().dt.days
+            if len(dates) > 1 else pd.Series(dtype="float64")
+        )
         cadence = float(intervals.median()) if not intervals.empty else np.nan
-        last = max(dates)
-        days_since = int((pd.Timestamp(end_date).normalize() - last).days)
+        last = max(dates) if dates else pd.NaT
+        days_since = int((pd.Timestamp(end_date).normalize() - last).days) if pd.notna(last) else np.nan
         rows.append({
             "Cliente": client,
             "Meses ativos (12m)": int((matrix.loc[client] > 0).sum()),

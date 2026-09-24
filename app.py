@@ -229,7 +229,11 @@ with st.sidebar:
     filial=st.multiselect("Filial",sorted(df["Filial"].unique()))
     uf=st.multiselect("UF",sorted(df["UF"].unique()))
     vend=st.multiselect("Vendedor",sorted(df["Vendedor"].unique()))
-    client_options=["Todos os clientes"]+sorted(df["Cliente"].dropna().astype(str).unique().tolist())
+    client_pool=df
+    if filial: client_pool=client_pool[client_pool["Filial"].isin(filial)]
+    if uf: client_pool=client_pool[client_pool["UF"].isin(uf)]
+    if vend: client_pool=client_pool[client_pool["Vendedor"].isin(vend)]
+    client_options=["Todos os clientes"]+sorted(client_pool["Cliente"].dropna().astype(str).unique().tolist())
     client_scope=st.selectbox("Cliente",client_options,index=0,help="Selecione um cliente para isolar todas as análises.")
     selected_client=None if client_scope=="Todos os clientes" else client_scope
     with st.expander("Mais filtros"):

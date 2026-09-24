@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.16 — carteira completa e exploração comercial
+
+- O filtro de vendedor agora mantém todos os clientes da carteira no overview, inclusive quem não comprou no período atual nem no período de comparação.
+- O mapa mensal de clientes permite exibir toda a carteira quando há um único vendedor no recorte.
+- Os gráficos de performance diária permitem selecionar um dia e abrir as vendas faturadas, documentos, clientes e itens correspondentes.
+- A página Produtos ganhou filtro próprio por cliente e uma batalha naval mensal por produto, com faturamento, positivação, preço médio/kg e margem %.
+- O seletor global de clientes passou a respeitar filial, UF e vendedor já escolhidos.
+- Adicionados testes de regressão para clientes inativos da carteira, matriz mensal e seleção de data.
+
 ## v2.15 — mapa regional e revisão de qualidade
 
 - substituído o mapa de bolhas por regiões municipais preenchidas e identificadas pelo código IBGE;

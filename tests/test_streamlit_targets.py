@@ -6,11 +6,66 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _flow_current_positions, _monthly_activity_matrix, _municipal_map_data, render,
+    _flow_current_positions, _monthly_activity_matrix, _municipal_map_data,
+    _selected_plotly_date, render,
 )
+from src.commercial_intelligence import customer_portfolio, purchase_seasonality
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
+    def test_seller_portfolio_keeps_clients_without_sales_in_both_comparison_windows(self):
+        history = pd.DataFrame({
+            "Data": pd.to_datetime(["2025-09-05", "2026-03-10", "2026-09-08"]),
+            "Cliente": ["B", "C", "A"], "Vendedor": ["ANA"] * 3,
+            "UF": ["SP"] * 3, "Município": ["Campinas"] * 3,
+            "Canal": ["Direto"] * 3, "Produto": ["P1", "P2", "P3"],
+            "Faturamento": [500.0, 300.0, 1000.0], "Peso": [50.0, 30.0, 100.0],
+            "Margem": [50.0, 30.0, 200.0], "NF": [1, 2, 3],
+        })
+        current = history[history["Data"].between("2026-09-01", "2026-09-30")]
+        portfolio = customer_portfolio(current, history, "2026-09-01", "2026-09-30", "year")
+        self.assertEqual(set(portfolio["Cliente"]), {"A", "B", "C"})
+        inactive = portfolio.set_index("Cliente").loc["C"]
+        self.assertEqual(inactive["Faturamento atual"], 0)
+        self.assertEqual(inactive["Faturamento referência"], 0)
+        self.assertEqual(inactive["Situação"], "Sem compra no recorte")
+
+    def test_purchase_map_keeps_inactive_portfolio_clients_as_zero_rows(self):
+        history = pd.DataFrame({
+            "Data": pd.to_datetime(["2024-01-05", "2026-09-08"]),
+            "Cliente": ["INATIVO", "ATIVO"], "Faturamento": [500.0, 1000.0],
+        })
+        matrix, cadence = purchase_seasonality(history, "2026-09-30")
+        self.assertIn("INATIVO", matrix.index)
+        self.assertEqual(float(matrix.loc["INATIVO"].sum()), 0.0)
+        self.assertEqual(set(cadence["Cliente"]), {"ATIVO", "INATIVO"})
+
+    def test_daily_point_selection_opens_the_selected_date(self):
+        event = {"selection": {"points": [{"x": "2026-09-23T00:00:00"}]}}
+        self.assertEqual(_selected_plotly_date(event), pd.Timestamp("2026-09-23"))
+
+    def test_product_page_keeps_history_when_client_has_no_current_sales(self):
+        script = r'''
+import pandas as pd
+import streamlit as st
+from src.operational_dashboard import _product_view
+history = pd.DataFrame({
+    "Data": pd.to_datetime(["2026-08-05"]), "Cliente": ["ALFA"],
+    "Produto": ["TELHA"], "Grupo Produto": ["AÇO"], "Tipo Produto": ["LINHA"],
+    "Faturamento": [1000.0], "Peso": [100.0], "Margem": [150.0], "NF": [1],
+})
+current = history.iloc[0:0].copy()
+_product_view(
+    current, history, "2026-09-01", "2026-09-30",
+    lambda value: f"R$ {value:,.2f}", lambda value: f"R$ {value:,.2f}",
+    lambda value: f"{value:.2%}", lambda fig: st.plotly_chart(fig),
+    lambda frame, **kwargs: st.dataframe(frame), False,
+)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertIn("O cliente não teve produtos faturados no período atual", "\n".join(str(item.value) for item in app.info))
+
     def test_render_accepts_commercial_indicators_contract(self):
         self.assertIn("commercial_indicators", inspect.signature(render).parameters)
         self.assertIn("flow_events", inspect.signature(render).parameters)
