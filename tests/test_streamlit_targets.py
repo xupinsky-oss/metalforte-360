@@ -1,5 +1,7 @@
 import unittest
 import inspect
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import pandas as pd
 
 from streamlit.testing.v1 import AppTest
@@ -7,12 +9,51 @@ from streamlit.testing.v1 import AppTest
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
     _flow_current_positions, _monthly_activity_matrix, _municipal_map_data,
-    _selected_plotly_date, render,
+    _monthly_projection, _selected_plotly_date, render,
 )
 from src.commercial_intelligence import customer_portfolio, purchase_seasonality
+from src.data import load_data
 
 
 class StreamlitTargetSmokeTests(unittest.TestCase):
+    def test_load_data_defines_channel_from_customer_segment(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "base.csv"
+            pd.DataFrame({
+                "Data": ["2026-09-01", "2026-09-02"],
+                "Segmento Cliente": ["INDÚSTRIA", "REVENDA"],
+                "Canal": ["LEGADO A", "LEGADO B"],
+                "Faturamento": [100.0, 200.0],
+            }).to_csv(path, index=False)
+            loaded = load_data(path)
+        self.assertEqual(loaded["Canal"].tolist(), ["INDÚSTRIA", "REVENDA"])
+
+    def test_monthly_projection_uses_calendar_days_and_remaining_days(self):
+        history = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-09-01", "2026-09-10", "2026-08-31"]),
+            "Faturamento": [1000.0, 1400.0, 9999.0],
+        })
+        projection = _monthly_projection(history, "2026-09-24")
+        self.assertEqual(projection["elapsed_days"], 24)
+        self.assertEqual(projection["remaining_days"], 6)
+        self.assertEqual(projection["realized"], 2400.0)
+        self.assertEqual(projection["daily_average"], 100.0)
+        self.assertEqual(projection["projected_additional"], 600.0)
+        self.assertEqual(projection["projected_total"], 3000.0)
+
+    def test_monthly_activity_prefers_customer_segment_for_channels(self):
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-09-02", "2026-09-03"]),
+            "Cliente": ["A", "B"], "Produto": ["P1", "P2"],
+            "Segmento Cliente": ["INDÚSTRIA", "REVENDA"],
+            "Canal": ["LEGADO", "LEGADO"],
+            "Faturamento": [100.0, 200.0], "Peso": [10.0, 20.0], "Margem": [20.0, 40.0],
+        })
+        matrix, _ = _monthly_activity_matrix(
+            sales, "Segmento Cliente", "Positivação", "2026-09-30", 1, 10
+        )
+        self.assertEqual(set(matrix.index), {"INDÚSTRIA", "REVENDA"})
+
     def test_seller_portfolio_keeps_clients_without_sales_in_both_comparison_windows(self):
         history = pd.DataFrame({
             "Data": pd.to_datetime(["2025-09-05", "2026-03-10", "2026-09-08"]),

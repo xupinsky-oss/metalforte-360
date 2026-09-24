@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.17 — canais, projeção mensal e mapa de áreas
+
+- padronizado **Canal** como o campo **Segmento Cliente** em filtros e análises;
+- adicionada à Performance diária a projeção de fechamento do mês pela média dos dias corridos multiplicada pelos dias restantes;
+- mantido o realizado separado da parcela projetada, com fórmula e data final visíveis;
+- reforçado o mapa comercial como mapa de áreas municipais preenchidas, sem representação por bolhas;
+- adicionados testes de regressão para a regra de canais e para o cálculo da projeção mensal.
+
 ## v2.16 — carteira completa e exploração comercial
 
 - O filtro de vendedor agora mantém todos os clientes da carteira no overview, inclusive quem não comprou no período atual nem no período de comparação.

@@ -239,7 +239,9 @@ with st.sidebar:
     with st.expander("Mais filtros"):
         pool=df if not uf else df[df["UF"].isin(uf)]
         city=st.multiselect("Município",sorted(pool["Município"].unique()))
-        canal=st.multiselect("Canal",sorted(df["Canal"].unique())) if "Canal" in df else []
+        canal=st.multiselect(
+            "Canal (segmento de clientes)", sorted(df["Canal"].unique())
+        ) if "Canal" in df else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))

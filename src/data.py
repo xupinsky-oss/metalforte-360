@@ -27,6 +27,11 @@ def load_data(path=None):
         if c in df: df[c]=pd.to_numeric(df[c],errors="coerce")
     for c in ["UF","Município","Grupo Produto","Tipo Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
+    # Regra comercial METALFORTE: "Canal" é o segmento de clientes.
+    # Mantemos o alias para preservar filtros e relatórios legados que já usam
+    # o nome Canal, mas a fonte oficial passa a ser Segmento Cliente.
+    if "Segmento Cliente" in df:
+        df["Canal"]=df["Segmento Cliente"]
     return df
 
 def load_targets(path=None):

@@ -29,14 +29,14 @@ from src.commercial_intelligence import (
 
 PANEL_HELP = {
     "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. As referências usam o mesmo intervalo deslocado.",
-    "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior, evitando comparar com um dia sem carga.",
+    "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
-    "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
+    "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Canais correspondem ao Segmento Cliente. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
     "map": "Consolida a carteira por município. Clientes totais usam o histórico até a data final; clientes ativos possuem faturamento líquido positivo no período. Potencial usa o faturamento positivo do mesmo período do ano anterior e potencial não atendido é a diferença positiva para o faturamento atual.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
@@ -362,8 +362,12 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
     )
     months = controls[1].selectbox("Janela", [6, 12, 18, 24], index=1, format_func=lambda value: f"{value} meses", key="activity_months")
     limit = controls[2].selectbox("Entidades", [10, 15, 20, 30, 50], index=2, format_func=lambda value: f"Top {value}", key="activity_limit")
+    channel_dimension = "Segmento Cliente" if "Segmento Cliente" in history.columns else "Canal"
     tabs = st.tabs(["Clientes", "Produtos", "Canais"])
-    for tab, (label, dimension) in zip(tabs, (("Clientes", "Cliente"), ("Produtos", "Produto"), ("Canais", "Canal"))):
+    for tab, (label, dimension) in zip(
+        tabs,
+        (("Clientes", "Cliente"), ("Produtos", "Produto"), ("Canais", channel_dimension)),
+    ):
         with tab:
             if dimension not in history.columns:
                 st.info(f"A dimensão {dimension.lower()} não está disponível na base atual.")
@@ -403,7 +407,11 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
                 summary[2].metric("Positivados no último mês", _quantity(int(latest.sum())))
             else:
                 summary[2].metric("Soma de positivação no último mês", _quantity(int(latest.sum())), help="Soma por entidade; o mesmo cliente pode comprar mais de um produto ou canal.")
-            show_chart(_activity_heatmap_chart(matrix, dimension, metric))
+            chart = _activity_heatmap_chart(matrix, dimension, metric)
+            if label == "Canais":
+                chart.update_layout(title=f"{metric} mensal por canal")
+                chart.update_yaxes(title="Canal")
+            show_chart(chart)
             st.caption(
                 "ⓘ Cliente positivado = faturamento líquido mensal maior que zero. "
                 + ("As células mostram 1 para mês positivado e cinza para mês sem positivação." if dimension == "Cliente" and metric == "Positivação" else
@@ -415,14 +423,14 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
             with st.expander("Conferir valores do mapa"):
                 exact = matrix.copy()
                 exact.columns = [pd.Timestamp(column).strftime("%m/%Y") for column in exact.columns]
-                exact.index.name = dimension
+                exact.index.name = "Canal" if label == "Canais" else dimension
                 exact = exact.reset_index()
                 show_table(exact, height=520, width="stretch", hide_index=True)
                 if can_export:
                     st.download_button(
                         f"Exportar mapa de {label.lower()}",
                         exact.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
-                        f"mapa_mensal_{dimension.lower()}.csv", "text/csv", key=f"export_activity_{dimension}_{metric}",
+                        f"mapa_mensal_{'canal' if label == 'Canais' else dimension.lower()}.csv", "text/csv", key=f"export_activity_{dimension}_{metric}",
                         width="stretch",
                     )
 
@@ -528,10 +536,10 @@ def _attach_municipal_coordinates(frame, coordinates=None):
 
 
 def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
-    st.subheader("Mapa comercial por município", help=PANEL_HELP["map"])
+    st.subheader("Mapa de áreas por município", help=PANEL_HELP["map"])
     st.caption(
         f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
-        "cada região representa um município e a intensidade da cor representa a medida selecionada."
+        "cada área preenchida representa um município; não são usadas bolhas. A intensidade da cor representa a medida selecionada."
     )
     municipal = _municipal_map_data(current, history, start_date, end_date)
     if municipal.empty:
@@ -648,6 +656,32 @@ def _summary(data, dimension, total):
     return view.sort_values("Faturamento", ascending=False)
 
 
+def _monthly_projection(history, end_date):
+    """Projeta o fechamento pela média dos dias corridos do mês."""
+    end = pd.Timestamp(end_date).normalize()
+    month_start = end.to_period("M").start_time
+    month_end = end.to_period("M").end_time.normalize()
+    cutoff = min(max(end, month_start), month_end)
+    elapsed_days = int((cutoff - month_start).days) + 1
+    remaining_days = max(int((month_end - cutoff).days), 0)
+    source = history[
+        (history["Data"] >= month_start)
+        & (history["Data"] < cutoff + pd.Timedelta(days=1))
+    ]
+    realized = float(pd.to_numeric(source["Faturamento"], errors="coerce").sum())
+    daily_average = realized / elapsed_days if elapsed_days else 0.0
+    projected_additional = daily_average * remaining_days
+    return {
+        "realized": realized,
+        "daily_average": daily_average,
+        "elapsed_days": elapsed_days,
+        "remaining_days": remaining_days,
+        "projected_additional": projected_additional,
+        "projected_total": realized + projected_additional,
+        "month_end": month_end,
+    }
+
+
 def _compact_bar(view, dimension, title, limit=10):
     ranked = view.head(limit).sort_values("Faturamento")
     chart = px.bar(
@@ -754,6 +788,21 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
         )
     _metric_cards(cards)
     st.caption(f"Comparação com o último dia disponível: {prior_day.strftime('%d/%m/%Y')}.")
+    projection = _monthly_projection(history, end_date)
+    st.markdown("### Projeção de fechamento do mês")
+    projection_cards = st.columns(4)
+    projection_cards[0].metric(
+        "Projeção do mês", brl(projection["projected_total"]),
+        help="Faturamento realizado + média diária do mês multiplicada pelos dias restantes.",
+    )
+    projection_cards[1].metric("Realizado no mês", brl(projection["realized"]))
+    projection_cards[2].metric("Média por dia corrido", brl2(projection["daily_average"]))
+    projection_cards[3].metric("Dias restantes", _quantity(projection["remaining_days"]))
+    st.caption(
+        f"Base: {projection['elapsed_days']} dias corridos até {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
+        f"Projeção adicional: {brl(projection['projected_additional'])} até "
+        f"{projection['month_end'].strftime('%d/%m/%Y')}."
+    )
     daily = data.groupby(data["Data"].dt.normalize()).agg(Faturamento=("Faturamento", "sum"), Margem=("Margem", "sum")).reset_index(names="Data")
     if not daily.empty:
         chart = px.line(daily, x="Data", y="Faturamento", markers=True, title="Ritmo diário de faturamento")
