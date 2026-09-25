@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.18 — matriz de classificação de produtos
+
+- incorporada a matriz **Produtos Ecommerce - SQL (1)** ao ETL por código único de produto;
+- a base realizada passa a trazer `ESPEC.`, `Subgrupo Produto`, `Sub Espec.` e a origem da classificação;
+- grupo, tipo e espessura passam a priorizar a matriz, preservando o cadastro GoodData como fallback;
+- incluídos controles de duplicidade, cobertura da junção e cobertura de especificação no status da carga;
+- campos sem classificação permanecem como `Não mapeado`, sem inferência automática.
+
 ## v2.17 — canais, projeção mensal e mapa de áreas
 
 - padronizado **Canal** como o campo **Segmento Cliente** em filtros e análises;

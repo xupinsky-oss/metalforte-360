@@ -16,6 +16,15 @@
 
 `atualizar_gooddata.py` continua sendo a rotina oficial de extração, consolidação, controles mínimos e publicação da base. `gerar_dashboard_web.py` continua gerando somente o resumo agregado.
 
+## Classificação de produtos
+
+- A matriz versionada `resources/produtos_classificacao.csv.gz` deriva da planilha **Produtos Ecommerce - SQL (1).xlsx**.
+- A junção usa exclusivamente `Produto Codigo`, normalizado como número inteiro; descrições não são usadas como chave.
+- A matriz prevalece para `Grupo Produto`, `Tipo Produto` e `Espessura`; o cadastro GoodData é mantido como fallback quando o código não existir na matriz.
+- A base realizada passa a publicar também `Subgrupo Produto`, `ESPEC.`, `Sub Espec.` e `Fonte Classificação Produto`.
+- Valores vazios permanecem identificados como `Não mapeado`; a rotina não infere especificações ausentes.
+- A carga falha se a matriz contiver códigos duplicados ou se menos de 50% dos produtos realizados forem conciliados.
+
 ## Metas e orçamento
 
 - `Rel.044 Comercial - Analítico Metas` (`11081881`) fornece a meta mensal de peso por vendedor e grupo de produto.
@@ -35,6 +44,7 @@ O relatório 044 usa `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas par
 - reconciliação do faturamento;
 - reconciliação das metas oficiais de R$ e KG;
 - cobertura mínima da classificação de clientes;
+- unicidade e cobertura mínima da matriz de produtos;
 - bucket privado e autenticação na Edge Function;
 - concorrência serializada no GitHub Actions.
 

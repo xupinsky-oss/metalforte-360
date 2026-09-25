@@ -25,7 +25,7 @@ def load_data(path=None):
     if "Ano" not in df: df["Ano"]=df["Data"].dt.year
     for c in NUMERIC:
         if c in df: df[c]=pd.to_numeric(df[c],errors="coerce")
-    for c in ["UF","Município","Grupo Produto","Tipo Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
+    for c in ["UF","Município","Grupo Produto","Subgrupo Produto","Tipo Produto","ESPEC.","Sub Espec.","Fonte Classificação Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
     # Regra comercial METALFORTE: "Canal" é o segmento de clientes.
     # Mantemos o alias para preservar filtros e relatórios legados que já usam
