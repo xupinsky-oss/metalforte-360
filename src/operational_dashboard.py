@@ -338,6 +338,7 @@ def _daily_sales_detail(data, selected_day, show_table, *, title="Vendas faturad
         detail = data[data["Data"].dt.normalize() == pd.Timestamp(selected_day)].copy()
         columns = [column for column in [
             "Data", "NF", "Cliente", "Vendedor", "Canal", "Produto", "Grupo Produto",
+            "Subgrupo Produto", "ESPEC.", "Sub Espec.",
             "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg",
         ] if column in detail]
         st.caption(
@@ -928,7 +929,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         products = entity_comparison(current, reference, "Produto")
         if not products.empty:
             show_table(products, height=500, width="stretch", hide_index=True)
-        detail_columns = [column for column in ["Data", "NF", "Produto", "Grupo Produto", "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg"] if column in current]
+        detail_columns = [column for column in ["Data", "NF", "Produto", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg"] if column in current]
         with st.expander("Ver histórico de compras"):
             show_table(current[detail_columns].sort_values("Data", ascending=False), height=520, width="stretch", hide_index=True)
     if can_export and not portfolio.empty:
@@ -1006,7 +1007,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
 
     st.markdown("### Performance por produto e categoria")
     dimension = st.segmented_control(
-        "Agrupar por", [column for column in ["Produto", "Grupo Produto", "Tipo Produto"] if column in current],
+        "Agrupar por", [column for column in ["Produto", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec."] if column in current],
         default="Produto", key="product_dimension",
     )
     view = entity_comparison(current, reference, dimension)
@@ -1096,7 +1097,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 def _pivot(data, show_table, can_export):
     st.subheader("Tabela dinâmica", help=PANEL_HELP["pivot"])
-    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Produto", "Filial", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
     selected_metrics = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes"], default=["Faturamento", "Margem"])

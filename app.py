@@ -18,6 +18,7 @@ from src.assistant import answer
 from src.cloud_storage import download_status
 from src.operational_dashboard import render as render_operational_dashboard
 from src.auth import require_login, logout, ROLE_LABELS
+from src.version import APP_RELEASE
 
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
 px.defaults.template="plotly_white"
@@ -153,7 +154,7 @@ with head_logo:
     if logo_path.exists(): st.image(str(logo_path),width=190)
 with head_title:
     st.title("METALFORTE 360")
-    st.caption(f"Command Center e operação comercial em um único app  |  Última carga: {last_load}")
+    st.caption(f"Command Center e operação comercial em um único app  |  Versão {APP_RELEASE}  |  Última carga: {last_load}")
 st.markdown("""<style>
 html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
@@ -243,16 +244,19 @@ with st.sidebar:
             "Canal (segmento de clientes)", sorted(df["Canal"].unique())
         ) if "Canal" in df else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
+        subgrupo=st.multiselect("Subgrupo Produto",sorted(df["Subgrupo Produto"].unique())) if "Subgrupo Produto" in df else []
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
+        espec=st.multiselect("ESPEC.",sorted(df["ESPEC."].unique())) if "ESPEC." in df else []
+        sub_espec=st.multiselect("Sub Espec.",sorted(df["Sub Espec."].unique())) if "Sub Espec." in df else []
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
         ct=st.text_input("Buscar cliente")
         pt=st.text_input("Buscar produto")
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
-monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
-target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,tipo=tipo,espessura=esp)
+monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,

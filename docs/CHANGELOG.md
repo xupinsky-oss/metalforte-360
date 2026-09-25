@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.18.1 — confirmação visual de versão e filtros da matriz
+
+- versão publicada passa a aparecer na tela de login e no cabeçalho do painel;
+- adicionados filtros laterais de `Subgrupo Produto`, `ESPEC.` e `Sub Espec.`;
+- a visão de produtos, o detalhe diário e a tabela dinâmica passam a expor a nova classificação;
+- reinicialização do Streamlit passa a ser verificada visualmente após a publicação.
+
 ## v2.18 — matriz de classificação de produtos
 
 - incorporada a matriz **Produtos Ecommerce - SQL (1)** ao ETL por código único de produto;

@@ -65,13 +65,13 @@ def load_flow(path=None):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
 
-def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, vendedor=None, canal=None, grupo=None, tipo=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
+def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, vendedor=None, canal=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df
     if start_date is not None: x=x[x["Data"]>=pd.Timestamp(start_date)]
     if end_date is not None: x=x[x["Data"]<pd.Timestamp(end_date)+pd.Timedelta(days=1)]
     if years: x=x[x["Ano"].isin(years)]
     if months: x=x[x["Data"].dt.month.isin(months)]
-    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Vendedor",vendedor),("Canal",canal),("Grupo Produto",grupo),("Tipo Produto",tipo),("Espessura",espessura)]:
+    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Vendedor",vendedor),("Canal",canal),("Grupo Produto",grupo),("Subgrupo Produto",subgrupo),("Tipo Produto",tipo),("ESPEC.",espec),("Sub Espec.",sub_espec),("Espessura",espessura)]:
         if values and col in x: x=x[x[col].isin(values)]
     if cliente and "Cliente" in x: x=x[x["Cliente"]==cliente]
     if cliente_text: x=x[x["Cliente"].fillna("").str.contains(cliente_text,case=False,na=False)]

@@ -13,6 +13,8 @@ from pathlib import Path
 import requests
 import streamlit as st
 
+from src.version import APP_RELEASE
+
 
 PERMISSION_LABELS = {
     "view_overview": "Visão executiva",
@@ -164,7 +166,7 @@ def require_login():
             if logo_path.exists():
                 st.image(str(logo_path), width=220)
             st.title("METALFORTE 360")
-            st.caption("Acesso ao painel comercial")
+            st.caption(f"Acesso ao painel comercial · versão {APP_RELEASE}")
             with st.form("secure_login"):
                 email = st.text_input("E-mail")
                 password = st.text_input("Senha", type="password")
