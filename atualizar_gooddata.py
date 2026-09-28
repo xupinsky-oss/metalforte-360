@@ -86,6 +86,15 @@ def extract_indicator(frame):
     # export. O maior valor absoluto é a medida, não o rótulo do período.
     return max(values,key=abs)
 
+def extract_indicator_percentage(frame):
+    """Lê cartão percentual sem transformar 68% em 6.800%."""
+    values=[]
+    for value in frame.astype(str).to_numpy().ravel():
+        parsed=_parse_percentage(value)
+        if parsed is not None: values.append(parsed)
+    if not values: raise ValueError('Indicador percentual GoodData retornou sem valor numérico.')
+    return max(values,key=abs)
+
 def sum_detail_measure(frame, column_hint):
     """Soma uma medida de relatório analítico sem misturar valor e peso."""
     candidates=[column for column in frame.columns if column_hint.casefold() in str(column).casefold()]
@@ -111,25 +120,34 @@ def _flow_series(frame, *names, date=False):
     values=frame[column] if column else pd.Series(pd.NA,index=frame.index)
     return pd.to_datetime(values,dayfirst=True,errors='coerce') if date else values
 
+def _parse_percentage(value):
+    """Normaliza percentuais do GoodData para a escala decimal do app."""
+    parsed=_parse_indicator_value(value)
+    if parsed is None: return None
+    text=str(value)
+    return parsed/100 if '%' in text or abs(parsed)>1 else parsed
+
 def build_flow_timeline(frames):
     """Normaliza eventos oficiais sem imputar datas ausentes."""
-    columns=['Origem','Modalidade','Pedido','Item','OP','Data Orçamento','Data Pedido','Data Liberação','Data Emissão OP','Data Confirmação OP','Data OS','Data Montagem Carga','Data Emissão NF','Data Saída','Hora Saída','Data Desejo Cliente','Data Previsão Entrega','Data Produção','Peso','Valor']
+    columns=['Origem','Modalidade','Vendedor','Cliente','Grupo Produto','Produto','Pedido','Item','OP','Data Orçamento','Data Pedido','Data Liberação','Data Emissão OP','Data Confirmação OP','Data OS','Data Montagem Carga','Data Emissão NF','Data Saída','Hora Saída','Data Desejo Cliente','Data Previsão Entrega','Data Produção','Peso','Valor','Projeção Custo','Projeção Imposto','Projeção Margem','Margem %']
     rows=[]
     for name,modalidade in (('fluxo_liberados_cif','CIF'),('fluxo_liberados_fob','FOB')):
         frame=frames.get(name)
         if frame is None or frame.empty: continue
-        item=pd.DataFrame({'Origem':'Pedido liberado','Modalidade':modalidade,'Pedido':_flow_series(frame,'Nº Pedido','N Pedido'),'Item':_flow_series(frame,'Item'),'OP':pd.NA,'Data Orçamento':pd.NaT,'Data Pedido':_flow_series(frame,'Emiss. PV','Emiss PV',date=True),'Data Liberação':_flow_series(frame,'Lib. PV','Lib PV',date=True),'Data Emissão OP':_flow_series(frame,'Emissão OP','Emissao OP',date=True),'Data Confirmação OP':_flow_series(frame,'Confirm. OP','Confirm OP',date=True),'Data OS':_flow_series(frame,'Data O.S.','Data OS',date=True),'Data Montagem Carga':_flow_series(frame,'Mont. Carga','Mont Carga',date=True),'Data Emissão NF':_flow_series(frame,'Emiss. NF','Emiss NF',date=True),'Data Saída':_flow_series(frame,'Data Saída','Data Saida',date=True),'Hora Saída':_flow_series(frame,'Hora Saída','Hora Saida'),'Data Desejo Cliente':_flow_series(frame,'Desejo Cli.','Desejo Cli',date=True),'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(frame,'Peso Pedidos'),'Valor':_flow_series(frame,'Vlr. Pedidos','Vlr Pedidos')})
+        item=pd.DataFrame({'Origem':'Pedido liberado','Modalidade':modalidade,'Vendedor':_flow_series(frame,'Vendedor','Nome Vendedor'),'Cliente':_flow_series(frame,'Cliente','Nome Cliente'),'Grupo Produto':_flow_series(frame,'Grupo Prod.','Grupo Produto'),'Produto':_flow_series(frame,'Produto','Descrição Prod.'),'Pedido':_flow_series(frame,'Nº Pedido','N Pedido'),'Item':_flow_series(frame,'Item'),'OP':pd.NA,'Data Orçamento':pd.NaT,'Data Pedido':_flow_series(frame,'Emiss. PV','Emiss PV',date=True),'Data Liberação':_flow_series(frame,'Lib. PV','Lib PV',date=True),'Data Emissão OP':_flow_series(frame,'Emissão OP','Emissao OP',date=True),'Data Confirmação OP':_flow_series(frame,'Confirm. OP','Confirm OP',date=True),'Data OS':_flow_series(frame,'Data O.S.','Data OS',date=True),'Data Montagem Carga':_flow_series(frame,'Mont. Carga','Mont Carga',date=True),'Data Emissão NF':_flow_series(frame,'Emiss. NF','Emiss NF',date=True),'Data Saída':_flow_series(frame,'Data Saída','Data Saida',date=True),'Hora Saída':_flow_series(frame,'Hora Saída','Hora Saida'),'Data Desejo Cliente':_flow_series(frame,'Desejo Cli.','Desejo Cli',date=True),'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(frame,'Peso Pedidos'),'Valor':_flow_series(frame,'Vlr. Pedidos','Vlr Pedidos'),'Projeção Custo':pd.NA,'Projeção Imposto':pd.NA,'Projeção Margem':pd.NA,'Margem %':pd.NA})
         rows.append(item)
     quote=frames.get('orcamentos_abertos_detalhe')
     if quote is not None and not quote.empty:
-        rows.append(pd.DataFrame({'Origem':'Orçamento em aberto','Modalidade':pd.NA,'Pedido':_flow_series(quote,'Pedido'),'Item':pd.NA,'OP':pd.NA,'Data Orçamento':_flow_series(quote,'Emissão','Emissao',date=True),'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':pd.NaT,'Data Confirmação OP':pd.NaT,'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':pd.NaT,'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(quote,'Peso'),'Valor':_flow_series(quote,'Total')}))
+        rows.append(pd.DataFrame({'Origem':'Orçamento em aberto','Modalidade':pd.NA,'Vendedor':_flow_series(quote,'Nome Vendedor','Vendedor'),'Cliente':_flow_series(quote,'Nome Cliente','Cliente'),'Grupo Produto':_flow_series(quote,'Grupo Prod.','Grupo Produto'),'Produto':_flow_series(quote,'Produto','Descrição Produto'),'Pedido':_flow_series(quote,'Pedido'),'Item':pd.NA,'OP':pd.NA,'Data Orçamento':_flow_series(quote,'Emissão','Emissao',date=True),'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':pd.NaT,'Data Confirmação OP':pd.NaT,'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':pd.NaT,'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(quote,'Peso'),'Valor':_flow_series(quote,'Total'),'Projeção Custo':_flow_series(quote,'Projeção Custo','Projecao Custo'),'Projeção Imposto':_flow_series(quote,'Projeção Imposto','Projecao Imposto'),'Projeção Margem':_flow_series(quote,'Projeção Margem','Projecao Margem'),'Margem %':_flow_series(quote,'Margem %','%')}))
     op=frames.get('op_sob_encomenda')
     if op is not None and not op.empty:
         # A OP não possui uma chave de pedido confiável neste relatório. Ela é
         # preservada como trilha produtiva independente, sem forçar uma junção.
-        rows.append(pd.DataFrame({'Origem':'OP sob encomenda','Modalidade':pd.NA,'Pedido':pd.NA,'Item':_flow_series(op,'Item'),'OP':_flow_series(op,'OP'),'Data Orçamento':pd.NaT,'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':_flow_series(op,'Emissão','Emissao',date=True),'Data Confirmação OP':_flow_series(op,'Confirma.','Confirma',date=True),'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':_flow_series(op,'Desejo',date=True),'Data Previsão Entrega':_flow_series(op,'Previsão Entr.','Previsao Entr.',date=True),'Data Produção':_flow_series(op,'Produção','Producao',date=True),'Peso':_flow_series(op,'Kg Aberto'),'Valor':pd.NA}))
+        rows.append(pd.DataFrame({'Origem':'OP sob encomenda','Modalidade':pd.NA,'Vendedor':_flow_series(op,'Vendedor','Nome Vendedor'),'Cliente':_flow_series(op,'Cliente','Nome Cliente'),'Grupo Produto':_flow_series(op,'Grupo','Grupo Produto'),'Produto':_flow_series(op,'Produto'),'Pedido':pd.NA,'Item':_flow_series(op,'Item'),'OP':_flow_series(op,'OP'),'Data Orçamento':pd.NaT,'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':_flow_series(op,'Emissão','Emissao',date=True),'Data Confirmação OP':_flow_series(op,'Confirma.','Confirma',date=True),'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':_flow_series(op,'Desejo',date=True),'Data Previsão Entrega':_flow_series(op,'Previsão Entr.','Previsao Entr.',date=True),'Data Produção':_flow_series(op,'Produção','Producao',date=True),'Peso':_flow_series(op,'Kg Aberto'),'Valor':pd.NA,'Projeção Custo':pd.NA,'Projeção Imposto':pd.NA,'Projeção Margem':pd.NA,'Margem %':pd.NA}))
     result=pd.concat(rows,ignore_index=True) if rows else pd.DataFrame(columns=columns)
-    for column in ('Peso','Valor'): result[column]=result[column].map(_parse_indicator_value)
+    for column in ('Peso','Valor','Projeção Custo','Projeção Imposto','Projeção Margem'):
+        result[column]=result[column].map(_parse_indicator_value)
+    result['Margem %']=result['Margem %'].map(_parse_percentage)
     # Exportações do GoodData podem trazer rodapés (Sum/Rollup). Remove-os
     # apenas quando a linha deveria ser um pedido/orçamento, mantendo as OPs.
     if not result.empty:
@@ -257,7 +275,8 @@ def main():
         logging.info('Baixando etapa do funil %s (%s)',name,report_id)
         try:
             frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0),allow_single_column=True)
-            indicators[name]=round(extract_indicator(frame),4)
+            extractor=extract_indicator_percentage if name.endswith('_percent') else extract_indicator
+            indicators[name]=round(extractor(frame),4)
         except Exception as exc:
             # A ausência de uma etapa opcional não interrompe as cargas de
             # faturamento. O painel a indicará como indisponível.

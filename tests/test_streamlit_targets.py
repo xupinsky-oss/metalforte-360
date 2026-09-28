@@ -8,8 +8,9 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _flow_current_positions, _monthly_activity_matrix, _municipal_map_data,
-    _monthly_projection, _pivot_cluster_data, _selected_plotly_date, render,
+    _commercial_snapshot, _flow_current_positions, _monthly_activity_matrix,
+    _municipal_map_data, _monthly_projection, _pivot_cluster_data,
+    _selected_plotly_date, render,
 )
 from src.commercial_intelligence import customer_portfolio, purchase_seasonality
 from src.data import load_data
@@ -118,11 +119,21 @@ _product_view(
     def test_funnel_keeps_missing_values_distinct_from_zero(self):
         frame = _funnel_frame({"orcamentos_abertos_valor": 0, "aguardando_os_peso": 1250})
         self.assertEqual(frame.loc[frame["Etapa"] == "Orçamentos em aberto", "Cobertura"].iloc[0], "Disponível")
-        self.assertIn("Orçamentos fechados", frame["Etapa"].tolist())
-        self.assertIn("Orçamentos perdidos", frame["Etapa"].tolist())
+        self.assertIn("Orçamentos implantados", frame["Etapa"].tolist())
+        self.assertIn("Pedidos não aprovados pelo crédito", frame["Etapa"].tolist())
         self.assertIn("Aguardando entrega", frame["Etapa"].tolist())
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando kit", "Cobertura"].iloc[0], "Indisponível")
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando OS", "Valor"].iloc[0], 1250)
+
+    def test_commercial_snapshot_keeps_value_and_quantity_separate(self):
+        snapshot = _commercial_snapshot({
+            "orcamentos_abertos_valor": 100000, "orcamentos_abertos_quantidade": 12,
+            "pedidos_rejeitados_valor": 5000, "pedidos_rejeitados_quantidade": 2,
+        }).set_index("Situação")
+        self.assertEqual(snapshot.loc["Orçamentos em aberto", "Valor (R$)"], 100000)
+        self.assertEqual(snapshot.loc["Orçamentos em aberto", "Quantidade"], 12)
+        self.assertEqual(snapshot.loc["Pedidos não aprovados pelo crédito", "Quantidade"], 2)
+        self.assertEqual(snapshot.loc["Faturado", "Cobertura"], "Indisponível")
 
     def test_funnel_page_renders_with_partial_snapshot(self):
         script = r'''

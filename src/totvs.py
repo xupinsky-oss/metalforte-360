@@ -20,11 +20,24 @@ DETAIL_REPORTS={
 # Etapas oficiais do painel "Pedidos & Orçamentos". Os itens de operação
 # foram publicados em kg; por isso não são convertidos artificialmente em R$.
 FUNNEL_INDICATOR_REPORTS={
+    # Painel "Pedidos & Orçamentos": fotografia comercial do período.
+    # Os indicadores de quantidade são mantidos separados dos valores para
+    # não inferir quantidades a partir do detalhamento por item.
+    "orcamentos_implantados_valor":"49444",
+    "orcamentos_implantados_quantidade":"48411",
     "orcamentos_abertos_valor":"40646",
     "orcamentos_abertos_peso":"40659",
+    "orcamentos_abertos_quantidade":"48413",
+    "pedidos_rejeitados_valor":"49458",
+    "pedidos_rejeitados_quantidade":"48423",
     "pedidos_pendentes_valor":"49462",
     "pedidos_liberados_credito_valor":"49468",
+    "pedidos_liberados_credito_quantidade":"49102",
+    "aguardando_faturamento_quantidade":"40638",
     "pedidos_faturados_valor":"52444",
+    "pedidos_faturados_quantidade":"49085",
+    "conversao_faturado_percent":"49481",
+    "conversao_pedidos_percent":"49477",
     "aguardando_os_peso":"7674329",
     "aguardando_carga_cif_peso":"8084817",
     "aguardando_carga_fob_peso":"8055931",

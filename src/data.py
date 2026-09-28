@@ -100,7 +100,7 @@ def load_flow(path=None):
     for column in result.columns:
         if str(column).startswith("Data "):
             result[column]=pd.to_datetime(result[column],errors="coerce")
-    for column in ("Peso","Valor"):
+    for column in ("Peso","Valor","Projeção Custo","Projeção Imposto","Projeção Margem","Margem %"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
 

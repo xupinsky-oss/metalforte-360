@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from atualizar_gooddata import collect_target_periods, parse_raw
+from atualizar_gooddata import build_flow_timeline, collect_target_periods, extract_indicator_percentage, parse_raw
 
 
 class EtlFormatTests(unittest.TestCase):
@@ -18,6 +18,9 @@ class EtlFormatTests(unittest.TestCase):
     def test_semicolon_report_is_detected(self):
         result = parse_raw(b'coluna_a;coluna_b\n1;2\n')
         self.assertEqual(result.shape, (1, 2))
+
+    def test_percentage_indicator_keeps_decimal_scale(self):
+        self.assertAlmostEqual(extract_indicator_percentage(pd.DataFrame({"Conversão": ["68%"]})), .68)
 
     def test_collects_previous_current_and_future_targets(self):
         detail = pd.DataFrame({"Vendedor": ["ANA"], "Grupo Prod.": ["AÇO"], "Meta Mês": [2]})
@@ -34,6 +37,23 @@ class EtlFormatTests(unittest.TestCase):
         self.assertEqual(result["Competência"].nunique(), 3)
         self.assertAlmostEqual(result["Meta R$"].sum(), 30000)
         self.assertAlmostEqual(result["Meta KG"].sum(), 6000)
+
+    def test_quote_detail_preserves_margin_and_commercial_dimensions(self):
+        flow = build_flow_timeline({
+            "orcamentos_abertos_detalhe": pd.DataFrame({
+                "Nome Vendedor": ["ANA"], "Nome Cliente": ["CLIENTE A"],
+                "Emissão": ["28/09/2026"], "Pedido": ["CAD001"], "Peso": ["1.250,50"],
+                "Total": ["R$ 12.500,00"], "Projeção Custo": ["R$ 8.000,00"],
+                "Projeção Imposto": ["R$ 1.000,00"], "Projeção Margem": ["R$ 3.500,00"], "%": ["28,00%"],
+            })
+        })
+        row = flow.iloc[0]
+        self.assertEqual(row["Origem"], "Orçamento em aberto")
+        self.assertEqual(row["Vendedor"], "ANA")
+        self.assertEqual(row["Cliente"], "CLIENTE A")
+        self.assertAlmostEqual(row["Peso"], 1250.5)
+        self.assertAlmostEqual(row["Projeção Margem"], 3500)
+        self.assertAlmostEqual(row["Margem %"], .28)
 
 
 if __name__ == "__main__":

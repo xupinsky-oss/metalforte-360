@@ -1471,11 +1471,11 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
 
 FUNNEL_JOURNEY = ("Orçamento", "Crédito", "Produção", "Carga", "Faturamento", "Entrega")
 FUNNEL_STAGES = (
+    ("Orçamento", "Comercial", "Orçamentos implantados", "orcamentos_implantados_valor", "R$", False),
     ("Orçamento", "Comercial", "Orçamentos em aberto", "orcamentos_abertos_valor", "R$", False),
-    ("Orçamento", "Comercial", "Orçamentos fechados", "orcamentos_fechados_valor", "R$", False),
-    ("Orçamento", "Comercial", "Orçamentos perdidos", "orcamentos_perdidos_valor", "R$", False),
     ("Crédito", "Comercial", "Pedidos aguardando crédito", "pedidos_pendentes_valor", "R$", False),
-    ("Crédito", "Comercial", "Crédito liberado", "pedidos_liberados_credito_valor", "R$", False),
+    ("Crédito", "Comercial", "Pedidos aprovados pelo crédito", "pedidos_liberados_credito_valor", "R$", False),
+    ("Crédito", "Comercial", "Pedidos não aprovados pelo crédito", "pedidos_rejeitados_valor", "R$", False),
     ("Produção", "Operação", "Aguardando OS", "aguardando_os_peso", "kg", False),
     ("Produção", "Operação", "Aguardando kit", "aguardando_kit_peso", "kg", False),
     ("Carga", "Operação", "Aguardando carga CIF", "aguardando_carga_cif_peso", "kg", False),
@@ -1486,6 +1486,14 @@ FUNNEL_STAGES = (
     ("Faturamento", "Comercial", "Faturado no período", "pedidos_faturados_valor", "R$", False),
     ("Entrega", "Operação", "Aguardando entrega", "aguardando_entrega_peso", "kg", False),
     ("Entrega", "Operação", "Entregue", "entregue_peso", "kg", False),
+)
+COMMERCIAL_SNAPSHOT = (
+    ("Orçamentos implantados", "orcamentos_implantados_valor", "orcamentos_implantados_quantidade"),
+    ("Orçamentos em aberto", "orcamentos_abertos_valor", "orcamentos_abertos_quantidade"),
+    ("Pedidos aprovados pelo crédito", "pedidos_liberados_credito_valor", "pedidos_liberados_credito_quantidade"),
+    ("Pedidos não aprovados pelo crédito", "pedidos_rejeitados_valor", "pedidos_rejeitados_quantidade"),
+    ("Aguardando faturamento", "pedidos_liberados_credito_valor", "aguardando_faturamento_quantidade"),
+    ("Faturado", "pedidos_faturados_valor", "pedidos_faturados_quantidade"),
 )
 FUNNEL_DATE_REFERENCES = {
     "Orçamento": "Data do orçamento",
@@ -1550,10 +1558,23 @@ def _funnel_frame(indicators):
     return pd.DataFrame(rows)
 
 
+def _commercial_snapshot(indicators):
+    """Fotografia oficial do ciclo pedido-orçamento, em valor e quantidade."""
+    rows = []
+    for label, value_key, quantity_key in COMMERCIAL_SNAPSHOT:
+        value = pd.to_numeric(pd.Series([indicators.get(value_key)]), errors="coerce").iloc[0]
+        quantity = pd.to_numeric(pd.Series([indicators.get(quantity_key)]), errors="coerce").iloc[0]
+        rows.append({
+            "Situação": label, "Valor (R$)": value, "Quantidade": quantity,
+            "Cobertura": "Disponível" if pd.notna(value) or pd.notna(quantity) else "Indisponível",
+        })
+    return pd.DataFrame(rows)
+
+
 def _flow_current_positions(flow):
     """Localiza cada pedido/OP na última etapa concluída, sem duplicá-lo."""
     position_columns = [
-        "Documento", "Origem", "Ordem", "Macroetapa", "Etapa", "Data da posição",
+        "Documento", "Origem", "Vendedor", "Cliente", "Grupo Produto", "Produto", "Projeção Custo", "Projeção Imposto", "Projeção Margem", "Margem %", "Ordem", "Macroetapa", "Etapa", "Data da posição",
         "Registros", "Peso", "Valor",
     ]
     summary_columns = [
@@ -1563,7 +1584,7 @@ def _flow_current_positions(flow):
         return pd.DataFrame(columns=position_columns), pd.DataFrame(columns=summary_columns)
 
     source = flow.copy().reset_index(drop=True)
-    for column, default in (("Origem", "Não informado"), ("Peso", np.nan), ("Valor", np.nan)):
+    for column, default in (("Origem", "Não informado"), ("Vendedor", pd.NA), ("Cliente", pd.NA), ("Grupo Produto", pd.NA), ("Produto", pd.NA), ("Projeção Custo", np.nan), ("Projeção Imposto", np.nan), ("Projeção Margem", np.nan), ("Margem %", np.nan), ("Peso", np.nan), ("Valor", np.nan)):
         if column not in source:
             source[column] = default
     source["_ordem"] = 0
@@ -1609,11 +1630,11 @@ def _flow_current_positions(flow):
         .set_index("_documento")
     )
     totals = source.groupby("_documento", dropna=False).agg(
-        Origem=("Origem", "last"), Registros=("_documento", "size"),
+        Registros=("_documento", "size"),
         Peso=("Peso", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
         Valor=("Valor", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)),
     )
-    positions = selected[["_ordem", "_macroetapa", "_etapa", "_data_posicao"]].join(totals, how="left").reset_index()
+    positions = selected[["Origem", "Vendedor", "Cliente", "Grupo Produto", "Produto", "Projeção Custo", "Projeção Imposto", "Projeção Margem", "Margem %", "_ordem", "_macroetapa", "_etapa", "_data_posicao"]].join(totals, how="left").reset_index()
     positions = positions.rename(columns={
         "_documento": "Documento", "_ordem": "Ordem", "_macroetapa": "Macroetapa",
         "_etapa": "Etapa", "_data_posicao": "Data da posição",
@@ -1789,6 +1810,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
     missing = frame[frame["Valor"].isna()]
+    commercial_snapshot = _commercial_snapshot(indicators or {})
     date_summary = _flow_event_summary(flow_events, start_date, end_date)
     current_positions, position_summary = _flow_current_positions(flow_events)
 
@@ -1798,11 +1820,25 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             return "Data não publicada"
         return formatter(float(match.iloc[0][field]))
 
+    st.markdown("### Fotografia comercial do período")
+    snapshot_cards = []
+    for _, row in commercial_snapshot.iterrows():
+        value = brl(float(row["Valor (R$)"])) if pd.notna(row["Valor (R$)"]) else "Não publicado"
+        details = ((f"{_quantity(float(row['Quantidade']))} pedido(s)", "neutral"),) if pd.notna(row["Quantidade"]) else ()
+        snapshot_cards.append((row["Situação"], value, details))
+    _metric_cards(snapshot_cards)
+    conversion_cards = []
+    for label, key in (("Conversão de pedidos", "conversao_pedidos_percent"), ("Conversão para faturamento", "conversao_faturado_percent")):
+        value = pd.to_numeric(pd.Series([(indicators or {}).get(key)]), errors="coerce").iloc[0]
+        conversion_cards.append((label, f"{value * 100:.2f}%".replace(".", ",") if pd.notna(value) else "Não publicado", ()))
+    _metric_cards(conversion_cards)
+
+    st.markdown("### Movimentações concluídas no período")
     metric_cards = [
-        ("Orçamentos emitidos no período", event_metric("Orçamentos emitidos", "Valor", brl), ()),
-        ("Pedidos emitidos no período", event_metric("Pedidos emitidos", "Valor", brl), ()),
-        ("Notas fiscais emitidas no período", event_metric("Notas fiscais emitidas", "Valor", brl), ()),
-        ("Saídas realizadas no período", event_metric("Saídas realizadas", "Peso", lambda value: f"{_quantity(value)} kg"), ()),
+        ("Orçamentos emitidos", event_metric("Orçamentos emitidos", "Valor", brl), ()),
+        ("Pedidos emitidos", event_metric("Pedidos emitidos", "Valor", brl), ()),
+        ("Notas fiscais emitidas", event_metric("Notas fiscais emitidas", "Valor", brl), ()),
+        ("Saídas realizadas", event_metric("Saídas realizadas", "Peso", lambda value: f"{_quantity(value)} kg"), ()),
     ]
     _metric_cards(metric_cards)
     st.markdown("### Posição atual da carteira")
@@ -1822,7 +1858,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         if current_positions.empty:
             st.info("A carga atual ainda não publicou documentos com uma etapa de processo identificável.")
         else:
-            st.caption("Cada documento é exibido uma vez, na etapa mais avançada já registrada. O calendário não recorta esta fotografia atual.")
+            st.caption("Cada documento é exibido uma vez, na etapa mais avançada já registrada. Para orçamentos em aberto, a base também preserva vendedor, cliente, produto e margem projetada.")
             show_table(
                 current_positions.sort_values(["Ordem", "Data da posição"], ascending=[False, False]),
                 height=560, width="stretch", hide_index=True,
