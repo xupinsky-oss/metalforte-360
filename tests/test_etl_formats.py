@@ -66,6 +66,23 @@ class EtlFormatTests(unittest.TestCase):
         self.assertAlmostEqual(row["Projeção Margem"], 3500)
         self.assertAlmostEqual(row["Margem %"], .28)
 
+    def test_liberated_order_dates_preserve_customer_desire_and_process_steps(self):
+        flow = build_flow_timeline({
+            "fluxo_liberados_cif": pd.DataFrame({
+                "Nº Pedido": ["PED001"], "Item": ["01"], "Desejo Cli.": ["16/01/2026"],
+                "Emiss. PV": ["15/12/2025"], "Lib. PV": ["14/01/2026"],
+                "Emissão OP": ["15/01/2026"], "Confirm. OP": ["16/01/2026"],
+                "Data O.S.": ["17/01/2026"], "Mont. Carga": ["18/01/2026"],
+                "Emiss. NF": ["19/01/2026"], "Data Saída": ["20/01/2026"],
+                "Peso Pedidos": ["100,00"], "Vlr. Pedidos": ["R$ 1.000,00"],
+            })
+        })
+        row = flow.iloc[0]
+        self.assertEqual(row["Data Desejo Cliente"], pd.Timestamp("2026-01-16"))
+        self.assertEqual(row["Data Pedido"], pd.Timestamp("2025-12-15"))
+        self.assertEqual(row["Data Liberação"], pd.Timestamp("2026-01-14"))
+        self.assertEqual(row["Data Saída"], pd.Timestamp("2026-01-20"))
+
 
 if __name__ == "__main__":
     unittest.main()

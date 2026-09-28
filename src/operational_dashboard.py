@@ -1641,6 +1641,50 @@ def _approval_exceptions(current_positions, as_of_date):
     return source.reindex(columns=columns).sort_values(["Dias sem aprovação", "Valor (R$)"], ascending=[False, False])
 
 
+def _customer_commitment_snapshot(flow, as_of_date):
+    """Compara a data desejada pelo cliente com a saída efetiva do pedido."""
+    columns = [
+        "Documento", "Vendedor", "Cliente", "Etapa atual", "Data da posição",
+        "Desejo do cliente", "Data de saída", "Situação do prazo", "Dias para / em atraso",
+        "Valor (R$)", "Peso (kg)",
+    ]
+    if flow is None or flow.empty:
+        return pd.DataFrame(columns=columns)
+    positions, _ = _flow_current_positions(flow)
+    if positions.empty:
+        return pd.DataFrame(columns=columns)
+    source = flow.copy().reset_index(drop=True)
+    pedido = source.get("Pedido", pd.Series(pd.NA, index=source.index)).astype("string").str.strip()
+    op = source.get("OP", pd.Series(pd.NA, index=source.index)).astype("string").str.strip()
+    invalid = {"", "<NA>", "nan", "None"}
+    source["Documento"] = pedido.where(~pedido.isin(invalid), op)
+    source = source[source["Documento"].notna() & ~source["Documento"].isin(invalid)].copy()
+    if source.empty:
+        return pd.DataFrame(columns=columns)
+    source["Desejo do cliente"] = pd.to_datetime(source.get("Data Desejo Cliente"), errors="coerce")
+    source["Data de saída"] = pd.to_datetime(source.get("Data Saída"), errors="coerce")
+    dates = source.groupby("Documento", as_index=False).agg(
+        **{"Desejo do cliente": ("Desejo do cliente", "min"), "Data de saída": ("Data de saída", "max")}
+    )
+    result = positions.rename(columns={"Etapa": "Etapa atual", "Data da posição": "Data da posição", "Valor": "Valor (R$)", "Peso": "Peso (kg)"}).merge(dates, on="Documento", how="left")
+    today = pd.Timestamp(as_of_date).normalize()
+    desired = pd.to_datetime(result["Desejo do cliente"], errors="coerce")
+    departed = pd.to_datetime(result["Data de saída"], errors="coerce")
+    result["Situação do prazo"] = np.select(
+        [
+            desired.isna(),
+            departed.notna() & departed.le(desired),
+            departed.notna() & departed.gt(desired),
+            departed.isna() & desired.lt(today),
+        ],
+        ["Sem data desejada", "Entregue no prazo", "Entregue com atraso", "Em atraso"],
+        default="No prazo futuro",
+    )
+    reference = departed.fillna(today)
+    result["Dias para / em atraso"] = (reference.dt.normalize() - desired.dt.normalize()).dt.days
+    return result.reindex(columns=columns).sort_values(["Situação do prazo", "Desejo do cliente", "Valor (R$)"], ascending=[True, True, False])
+
+
 def _flow_current_positions(flow):
     """Localiza cada pedido/OP na última etapa concluída, sem duplicá-lo."""
     position_columns = [
@@ -1851,7 +1895,9 @@ def _flow_deadlines(flow, start_date, end_date):
         return pd.DataFrame(columns=columns)
     transitions = (
         ("Pedido → liberação", "Data Pedido", "Data Liberação"),
-        ("Liberação → OS", "Data Liberação", "Data OS"),
+        ("Liberação → emissão da OP", "Data Liberação", "Data Emissão OP"),
+        ("Emissão → confirmação da OP", "Data Emissão OP", "Data Confirmação OP"),
+        ("Confirmação da OP → OS", "Data Confirmação OP", "Data OS"),
         ("OS → montagem da carga", "Data OS", "Data Montagem Carga"),
         ("Montagem da carga → NF", "Data Montagem Carga", "Data Emissão NF"),
         ("NF → saída", "Data Emissão NF", "Data Saída"),
@@ -2138,6 +2184,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     losses = _loss_reasons_snapshot(indicators or {})
     current_positions, position_summary = _flow_current_positions(flow_events)
     approval_exceptions = _approval_exceptions(current_positions, end_date)
+    customer_commitments = _customer_commitment_snapshot(flow_events, end_date)
     date_summary = _flow_event_summary(flow_events, start_date, end_date)
     deadlines = _flow_deadlines(flow_events, start_date, end_date)
 
@@ -2196,7 +2243,34 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         table["Valor"] = table["Valor"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
         show_table(table, height=max(320, 38 * len(table) + 100), width="stretch", hide_index=True)
 
-    st.markdown("### 3. Pendências para faturar")
+    st.markdown("### 3. Compromisso de entrega com o cliente")
+    if customer_commitments.empty or customer_commitments["Desejo do cliente"].notna().sum() == 0:
+        st.info("A carga atual ainda não trouxe data de desejo do cliente para os pedidos em acompanhamento.")
+    else:
+        commitment_summary = customer_commitments.groupby("Situação do prazo", as_index=False).agg(
+            Documentos=("Documento", "nunique"),
+            **{"Valor (R$)": ("Valor (R$)", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1)), "Peso (kg)": ("Peso (kg)", lambda values: pd.to_numeric(values, errors="coerce").sum(min_count=1))},
+        )
+        overdue = commitment_summary.loc[commitment_summary["Situação do prazo"].eq("Em atraso"), "Documentos"].sum()
+        on_time = commitment_summary.loc[commitment_summary["Situação do prazo"].eq("Entregue no prazo"), "Documentos"].sum()
+        _metric_cards([
+            ("Pedidos em atraso", f"{_quantity(float(overdue))} documento(s)", (("Base", "Desejo do cliente", None, False),)),
+            ("Entregues no prazo", f"{_quantity(float(on_time))} documento(s)", (("Base", "Data de saída", None, False),)),
+        ])
+        commitment_chart, commitment_table = st.columns((1.05, 1), gap="large")
+        with commitment_chart:
+            chart_rows = commitment_summary.sort_values("Documentos")
+            chart = px.bar(chart_rows, x="Documentos", y="Situação do prazo", orientation="h", color="Situação do prazo", text="Documentos", title="Pedidos por compromisso de entrega", color_discrete_map={"Entregue no prazo": "#177245", "No prazo futuro": "#2F8FD8", "Entregue com atraso": "#D89A20", "Em atraso": "#D84A3A", "Sem data desejada": "#94A3B8"})
+            chart.update_traces(textposition="outside", cliponaxis=False)
+            show_chart(_polish_chart(chart, height=max(280, 44 * len(chart_rows) + 90), x_title="Documentos", y_title=""))
+        with commitment_table:
+            table = commitment_summary.copy()
+            table["Valor (R$)"] = table["Valor (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+            table["Peso (kg)"] = table["Peso (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+            show_table(table, height=max(280, 44 * len(table) + 90), width="stretch", hide_index=True)
+        st.caption("Em atraso: ainda sem saída após a data desejada. Entregue com atraso: saída posterior à data desejada. A data desejada é um compromisso do cliente, não uma nova etapa do pedido.")
+
+    st.markdown("### 4. Pendências para faturar")
     non_invoiced_value = _indicator_number(indicators, "pedidos_liberados_credito_valor")
     non_invoiced_count = _indicator_number(indicators, "aguardando_faturamento_quantidade")
     non_invoiced_weight = _indicator_number(indicators, "aguardando_faturamento_peso")
@@ -2222,7 +2296,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         table["Peso (kg)"] = table["Peso (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "Não publicado")
         show_table(table, height=max(300, 42 * len(table) + 90), width="stretch", hide_index=True)
 
-    st.markdown("### 4. Exceções e perdas")
+    st.markdown("### 5. Exceções e perdas")
     rejected_value = _indicator_number(indicators, "pedidos_rejeitados_valor")
     rejected_quantity = _indicator_number(indicators, "pedidos_rejeitados_quantidade")
     total_loss = losses["Valor perdido (R$)"].sum(min_count=1) if not losses.empty else np.nan
@@ -2247,7 +2321,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         show_table(table, height=max(300, 35 * len(table) + 100), width="stretch", hide_index=True)
 
     st.markdown("### Detalhamento para investigação")
-    position_tab, events_tab, deadlines_tab = st.tabs(["Posição atual", "Movimentações no período", "Prazos entre etapas"])
+    position_tab, events_tab, deadlines_tab, commitment_tab = st.tabs(["Posição atual", "Linha de datas", "Prazos entre etapas", "Pedidos e prazo do cliente"])
     with position_tab:
         if current_positions.empty:
             st.info("A carga atual ainda não publicou documentos com uma etapa de processo identificável.")
@@ -2262,7 +2336,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         else:
             events_chart, events_table = st.columns((1.05, 1), gap="large")
             with events_chart:
-                chart = px.bar(active, x="Registros", y="Movimentação", orientation="h", color="Macroetapa", text="Registros", title="Movimentações ocorridas no período", color_discrete_sequence=["#F36A2D", "#D89A20", "#2F8FD8", "#7C6CC4", "#177245"])
+                chart = px.bar(active, x="Registros", y="Movimentação", orientation="h", color="Macroetapa", text="Registros", title="Datas registradas no período", color_discrete_sequence=["#F36A2D", "#D89A20", "#2F8FD8", "#7C6CC4", "#177245"])
                 chart.update_traces(textposition="outside", cliponaxis=False)
                 show_chart(_polish_chart(chart, height=max(320, 38 * len(active) + 100), x_title="Registros", y_title=""))
             with events_table:
@@ -2279,6 +2353,18 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
                 show_chart(_polish_chart(chart, height=max(280, 48 * len(chart_rows) + 90), x_title="Dias", y_title=""))
             with deadline_table:
                 show_table(deadlines, height=max(280, 48 * len(deadlines) + 90), width="stretch", hide_index=True)
+    with commitment_tab:
+        if customer_commitments.empty or customer_commitments["Desejo do cliente"].notna().sum() == 0:
+            st.info("Sem datas de desejo do cliente publicadas para o recorte atual.")
+        else:
+            table = customer_commitments.copy()
+            for column in ("Data da posição", "Desejo do cliente", "Data de saída"):
+                table[column] = pd.to_datetime(table[column], errors="coerce").dt.strftime("%d/%m/%Y").fillna("—")
+            table["Valor (R$)"] = table["Valor (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+            table["Peso (kg)"] = table["Peso (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+            show_table(table, height=520, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button("Exportar pedidos e prazo do cliente", customer_commitments.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "funil_prazo_cliente.csv", "text/csv", width="stretch")
 
     if can_export and not losses.empty:
         st.download_button("Exportar perdas por motivo", losses.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "perdas_por_motivo.csv", "text/csv", width="stretch")

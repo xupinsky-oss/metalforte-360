@@ -8,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _flow_current_positions, _loss_reasons_snapshot, _monthly_activity_matrix,
+    _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _customer_commitment_snapshot, _flow_current_positions, _loss_reasons_snapshot, _monthly_activity_matrix,
     _municipal_map_data, _monthly_projection, _pivot_cluster_data,
     _selected_plotly_date, render,
 )
@@ -184,7 +184,7 @@ _funnel_view(
 '''
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
-        self.assertEqual(len(app.tabs), 3)
+        self.assertEqual(len(app.tabs), 4)
         rendered = "\n".join(str(item.value) for item in app.markdown)
         self.assertIn("Conversão comercial", rendered)
         self.assertIn("Carteira em execução", rendered)
@@ -231,6 +231,21 @@ _funnel_view(
         self.assertEqual(int(summary["Documentos"].sum()), 4)
         self.assertAlmostEqual(float(summary["Peso"].sum()), 800.0)
         self.assertAlmostEqual(float(by_document.loc["A", "Peso"]), 250.0)
+
+    def test_customer_commitment_uses_desired_date_and_actual_departure(self):
+        flow = pd.DataFrame({
+            "Origem": ["Pedido liberado", "Pedido liberado", "Pedido liberado"],
+            "Pedido": ["NO-PRAZO", "ATRASADO", "ABERTO"], "OP": [None, None, None],
+            "Peso": [100.0, 100.0, 100.0], "Valor": [1000.0, 1000.0, 1000.0],
+            "Data Pedido": pd.to_datetime(["2026-09-01"] * 3),
+            "Data Desejo Cliente": pd.to_datetime(["2026-09-10", "2026-09-10", "2026-09-10"]),
+            "Data Saída": pd.to_datetime(["2026-09-09", "2026-09-12", None]),
+        })
+        commitments = _customer_commitment_snapshot(flow, "2026-09-15").set_index("Documento")
+        self.assertEqual(commitments.loc["NO-PRAZO", "Situação do prazo"], "Entregue no prazo")
+        self.assertEqual(commitments.loc["ATRASADO", "Situação do prazo"], "Entregue com atraso")
+        self.assertEqual(commitments.loc["ABERTO", "Situação do prazo"], "Em atraso")
+        self.assertEqual(commitments.loc["ATRASADO", "Dias para / em atraso"], 2)
 
     def test_monthly_activity_uses_net_revenue_for_positivation(self):
         sales = pd.DataFrame({
