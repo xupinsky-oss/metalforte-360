@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.18.2 — filtro por tipo de cliente
+
+- incluído o filtro lateral **Tipo de cliente** usando `Tipologia Cliente`;
+- o filtro afeta indicadores, comparações, mapas, produtos, clientes, insights e exportações;
+- `Canal` continua usando exclusivamente `Segmento Cliente`.
+
 ## v2.18.1 — confirmação visual de versão e filtros da matriz
 
 - versão publicada passa a aparecer na tela de login e no cabeçalho do painel;

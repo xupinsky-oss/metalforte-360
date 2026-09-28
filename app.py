@@ -243,6 +243,10 @@ with st.sidebar:
         canal=st.multiselect(
             "Canal (segmento de clientes)", sorted(df["Canal"].unique())
         ) if "Canal" in df else []
+        tipologia=st.multiselect(
+            "Tipo de cliente", sorted(df["Tipologia Cliente"].unique()),
+            help="Classificação comercial do cliente, como revenda, construtora e demais tipologias.",
+        ) if "Tipologia Cliente" in df else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
         subgrupo=st.multiselect("Subgrupo Produto",sorted(df["Subgrupo Produto"].unique())) if "Subgrupo Produto" in df else []
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
@@ -251,12 +255,12 @@ with st.sidebar:
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
         ct=st.text_input("Buscar cliente")
         pt=st.text_input("Buscar produto")
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
-monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
-target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,
