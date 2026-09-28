@@ -1473,9 +1473,7 @@ FUNNEL_JOURNEY = ("Orçamento", "Crédito", "Produção", "Carga", "Faturamento"
 FUNNEL_STAGES = (
     ("Orçamento", "Comercial", "Orçamentos implantados", "orcamentos_implantados_valor", "R$", False),
     ("Orçamento", "Comercial", "Orçamentos em aberto", "orcamentos_abertos_valor", "R$", False),
-    ("Crédito", "Comercial", "Pedidos aguardando crédito", "pedidos_pendentes_valor", "R$", False),
-    ("Crédito", "Comercial", "Pedidos aprovados pelo crédito", "pedidos_liberados_credito_valor", "R$", False),
-    ("Crédito", "Comercial", "Pedidos não aprovados pelo crédito", "pedidos_rejeitados_valor", "R$", False),
+    ("Crédito", "Comercial", "Pedidos rejeitados pelo crédito", "pedidos_rejeitados_valor", "R$", False),
     ("Produção", "Operação", "Aguardando OS", "aguardando_os_peso", "kg", False),
     ("Produção", "Operação", "Aguardando kit", "aguardando_kit_peso", "kg", False),
     ("Carga", "Operação", "Aguardando carga CIF", "aguardando_carga_cif_peso", "kg", False),
@@ -1483,17 +1481,17 @@ FUNNEL_STAGES = (
     ("Faturamento", "Operação", "Aguardando faturamento", "aguardando_faturamento_peso", "kg", False),
     ("Faturamento", "Operação", "Aguardando faturamento CIF", "aguardando_faturamento_cif_peso", "kg", True),
     ("Faturamento", "Operação", "Aguardando faturamento FOB", "aguardando_faturamento_fob_peso", "kg", True),
+    ("Faturamento", "Comercial", "Liberados aguardando faturamento", "pedidos_liberados_credito_valor", "R$", False),
     ("Faturamento", "Comercial", "Faturado no período", "pedidos_faturados_valor", "R$", False),
     ("Entrega", "Operação", "Aguardando entrega", "aguardando_entrega_peso", "kg", False),
     ("Entrega", "Operação", "Entregue", "entregue_peso", "kg", False),
 )
 COMMERCIAL_SNAPSHOT = (
-    ("Orçamentos implantados", "orcamentos_implantados_valor", "orcamentos_implantados_quantidade"),
-    ("Orçamentos em aberto", "orcamentos_abertos_valor", "orcamentos_abertos_quantidade"),
-    ("Pedidos aprovados pelo crédito", "pedidos_liberados_credito_valor", "pedidos_liberados_credito_quantidade"),
-    ("Pedidos não aprovados pelo crédito", "pedidos_rejeitados_valor", "pedidos_rejeitados_quantidade"),
-    ("Aguardando faturamento", "pedidos_liberados_credito_valor", "aguardando_faturamento_quantidade"),
-    ("Faturado", "pedidos_faturados_valor", "pedidos_faturados_quantidade"),
+    ("Resultado do período", "Orçamentos implantados", "orcamentos_implantados_valor", "orcamentos_implantados_quantidade"),
+    ("Saldo atual", "Orçamentos em aberto", "orcamentos_abertos_valor", "orcamentos_abertos_quantidade"),
+    ("Resultado do período", "Pedidos rejeitados pelo crédito", "pedidos_rejeitados_valor", "pedidos_rejeitados_quantidade"),
+    ("Saldo atual", "Liberados aguardando faturamento", "pedidos_liberados_credito_valor", "aguardando_faturamento_quantidade"),
+    ("Resultado do período", "Faturado", "pedidos_faturados_valor", "pedidos_faturados_quantidade"),
 )
 FUNNEL_DATE_REFERENCES = {
     "Orçamento": "Data do orçamento",
@@ -1561,11 +1559,11 @@ def _funnel_frame(indicators):
 def _commercial_snapshot(indicators):
     """Fotografia oficial do ciclo pedido-orçamento, em valor e quantidade."""
     rows = []
-    for label, value_key, quantity_key in COMMERCIAL_SNAPSHOT:
+    for nature, label, value_key, quantity_key in COMMERCIAL_SNAPSHOT:
         value = pd.to_numeric(pd.Series([indicators.get(value_key)]), errors="coerce").iloc[0]
         quantity = pd.to_numeric(pd.Series([indicators.get(quantity_key)]), errors="coerce").iloc[0]
         rows.append({
-            "Situação": label, "Valor (R$)": value, "Quantidade": quantity,
+            "Natureza": nature, "Situação": label, "Valor (R$)": value, "Quantidade": quantity,
             "Cobertura": "Disponível" if pd.notna(value) or pd.notna(quantity) else "Indisponível",
         })
     return pd.DataFrame(rows)
@@ -1804,8 +1802,8 @@ def _flow_deadlines(flow, start_date, end_date):
 def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export):
     st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
     st.caption(
-        f"ⓘ {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
-        "A posição da carteira é uma fotografia da última carga; as movimentações por data continuam disponíveis para analisar o fluxo no período."
+        f"ⓘ Calendário selecionado: {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
+        "Os cartões comerciais são a fotografia oficial do GoodData na última carga; o calendário aplica-se às movimentações, prazos e detalhamento por data."
     )
     frame = _funnel_frame(indicators)
     available = frame[frame["Valor"].notna()]
@@ -1820,18 +1818,32 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             return "Data não publicada"
         return formatter(float(match.iloc[0][field]))
 
-    st.markdown("### Fotografia comercial do período")
-    snapshot_cards = []
-    for _, row in commercial_snapshot.iterrows():
-        value = brl(float(row["Valor (R$)"])) if pd.notna(row["Valor (R$)"]) else "Não publicado"
-        details = ((f"{_quantity(float(row['Quantidade']))} pedido(s)", "neutral"),) if pd.notna(row["Quantidade"]) else ()
-        snapshot_cards.append((row["Situação"], value, details))
-    _metric_cards(snapshot_cards)
-    conversion_cards = []
-    for label, key in (("Conversão de pedidos", "conversao_pedidos_percent"), ("Conversão para faturamento", "conversao_faturado_percent")):
-        value = pd.to_numeric(pd.Series([(indicators or {}).get(key)]), errors="coerce").iloc[0]
-        conversion_cards.append((label, f"{value * 100:.2f}%".replace(".", ",") if pd.notna(value) else "Não publicado", ()))
-    _metric_cards(conversion_cards)
+    def snapshot_cards(nature):
+        cards = []
+        for _, row in commercial_snapshot[commercial_snapshot["Natureza"] == nature].iterrows():
+            value = brl(float(row["Valor (R$)"])) if pd.notna(row["Valor (R$)"]) else "Não publicado"
+            details = ((f"{_quantity(float(row['Quantidade']))} pedido(s)", "neutral"),) if pd.notna(row["Quantidade"]) else ()
+            cards.append((row["Situação"], value, details))
+        return cards
+
+    st.markdown("### Resultado do período da fonte")
+    _metric_cards(snapshot_cards("Resultado do período"))
+    st.markdown("### Saldos atuais da carteira")
+    _metric_cards(snapshot_cards("Saldo atual"))
+    st.markdown("### Conversões oficiais da fonte")
+    conversion_rows = []
+    for label, value_key, quantity_key in (
+        ("Conversão de pedidos", "conversao_pedidos_percent", "conversao_pedidos_quantidade_percent"),
+        ("Conversão para faturamento", "conversao_faturado_percent", "conversao_faturado_quantidade_percent"),
+    ):
+        value = pd.to_numeric(pd.Series([(indicators or {}).get(value_key)]), errors="coerce").iloc[0]
+        quantity = pd.to_numeric(pd.Series([(indicators or {}).get(quantity_key)]), errors="coerce").iloc[0]
+        conversion_rows.append({
+            "Indicador": label,
+            "Conversão por valor": f"{value * 100:.2f}%".replace(".", ",") if pd.notna(value) else "Não publicado",
+            "Conversão por quantidade": f"{quantity * 100:.2f}%".replace(".", ",") if pd.notna(quantity) else "Não publicado",
+        })
+    show_table(pd.DataFrame(conversion_rows), width="stretch", hide_index=True)
 
     st.markdown("### Movimentações concluídas no período")
     metric_cards = [

@@ -25,11 +25,17 @@ FUNNEL_INDICATOR_REPORTS={
     # não inferir quantidades a partir do detalhamento por item.
     "orcamentos_implantados_valor":"49444",
     "orcamentos_implantados_quantidade":"48411",
-    "orcamentos_abertos_valor":"40646",
+    # Saldo principal do quadro "Pedidos & Orçamentos". O indicador 40646
+    # permanece abaixo como saldo operacional complementar, pois tem outro
+    # contexto de relatório e não deve ser comparado diretamente a este.
+    "orcamentos_abertos_valor":"49462",
+    "orcamentos_abertos_saldo_operacional_valor":"40646",
     "orcamentos_abertos_peso":"40659",
     "orcamentos_abertos_quantidade":"48413",
     "pedidos_rejeitados_valor":"49458",
     "pedidos_rejeitados_quantidade":"48423",
+    # Mantido como compatibilidade com cargas anteriores. A interface usa
+    # orcamentos_abertos_valor, que é o nome correto deste saldo.
     "pedidos_pendentes_valor":"49462",
     "pedidos_liberados_credito_valor":"49468",
     "pedidos_liberados_credito_quantidade":"49102",
@@ -38,6 +44,8 @@ FUNNEL_INDICATOR_REPORTS={
     "pedidos_faturados_quantidade":"49085",
     "conversao_faturado_percent":"49481",
     "conversao_pedidos_percent":"49477",
+    "conversao_faturado_quantidade_percent":"49275",
+    "conversao_pedidos_quantidade_percent":"49269",
     "aguardando_os_peso":"7674329",
     "aguardando_carga_cif_peso":"8084817",
     "aguardando_carga_fob_peso":"8055931",

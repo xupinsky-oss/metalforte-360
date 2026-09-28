@@ -120,7 +120,7 @@ _product_view(
         frame = _funnel_frame({"orcamentos_abertos_valor": 0, "aguardando_os_peso": 1250})
         self.assertEqual(frame.loc[frame["Etapa"] == "Orçamentos em aberto", "Cobertura"].iloc[0], "Disponível")
         self.assertIn("Orçamentos implantados", frame["Etapa"].tolist())
-        self.assertIn("Pedidos não aprovados pelo crédito", frame["Etapa"].tolist())
+        self.assertIn("Pedidos rejeitados pelo crédito", frame["Etapa"].tolist())
         self.assertIn("Aguardando entrega", frame["Etapa"].tolist())
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando kit", "Cobertura"].iloc[0], "Indisponível")
         self.assertEqual(frame.loc[frame["Etapa"] == "Aguardando OS", "Valor"].iloc[0], 1250)
@@ -132,7 +132,8 @@ _product_view(
         }).set_index("Situação")
         self.assertEqual(snapshot.loc["Orçamentos em aberto", "Valor (R$)"], 100000)
         self.assertEqual(snapshot.loc["Orçamentos em aberto", "Quantidade"], 12)
-        self.assertEqual(snapshot.loc["Pedidos não aprovados pelo crédito", "Quantidade"], 2)
+        self.assertEqual(snapshot.loc["Pedidos rejeitados pelo crédito", "Quantidade"], 2)
+        self.assertEqual(snapshot.loc["Orçamentos em aberto", "Natureza"], "Saldo atual")
         self.assertEqual(snapshot.loc["Faturado", "Cobertura"], "Indisponível")
 
     def test_funnel_page_renders_with_partial_snapshot(self):
@@ -146,7 +147,7 @@ flow = pd.DataFrame({
     "Data Liberação": pd.to_datetime(["2026-09-03"]),
 })
 _funnel_view(
-    {"orcamentos_abertos_valor": 100000, "pedidos_pendentes_valor": 65000,
+    {"orcamentos_abertos_valor": 100000, "pedidos_rejeitados_valor": 65000,
      "aguardando_os_peso": 12000, "aguardando_faturamento_peso": 7000},
     flow, "2026-09-01", "2026-09-30",
     lambda value: f"R$ {value:,.2f}", lambda fig: st.plotly_chart(fig),
