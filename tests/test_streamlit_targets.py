@@ -8,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _flow_current_positions, _monthly_activity_matrix,
+    _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _flow_current_positions, _loss_reasons_snapshot, _monthly_activity_matrix,
     _municipal_map_data, _monthly_projection, _pivot_cluster_data,
     _selected_plotly_date, render,
 )
@@ -144,6 +144,15 @@ _product_view(
         }).set_index("Etapa")
         self.assertEqual(snapshot.loc["Convertidos em pedidos", "Quantidade"], 74)
         self.assertTrue(pd.isna(snapshot.loc["Convertidos em pedidos", "Valor (R$)"]))
+
+    def test_loss_reasons_keeps_value_and_weight_by_reason(self):
+        snapshot = _loss_reasons_snapshot({"perdas_por_motivo": [
+            {"Motivo da perda": "Preço concorrente", "Valor perdido (R$)": 1800, "Peso perdido (kg)": 250},
+            {"Motivo da perda": "Preço concorrente", "Valor perdido (R$)": 200, "Peso perdido (kg)": 50},
+            {"Motivo da perda": "Falta de estoque", "Valor perdido (R$)": 700, "Peso perdido (kg)": 90},
+        ]}).set_index("Motivo da perda")
+        self.assertEqual(snapshot.loc["Preço concorrente", "Valor perdido (R$)"], 2000)
+        self.assertEqual(snapshot.loc["Preço concorrente", "Peso perdido (kg)"], 300)
 
     def test_approval_exceptions_only_includes_open_quotes_over_30_days(self):
         positions = pd.DataFrame({

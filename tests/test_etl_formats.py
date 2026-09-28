@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from atualizar_gooddata import build_flow_timeline, collect_target_periods, extract_indicator_percentage, parse_raw
+from atualizar_gooddata import build_flow_timeline, collect_target_periods, extract_indicator_percentage, extract_loss_reasons, parse_raw
 
 
 class EtlFormatTests(unittest.TestCase):
@@ -21,6 +21,17 @@ class EtlFormatTests(unittest.TestCase):
 
     def test_percentage_indicator_keeps_decimal_scale(self):
         self.assertAlmostEqual(extract_indicator_percentage(pd.DataFrame({"Conversão": ["68%"]})), .68)
+
+    def test_loss_detail_keeps_reason_value_and_weight(self):
+        records = extract_loss_reasons(pd.DataFrame({
+            "Motivo da perda": ["Preço concorrente", "Falta de estoque", "Sum"],
+            "Valor da perda": ["R$ 1.800,00", "R$ 700,00", "R$ 2.500,00"],
+            "Peso da perda": ["250,00 Kg", "90,00 Kg", "340,00 Kg"],
+        }))
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["Motivo da perda"], "Preço concorrente")
+        self.assertEqual(records[0]["Valor perdido (R$)"], 1800)
+        self.assertEqual(records[1]["Peso perdido (kg)"], 90)
 
     def test_collects_previous_current_and_future_targets(self):
         detail = pd.DataFrame({"Vendedor": ["ANA"], "Grupo Prod.": ["AÇO"], "Meta Mês": [2]})

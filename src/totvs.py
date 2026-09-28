@@ -56,6 +56,9 @@ FUNNEL_INDICATOR_REPORTS={
 # O kit é um detalhamento, não um cartão pronto no GoodData. A medida é
 # calculada exclusivamente pela coluna de peso desse relatório.
 FUNNEL_DETAIL_REPORTS={"aguardando_kit_peso": ("28736377", "peso")}
+# Relatório analítico oficial de perdas. Ele preserva motivo, valor e peso,
+# evitando tratar perdas como parte do saldo ainda em aberto do funil.
+LOSS_DETAIL_REPORTS={"perdas_por_motivo": "21335179"}
 # Relatórios analíticos do painel "Datas". O grão é pedido × item; eles
 # preservam as datas reais do processo e não apenas a posição atual da fila.
 FUNNEL_DATE_REPORTS={

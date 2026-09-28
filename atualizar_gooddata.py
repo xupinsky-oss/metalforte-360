@@ -2,7 +2,7 @@ import io,json,logging,os,shutil,sys,unicodedata,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import consolidate_targets,merge_target_history
@@ -104,6 +104,37 @@ def sum_detail_measure(frame, column_hint):
     if values.empty:
         raise ValueError(f"Coluna '{candidates[0]}' não retornou valores numéricos.")
     return float(values.sum())
+
+def extract_loss_reasons(frame):
+    """Normaliza o relatório de perdas sem misturar valor financeiro e peso."""
+    def candidate(*terms):
+        matches = [column for column in frame.columns if all(term in _flow_name(column) for term in terms)]
+        return matches[0] if matches else None
+
+    reason_column = candidate("motivo")
+    value_column = candidate("valor", "perda") or candidate("valor")
+    weight_column = candidate("peso", "perda") or candidate("peso")
+    if not reason_column or (not value_column and not weight_column):
+        raise ValueError("Relatório de perdas sem colunas de motivo e medida reconhecíveis.")
+
+    result = pd.DataFrame({"Motivo da perda": frame[reason_column].astype("string").str.strip()})
+    result["Valor perdido (R$)"] = frame[value_column].map(_parse_indicator_value) if value_column else pd.NA
+    result["Peso perdido (kg)"] = frame[weight_column].map(_parse_indicator_value) if weight_column else pd.NA
+    invalid = {"", "<NA>", "nan", "none", "sum", "rollup", "total"}
+    result = result[~result["Motivo da perda"].fillna("").str.casefold().isin(invalid)]
+    result = result.dropna(subset=["Motivo da perda"])
+    if result.empty:
+        raise ValueError("Relatório de perdas sem linhas analíticas.")
+    result = result.groupby("Motivo da perda", as_index=False).agg({"Valor perdido (R$)": "sum", "Peso perdido (kg)": "sum"})
+    result = result.sort_values("Valor perdido (R$)", ascending=False, na_position="last")
+    records = []
+    for row in result.to_dict("records"):
+        records.append({
+            "Motivo da perda": str(row["Motivo da perda"]),
+            "Valor perdido (R$)": round(float(row["Valor perdido (R$)"]), 4) if pd.notna(row["Valor perdido (R$)"]) else None,
+            "Peso perdido (kg)": round(float(row["Peso perdido (kg)"]), 4) if pd.notna(row["Peso perdido (kg)"]) else None,
+        })
+    return records
 
 def _flow_name(value):
     return ''.join(ch for ch in unicodedata.normalize('NFKD',str(value)).lower() if not unicodedata.combining(ch)).replace('.','').replace(' ','')
@@ -288,6 +319,15 @@ def main():
             indicators[name]=round(sum_detail_measure(frame,column_hint),4)
         except Exception as exc:
             logging.warning('Detalhamento do funil indisponível %s: %s',name,type(exc).__name__)
+    for name, report_id in LOSS_DETAIL_REPORTS.items():
+        logging.info('Baixando perdas por motivo %s (%s)',name,report_id)
+        try:
+            # Mantém a fotografia de até 12 meses que a fonte disponibiliza;
+            # o próprio relatório aplica suas regras comerciais de perda.
+            frame = parse_raw(con.raw_report(report_id, offset_from=-12, offset_to=0))
+            indicators[name] = extract_loss_reasons(frame)
+        except Exception as exc:
+            logging.warning('Perdas por motivo indisponíveis %s: %s', name, type(exc).__name__)
     flow_frames={}
     for name,report_id in FUNNEL_DATE_REPORTS.items():
         try:
@@ -351,7 +391,7 @@ def main():
         except Exception as exc:
             logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
             flow_tmp.unlink(missing_ok=True)
-    indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()}}
+    indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()},**LOSS_DETAIL_REPORTS}
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=pd.Timestamp.today().to_period('M').start_time

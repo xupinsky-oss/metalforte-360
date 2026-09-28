@@ -1608,6 +1608,23 @@ def _operational_queue_snapshot(indicators):
     return pd.DataFrame(rows)
 
 
+def _loss_reasons_snapshot(indicators):
+    """Recupera a abertura oficial de orçamentos/pedidos perdidos por motivo."""
+    columns = ["Motivo da perda", "Valor perdido (R$)", "Peso perdido (kg)"]
+    records = (indicators or {}).get("perdas_por_motivo")
+    if not isinstance(records, list) or not records:
+        return pd.DataFrame(columns=columns)
+    result = pd.DataFrame(records).reindex(columns=columns)
+    if result.empty:
+        return result
+    for column in columns[1:]:
+        result[column] = pd.to_numeric(result[column], errors="coerce")
+    result["Motivo da perda"] = result["Motivo da perda"].astype("string").str.strip()
+    result = result.dropna(subset=["Motivo da perda"])
+    result = result[~result["Motivo da perda"].str.casefold().isin(["", "sum", "rollup", "total"])]
+    return result.groupby("Motivo da perda", as_index=False).agg({"Valor perdido (R$)": "sum", "Peso perdido (kg)": "sum"}).sort_values("Valor perdido (R$)", ascending=False, na_position="last")
+
+
 def _approval_exceptions(current_positions, as_of_date):
     """Orçamentos que seguem abertos por mais de 30 dias na trilha detalhada."""
     columns = ["Documento", "Vendedor", "Cliente", "Data do orçamento", "Dias sem aprovação", "Valor (R$)", "Peso (kg)"]
@@ -1866,6 +1883,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     commercial_snapshot = _commercial_snapshot(indicators or {})
     conversion_snapshot = _conversion_funnel_snapshot(indicators or {})
     operational_queue = _operational_queue_snapshot(indicators or {})
+    loss_reasons = _loss_reasons_snapshot(indicators or {})
     date_summary = _flow_event_summary(flow_events, start_date, end_date)
     current_positions, position_summary = _flow_current_positions(flow_events)
     approval_exceptions = _approval_exceptions(current_positions, end_date)
@@ -1965,6 +1983,33 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         show_table(approval_exceptions, height=320, width="stretch", hide_index=True)
         if can_export:
             st.download_button("Exportar exceções de aprovação", approval_exceptions.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "excecoes_aprovacao_mais_30_dias.csv", "text/csv", width="stretch")
+
+    st.markdown("### Orçamentos e pedidos perdidos por motivo")
+    if loss_reasons.empty:
+        st.info("A carga atual ainda não publicou o detalhamento de perdas por motivo.")
+    else:
+        total_loss = loss_reasons["Valor perdido (R$)"].sum(min_count=1)
+        total_weight = loss_reasons["Peso perdido (kg)"].sum(min_count=1)
+        primary_reason = loss_reasons.iloc[0]["Motivo da perda"]
+        _metric_cards([
+            ("Valor perdido", brl(float(total_loss)) if pd.notna(total_loss) else "Não publicado", (("Motivos", f"{_quantity(len(loss_reasons))} classificados", None, False),)),
+            ("Peso perdido", f"{_quantity(float(total_weight))} kg" if pd.notna(total_weight) else "Não publicado", ()),
+            ("Maior motivo", str(primary_reason), (("Impacto", brl(float(loss_reasons.iloc[0]["Valor perdido (R$)"])) if pd.notna(loss_reasons.iloc[0]["Valor perdido (R$)"]) else "Não publicado", None, False),)),
+        ])
+        loss_chart, loss_table = st.columns((1.1, 1), gap="large")
+        with loss_chart:
+            chart_rows = loss_reasons.head(12).sort_values("Valor perdido (R$)")
+            chart = px.bar(chart_rows, x="Valor perdido (R$)", y="Motivo da perda", orientation="h", text="Valor perdido (R$)", title="Valor perdido por motivo", color_discrete_sequence=["#D84A3A"])
+            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.2f}<br>Peso: %{customdata[0]:,.2f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
+            show_chart(_polish_chart(chart, height=max(330, 35 * len(chart_rows) + 110), x_title="Valor perdido (R$)", y_title=""))
+        with loss_table:
+            table = loss_reasons.copy()
+            table["Valor perdido (R$)"] = table["Valor perdido (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+            table["Peso perdido (kg)"] = table["Peso perdido (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+            show_table(table, height=max(330, 35 * len(table) + 110), width="stretch", hide_index=True)
+        st.caption("Registros marcados como perda pela fonte GoodData. São uma população distinta dos saldos em aberto e das filas operacionais; não devem ser somados entre si.")
+        if can_export:
+            st.download_button("Exportar perdas por motivo", loss_reasons.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "perdas_por_motivo.csv", "text/csv", width="stretch")
 
     st.markdown("### Movimentações concluídas no período")
     metric_cards = [
