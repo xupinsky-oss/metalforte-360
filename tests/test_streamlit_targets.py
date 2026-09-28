@@ -9,7 +9,7 @@ from streamlit.testing.v1 import AppTest
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
     _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _customer_commitment_snapshot, _flow_current_positions, _loss_reasons_snapshot, _monthly_activity_matrix,
-    _municipal_map_data, _monthly_projection, _pivot_cluster_data,
+    _municipal_map_data, _monthly_projection, _pivot, _pivot_cluster_data,
     _selected_plotly_date, render,
 )
 from src.commercial_intelligence import customer_portfolio, purchase_seasonality
@@ -153,6 +153,20 @@ _product_view(
         ]}).set_index("Motivo da perda")
         self.assertEqual(snapshot.loc["Preço concorrente", "Valor perdido (R$)"], 2000)
         self.assertEqual(snapshot.loc["Preço concorrente", "Peso perdido (kg)"], 300)
+
+    def test_pivot_offers_customer_segment_as_a_dimension(self):
+        script = r'''
+import pandas as pd
+import streamlit as st
+from src.operational_dashboard import _pivot
+_pivot(pd.DataFrame({
+    "Segmento Cliente": ["REVENDA", "CONSTRUTORA"], "Cliente": ["A", "B"],
+    "Faturamento": [100.0, 200.0], "Peso": [10.0, 20.0], "Margem": [20.0, 30.0],
+}), lambda frame, **kwargs: st.dataframe(frame), False)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertIn("Segmento Cliente", app.multiselect[0].options)
 
     def test_approval_exceptions_only_includes_open_quotes_over_30_days(self):
         positions = pd.DataFrame({

@@ -1211,7 +1211,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 def _pivot(data, show_table, can_export):
     st.subheader("Tabela dinâmica", help=PANEL_HELP["pivot"])
-    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "Cluster PIVOT", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor", "Cliente", "Segmento Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
     selected_metrics = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes"], default=["Faturamento", "Margem"])
