@@ -8,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
-    _commercial_snapshot, _flow_current_positions, _monthly_activity_matrix,
+    _approval_exceptions, _commercial_snapshot, _conversion_funnel_snapshot, _flow_current_positions, _monthly_activity_matrix,
     _municipal_map_data, _monthly_projection, _pivot_cluster_data,
     _selected_plotly_date, render,
 )
@@ -135,6 +135,25 @@ _product_view(
         self.assertEqual(snapshot.loc["Pedidos rejeitados pelo crédito", "Quantidade"], 2)
         self.assertEqual(snapshot.loc["Orçamentos em aberto", "Natureza"], "Saldo atual")
         self.assertEqual(snapshot.loc["Faturado", "Cobertura"], "Indisponível")
+
+    def test_conversion_snapshot_keeps_converted_count_separate_from_value(self):
+        snapshot = _conversion_funnel_snapshot({
+            "orcamentos_implantados_valor": 100000, "orcamentos_implantados_quantidade": 100,
+            "pedidos_liberados_credito_quantidade": 74,
+            "pedidos_faturados_valor": 62000, "pedidos_faturados_quantidade": 60,
+        }).set_index("Etapa")
+        self.assertEqual(snapshot.loc["Convertidos em pedidos", "Quantidade"], 74)
+        self.assertTrue(pd.isna(snapshot.loc["Convertidos em pedidos", "Valor (R$)"]))
+
+    def test_approval_exceptions_only_includes_open_quotes_over_30_days(self):
+        positions = pd.DataFrame({
+            "Documento": ["ORC-1", "PED-2"], "Vendedor": ["Ana", "Bia"], "Cliente": ["A", "B"],
+            "Macroetapa": ["Orçamento", "Crédito"], "Etapa": ["Orçamento em aberto", "Pedido emitido"],
+            "Data da posição": pd.to_datetime(["2026-08-01", "2026-08-01"]), "Valor": [5000.0, 8000.0], "Peso": [100.0, 200.0],
+        })
+        exceptions = _approval_exceptions(positions, "2026-09-15")
+        self.assertEqual(exceptions["Documento"].tolist(), ["ORC-1"])
+        self.assertEqual(exceptions["Dias sem aprovação"].tolist(), [45])
 
     def test_funnel_page_renders_with_partial_snapshot(self):
         script = r'''

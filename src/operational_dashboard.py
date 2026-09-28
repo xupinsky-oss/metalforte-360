@@ -1569,6 +1569,61 @@ def _commercial_snapshot(indicators):
     return pd.DataFrame(rows)
 
 
+def _indicator_number(indicators, key):
+    """Lê um indicador sem converter ausência de publicação em zero."""
+    return pd.to_numeric(pd.Series([(indicators or {}).get(key)]), errors="coerce").iloc[0]
+
+
+def _conversion_funnel_snapshot(indicators):
+    """Funil executivo com medidas compatíveis, sem somar saldos e movimentos."""
+    implanted_quantity = _indicator_number(indicators, "orcamentos_implantados_quantidade")
+    converted_quantity = _indicator_number(indicators, "pedidos_liberados_credito_quantidade")
+    conversion_quantity = _indicator_number(indicators, "conversao_pedidos_quantidade_percent")
+    if pd.isna(converted_quantity) and pd.notna(implanted_quantity) and pd.notna(conversion_quantity):
+        converted_quantity = implanted_quantity * conversion_quantity
+    rows = [
+        {"Ordem": 1, "Etapa": "Orçamentos implantados", "Valor (R$)": _indicator_number(indicators, "orcamentos_implantados_valor"), "Quantidade": implanted_quantity, "Leitura": "Base do funil"},
+        {"Ordem": 2, "Etapa": "Convertidos em pedidos", "Valor (R$)": np.nan, "Quantidade": converted_quantity, "Leitura": "Liberados pelo crédito"},
+        {"Ordem": 3, "Etapa": "Faturados", "Valor (R$)": _indicator_number(indicators, "pedidos_faturados_valor"), "Quantidade": _indicator_number(indicators, "pedidos_faturados_quantidade"), "Leitura": "Resultado faturado"},
+        {"Ordem": 4, "Etapa": "Não faturados", "Valor (R$)": _indicator_number(indicators, "pedidos_liberados_credito_valor"), "Quantidade": _indicator_number(indicators, "aguardando_faturamento_quantidade"), "Leitura": "Saldo liberado aguardando faturamento"},
+    ]
+    return pd.DataFrame(rows)
+
+
+def _operational_queue_snapshot(indicators):
+    """Filas operacionais publicadas em peso; ausências ficam explícitas."""
+    queues = (
+        ("Aguardando estoque / OS", "aguardando_os_peso", "Produção"),
+        ("Aguardando kit", "aguardando_kit_peso", "Produção"),
+        ("Aguardando carga CIF", "aguardando_carga_cif_peso", "Carga"),
+        ("Aguardando carga FOB", "aguardando_carga_fob_peso", "Carga"),
+        ("Aguardando faturamento CIF", "aguardando_faturamento_cif_peso", "Faturamento"),
+        ("Aguardando faturamento FOB", "aguardando_faturamento_fob_peso", "Faturamento"),
+    )
+    rows = []
+    for label, key, journey in queues:
+        value = _indicator_number(indicators, key)
+        rows.append({"Etapa": label, "Peso (kg)": value, "Macroetapa": journey, "Cobertura": "Disponível" if pd.notna(value) else "Não publicado"})
+    rows.append({"Etapa": "Bloqueio de crédito e estoque", "Peso (kg)": np.nan, "Macroetapa": "Crédito", "Cobertura": "Indicador ainda não publicado"})
+    return pd.DataFrame(rows)
+
+
+def _approval_exceptions(current_positions, as_of_date):
+    """Orçamentos que seguem abertos por mais de 30 dias na trilha detalhada."""
+    columns = ["Documento", "Vendedor", "Cliente", "Data do orçamento", "Dias sem aprovação", "Valor (R$)", "Peso (kg)"]
+    if current_positions is None or current_positions.empty:
+        return pd.DataFrame(columns=columns)
+    source = current_positions.copy()
+    source = source[source["Macroetapa"].eq("Orçamento") | source["Etapa"].eq("Orçamento em aberto")].copy()
+    source["Data do orçamento"] = pd.to_datetime(source["Data da posição"], errors="coerce")
+    source["Dias sem aprovação"] = (pd.Timestamp(as_of_date).normalize() - source["Data do orçamento"].dt.normalize()).dt.days
+    source = source[source["Dias sem aprovação"].gt(30)].copy()
+    if source.empty:
+        return pd.DataFrame(columns=columns)
+    source = source.rename(columns={"Valor": "Valor (R$)", "Peso": "Peso (kg)"})
+    return source.reindex(columns=columns).sort_values(["Dias sem aprovação", "Valor (R$)"], ascending=[False, False])
+
+
 def _flow_current_positions(flow):
     """Localiza cada pedido/OP na última etapa concluída, sem duplicá-lo."""
     position_columns = [
@@ -1809,8 +1864,11 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
     available = frame[frame["Valor"].notna()]
     missing = frame[frame["Valor"].isna()]
     commercial_snapshot = _commercial_snapshot(indicators or {})
+    conversion_snapshot = _conversion_funnel_snapshot(indicators or {})
+    operational_queue = _operational_queue_snapshot(indicators or {})
     date_summary = _flow_event_summary(flow_events, start_date, end_date)
     current_positions, position_summary = _flow_current_positions(flow_events)
+    approval_exceptions = _approval_exceptions(current_positions, end_date)
 
     def event_metric(label, field, formatter):
         match = date_summary[date_summary["Movimentação"] == label]
@@ -1826,10 +1884,33 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             cards.append((row["Situação"], value, details))
         return cards
 
-    st.markdown("### Resultado do período da fonte")
-    _metric_cards(snapshot_cards("Resultado do período"))
-    st.markdown("### Saldos atuais da carteira")
-    _metric_cards(snapshot_cards("Saldo atual"))
+    st.markdown("### Funil executivo de conversão")
+    conversion_cards = []
+    for _, row in conversion_snapshot.iterrows():
+        if row["Etapa"] == "Convertidos em pedidos":
+            main_value = f"{_quantity(float(row['Quantidade']))} pedido(s)" if pd.notna(row["Quantidade"]) else "Não publicado"
+            details = (("Origem", "Liberados pelo crédito", None, False),)
+        else:
+            main_value = brl(float(row["Valor (R$)"])) if pd.notna(row["Valor (R$)"]) else "Não publicado"
+            details = (("Quantidade", f"{_quantity(float(row['Quantidade']))} pedido(s)", None, False),) if pd.notna(row["Quantidade"]) else ()
+        conversion_cards.append((row["Etapa"], main_value, details))
+    _metric_cards(conversion_cards)
+
+    chart_column, table_column = st.columns((1.05, 1), gap="large")
+    with chart_column:
+        chart_rows = conversion_snapshot.dropna(subset=["Quantidade"]).sort_values("Ordem", ascending=False)
+        if chart_rows.empty:
+            st.info("A carga atual ainda não publicou quantidades para o funil de conversão.")
+        else:
+            chart = px.funnel(chart_rows, x="Quantidade", y="Etapa", color="Etapa", title="Conversão por quantidade de pedidos", color_discrete_sequence=["#F36A2D", "#2F8FD8", "#177245", "#D89A20"])
+            chart.update_traces(texttemplate="%{value:,.0f}", textposition="inside", hovertemplate="%{y}<br>%{x:,.0f} pedido(s)<extra></extra>")
+            show_chart(_polish_chart(chart, height=330, x_title="Quantidade de pedidos", y_title=""))
+    with table_column:
+        table = conversion_snapshot.drop(columns="Ordem").copy()
+        table["Valor (R$)"] = table["Valor (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+        table["Quantidade"] = table["Quantidade"].map(lambda value: _quantity(float(value)) if pd.notna(value) else "—")
+        show_table(table, height=330, width="stretch", hide_index=True)
+
     st.markdown("### Conversões oficiais da fonte")
     conversion_rows = []
     for label, value_key, quantity_key in (
@@ -1844,6 +1925,46 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             "Conversão por quantidade": f"{quantity * 100:.2f}%".replace(".", ",") if pd.notna(quantity) else "Não publicado",
         })
     show_table(pd.DataFrame(conversion_rows), width="stretch", hide_index=True)
+
+    st.markdown("### Onde estão os pedidos não faturados")
+    non_invoiced_value = _indicator_number(indicators, "pedidos_liberados_credito_valor")
+    non_invoiced_count = _indicator_number(indicators, "aguardando_faturamento_quantidade")
+    non_invoiced_weight = _indicator_number(indicators, "aguardando_faturamento_peso")
+    details = []
+    if pd.notna(non_invoiced_count):
+        details.append(("Quantidade", f"{_quantity(float(non_invoiced_count))} pedido(s)", None, False))
+    if pd.notna(non_invoiced_weight):
+        details.append(("Fila", f"{_quantity(float(non_invoiced_weight))} kg", None, False))
+    _metric_cards([("Saldo não faturado", brl(float(non_invoiced_value)) if pd.notna(non_invoiced_value) else "Não publicado", tuple(details))])
+    queue_chart, queue_table = st.columns((1.05, 1), gap="large")
+    with queue_chart:
+        chart_rows = operational_queue[operational_queue["Peso (kg)"].notna()].sort_values("Peso (kg)")
+        if chart_rows.empty:
+            st.info("A carga atual ainda não publicou a distribuição operacional por peso.")
+        else:
+            chart = px.bar(chart_rows, x="Peso (kg)", y="Etapa", orientation="h", color="Macroetapa", text="Peso (kg)", title="Distribuição operacional dos não faturados", color_discrete_sequence=["#D89A20", "#2F8FD8", "#F36A2D"])
+            chart.update_traces(texttemplate="%{text:,.0f} kg", textposition="outside", cliponaxis=False)
+            show_chart(_polish_chart(chart, height=350, x_title="Peso (kg)", y_title=""))
+    with queue_table:
+        table = operational_queue.copy()
+        table["Peso (kg)"] = table["Peso (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+        show_table(table, height=350, width="stretch", hide_index=True)
+    st.caption("A fila operacional é disponibilizada pela fonte em kg. O bloqueio de crédito e estoque será exibido assim que o indicador específico for publicado na extração; ele não é estimado nem preenchido como zero.")
+
+    st.markdown("### Exceções de aprovação")
+    rejected_value = _indicator_number(indicators, "pedidos_rejeitados_valor")
+    rejected_quantity = _indicator_number(indicators, "pedidos_rejeitados_quantidade")
+    _metric_cards([
+        ("Não aprovados / rejeitados pelo crédito", brl(float(rejected_value)) if pd.notna(rejected_value) else "Não publicado", (("Quantidade", f"{_quantity(float(rejected_quantity))} pedido(s)", None, False),) if pd.notna(rejected_quantity) else ()),
+        ("Sem aprovação há mais de 30 dias", f"{_quantity(len(approval_exceptions))} documento(s)", (("Fonte", "Base detalhada disponível", None, False),)),
+    ])
+    if approval_exceptions.empty:
+        st.info("Não há orçamentos abertos há mais de 30 dias na trilha detalhada disponível. A regra considera a data do orçamento até a data final selecionada.")
+    else:
+        st.caption("Orçamentos sem uma etapa posterior registrada por mais de 30 dias. Esta é uma fila de ação, não um saldo financeiro adicional.")
+        show_table(approval_exceptions, height=320, width="stretch", hide_index=True)
+        if can_export:
+            st.download_button("Exportar exceções de aprovação", approval_exceptions.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "excecoes_aprovacao_mais_30_dias.csv", "text/csv", width="stretch")
 
     st.markdown("### Movimentações concluídas no período")
     metric_cards = [
