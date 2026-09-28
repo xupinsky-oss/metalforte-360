@@ -30,7 +30,7 @@
 - A matriz versionada `resources/cidades_pivot.csv.gz` deriva da planilha **CIDADES PIVOT.xlsx**, aba `DIM_CIDADES`.
 - A junção usa `UF + Município`, com remoção apenas de acentos, espaços nas extremidades e diferença entre maiúsculas/minúsculas.
 - O cluster exibido combina cidade PIVOT e UF, evitando colisões entre cidades homônimas de estados diferentes.
-- A matriz possui 6.152 combinações únicas de UF e município e 157 cidades PIVOT.
+- A matriz possui 6.152 combinações únicas de UF e município, 157 nomes de cidades PIVOT e 175 clusters estaduais. A separação por UF impede que cidades PIVOT homônimas misturem territórios distintos.
 - Latitude e longitude permanecem somente na matriz geográfica; não alteram o grão nem os valores da base realizada.
 - Ausências de correspondência são publicadas como `Não mapeado`; nenhuma cidade PIVOT é inferida por proximidade.
 
