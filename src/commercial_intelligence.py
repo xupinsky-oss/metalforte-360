@@ -159,6 +159,8 @@ def customer_portfolio(current, history, start_date, end_date, reference_mode="y
     }
     if "Canal" in history_until:
         context_columns["Canal"] = ("Canal", "last")
+    if "Cluster PIVOT" in history_until:
+        context_columns["Cluster PIVOT"] = ("Cluster PIVOT", "last")
     context = history_until.sort_values("Data").groupby("Cliente", dropna=False).agg(
         **context_columns
     ).reset_index()

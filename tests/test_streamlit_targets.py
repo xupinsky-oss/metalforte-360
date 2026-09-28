@@ -9,7 +9,7 @@ from streamlit.testing.v1 import AppTest
 from src.operational_dashboard import (
     _flow_deadlines, _flow_event_summary, _funnel_frame, _metric_card_html,
     _flow_current_positions, _monthly_activity_matrix, _municipal_map_data,
-    _monthly_projection, _selected_plotly_date, render,
+    _monthly_projection, _pivot_cluster_data, _selected_plotly_date, render,
 )
 from src.commercial_intelligence import customer_portfolio, purchase_seasonality
 from src.data import load_data
@@ -249,6 +249,28 @@ _funnel_view(
         self.assertEqual(campinas["Potencial não atendido R$"], 900.0)
         self.assertAlmostEqual(campinas["Taxa de ativação"], .5)
 
+    def test_pivot_clusters_include_matrix_coverage_and_recompute_rates(self):
+        municipal = pd.DataFrame({
+            "UF": ["SP", "SP"], "Município": ["Campinas", "Valinhos"],
+            "Clientes totais": [2, 1], "Clientes ativos": [1, 1],
+            "Faturamento": [600.0, 400.0], "KG faturado": [60.0, 40.0],
+            "Margem R$": [120.0, 40.0], "Potencial R$": [1500.0, 500.0],
+            "Potencial não atendido R$": [900.0, 100.0],
+        })
+        clusters = pd.DataFrame({
+            "UF": ["SP", "SP", "SP"], "Município": ["Campinas", "Valinhos", "Vinhedo"],
+            "_municipio_key": ["CAMPINAS", "VALINHOS", "VINHEDO"],
+            "Cidade PIVOT": ["CAMPINAS"] * 3, "Cluster PIVOT": ["CAMPINAS / SP"] * 3,
+        })
+        result = _pivot_cluster_data(municipal, clusters=clusters).iloc[0]
+
+        self.assertEqual(result["Municípios da matriz"], 3)
+        self.assertEqual(result["Municípios com carteira"], 2)
+        self.assertAlmostEqual(result["Cobertura territorial"], 2 / 3)
+        self.assertAlmostEqual(result["Taxa de ativação"], 2 / 3)
+        self.assertAlmostEqual(result["Preço médio/kg"], 10.0)
+        self.assertAlmostEqual(result["Margem %"], .16)
+
     def test_municipal_map_page_renders_with_selectable_measure(self):
         script = r'''
 import pandas as pd
@@ -271,7 +293,7 @@ _municipal_map_view(
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.selectbox[0].value, "Potencial não atendido R$")
-        self.assertEqual(len(app.metric), 4)
+        self.assertEqual(len(app.metric), 8)
 
     def test_target_page_renders_cards_chart_and_table(self):
         script = r'''

@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.19.0 — clusters de cidades PIVOT
+
+- incorporada a matriz `CIDADES PIVOT.xlsx`, com 6.152 combinações únicas de UF e município agrupadas em 157 cidades PIVOT;
+- incluído o filtro global **Cluster de cidades (PIVOT)**, aplicado a todas as páginas, comparações e exportações;
+- adicionada ao mapa a visão de performance por cluster com faturamento, clientes, ativação, potencial, KG, preço médio e margem;
+- criada a cobertura territorial por cluster: municípios com carteira divididos pelos municípios cadastrados na matriz;
+- municípios sem correspondência permanecem identificados como `Não mapeado`, sem inferência automática.
+
 ## v2.18.2 — filtro por tipo de cliente
 
 - incluído o filtro lateral **Tipo de cliente** usando `Tipologia Cliente`;

@@ -15,6 +15,7 @@ import streamlit as st
 from src.analytics import group_metrics, metrics
 from src.assistant import answer, SUGGESTED_QUESTIONS
 from src.auth import render_user_admin
+from src.data import load_city_clusters
 from src.targets import allocate_target, target_scope
 from src.commercial_intelligence import (
     actionable_insights,
@@ -37,7 +38,7 @@ PANEL_HELP = {
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
     "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Canais correspondem ao Segmento Cliente. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
-    "map": "Consolida a carteira por município. Clientes totais usam o histórico até a data final; clientes ativos possuem faturamento líquido positivo no período. Potencial usa o faturamento positivo do mesmo período do ano anterior e potencial não atendido é a diferença positiva para o faturamento atual.",
+    "map": "Consolida a carteira por município e por cluster de cidade PIVOT. Clientes totais usam o histórico até a data final; clientes ativos possuem faturamento líquido positivo no período. Potencial usa o faturamento positivo do mesmo período do ano anterior e potencial não atendido é a diferença positiva para o faturamento atual.",
     "pivot": "Agrupa os registros filtrados pelas dimensões escolhidas e soma faturamento, peso e margem; clientes são contados de forma distinta. Margem % é margem dividida pelo faturamento.",
     "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
@@ -536,7 +537,62 @@ def _attach_municipal_coordinates(frame, coordinates=None):
     return result.merge(coordinates, on=["_municipio_key", "UF"], how="left")
 
 
-def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+def _pivot_cluster_data(municipal, uf_filter=None, cluster_filter=None, clusters=None):
+    """Agrega a carteira na matriz de cidades PIVOT sem somar taxas ou médias."""
+    mapping = load_city_clusters() if clusters is None else clusters.copy()
+    if mapping.empty:
+        return pd.DataFrame()
+    mapping["UF"] = mapping["UF"].astype(str).str.strip().str.upper()
+    if uf_filter:
+        mapping = mapping[mapping["UF"].isin(uf_filter)]
+    if cluster_filter:
+        mapping = mapping[mapping["Cluster PIVOT"].isin(cluster_filter)]
+    matrix = mapping.groupby(["UF", "Cidade PIVOT", "Cluster PIVOT"], dropna=False).agg(
+        **{"Municípios da matriz": ("_municipio_key", "nunique")}
+    ).reset_index()
+
+    if municipal is None or municipal.empty:
+        result = matrix.copy()
+        for column in (
+            "Municípios com carteira", "Clientes totais", "Clientes ativos", "Faturamento",
+            "KG faturado", "Margem R$", "Potencial R$", "Potencial não atendido R$",
+        ):
+            result[column] = 0.0
+    else:
+        performance = municipal.copy()
+        performance["UF"] = performance["UF"].astype(str).str.strip().str.upper()
+        performance["_municipio_key"] = performance["Município"].map(_geo_key)
+        lookup = mapping[["UF", "_municipio_key", "Cidade PIVOT", "Cluster PIVOT"]].drop_duplicates(["UF", "_municipio_key"])
+        performance = performance.merge(lookup, on=["UF", "_municipio_key"], how="left", validate="many_to_one")
+        performance["Cidade PIVOT"] = performance["Cidade PIVOT"].fillna("Não mapeado")
+        performance["Cluster PIVOT"] = performance["Cluster PIVOT"].fillna("Não mapeado")
+        aggregated = performance.groupby(["UF", "Cidade PIVOT", "Cluster PIVOT"], dropna=False).agg(
+            **{
+                "Municípios com carteira": ("_municipio_key", "nunique"),
+                "Clientes totais": ("Clientes totais", "sum"),
+                "Clientes ativos": ("Clientes ativos", "sum"),
+                "Faturamento": ("Faturamento", "sum"),
+                "KG faturado": ("KG faturado", "sum"),
+                "Margem R$": ("Margem R$", "sum"),
+                "Potencial R$": ("Potencial R$", "sum"),
+                "Potencial não atendido R$": ("Potencial não atendido R$", "sum"),
+            }
+        ).reset_index()
+        result = matrix.merge(aggregated, on=["UF", "Cidade PIVOT", "Cluster PIVOT"], how="outer")
+        for column in (
+            "Municípios da matriz", "Municípios com carteira", "Clientes totais", "Clientes ativos",
+            "Faturamento", "KG faturado", "Margem R$", "Potencial R$", "Potencial não atendido R$",
+        ):
+            result[column] = pd.to_numeric(result[column], errors="coerce").fillna(0.0)
+
+    result["Cobertura territorial"] = result["Municípios com carteira"].div(result["Municípios da matriz"].replace(0, np.nan))
+    result["Taxa de ativação"] = result["Clientes ativos"].div(result["Clientes totais"].replace(0, np.nan))
+    result["Preço médio/kg"] = result["Faturamento"].div(result["KG faturado"].replace(0, np.nan))
+    result["Margem %"] = result["Margem R$"].div(result["Faturamento"].replace(0, np.nan))
+    return result.sort_values(["Potencial não atendido R$", "Faturamento"], ascending=False)
+
+
+def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters=None):
     st.subheader("Mapa de áreas por município", help=PANEL_HELP["map"])
     st.caption(
         f"{pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
@@ -636,6 +692,64 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
                 "Exportar visão municipal", detail.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
                 "mapa_municipal.csv", "text/csv", key="export_municipal_map", width="stretch",
             )
+
+    view_filters = view_filters or {}
+    clusters = _pivot_cluster_data(
+        municipal, uf_filter=view_filters.get("uf"), cluster_filter=view_filters.get("clusters"),
+    )
+    if not clusters.empty:
+        st.divider()
+        st.subheader("Performance por cluster de cidades PIVOT")
+        st.caption(
+            "Cada cluster reúne os municípios vinculados à sua cidade PIVOT. A matriz territorial inclui também municípios sem carteira ou faturamento no recorte."
+        )
+        cluster_metrics = [
+            "Faturamento", "Clientes totais", "Clientes ativos", "Taxa de ativação",
+            "Potencial R$", "Potencial não atendido R$", "KG faturado", "Preço médio/kg",
+            "Margem %", "Cobertura territorial",
+        ]
+        cluster_metric = st.selectbox("Medida dos clusters", cluster_metrics, index=5, key="pivot_cluster_metric")
+        cluster_cards = st.columns(4)
+        cluster_cards[0].metric("Clusters na matriz", _quantity(len(clusters)))
+        cluster_cards[1].metric("Clusters com carteira", _quantity(int(clusters["Clientes totais"].gt(0).sum())))
+        matrix_cities = float(clusters["Municípios da matriz"].sum())
+        portfolio_cities = float(clusters["Municípios com carteira"].sum())
+        cluster_cards[2].metric("Cobertura de municípios", pct(portfolio_cities / matrix_cities) if matrix_cities else "—")
+        cluster_cards[3].metric("Potencial não atendido", brl(float(clusters["Potencial não atendido R$"].sum())))
+
+        ranked = clusters[pd.to_numeric(clusters[cluster_metric], errors="coerce").notna()].nlargest(25, cluster_metric).sort_values(cluster_metric)
+        if not ranked.empty:
+            chart = px.bar(
+                ranked, x=cluster_metric, y="Cluster PIVOT", orientation="h",
+                color_discrete_sequence=["#F2662E"], title=f"Top clusters por {cluster_metric.lower()}",
+                hover_data={"Cidade PIVOT": True, "UF": True, "Clientes totais": ":,.0f", "Clientes ativos": ":,.0f"},
+            )
+            _polish_chart(chart, height=max(430, len(ranked) * 27), x_title=cluster_metric, y_title=None)
+            if cluster_metric in {"Faturamento", "Potencial R$", "Potencial não atendido R$", "Preço médio/kg"}:
+                chart.update_xaxes(tickprefix="R$ ", tickformat=",.2f")
+            elif cluster_metric in {"Taxa de ativação", "Margem %", "Cobertura territorial"}:
+                chart.update_xaxes(tickformat=".2%")
+            else:
+                chart.update_xaxes(tickformat=",.0f")
+            show_chart(chart)
+
+        cluster_columns = [
+            "Cluster PIVOT", "UF", "Municípios da matriz", "Municípios com carteira", "Cobertura territorial",
+            "Clientes totais", "Clientes ativos", "Taxa de ativação", "Faturamento", "Potencial R$",
+            "Potencial não atendido R$", "KG faturado", "Preço médio/kg", "Margem %",
+        ]
+        cluster_detail = clusters[cluster_columns].sort_values(cluster_metric, ascending=False, na_position="last")
+        with st.expander("Detalhamento dos clusters PIVOT"):
+            show_table(cluster_detail, height=540, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button(
+                    "Exportar clusters PIVOT", cluster_detail.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                    "clusters_cidades_pivot.csv", "text/csv", key="export_pivot_clusters", width="stretch",
+                )
+        st.caption(
+            "ⓘ Cobertura territorial = municípios com ao menos um cliente na carteira ÷ municípios da matriz do cluster. "
+            "Potencial segue a mesma metodologia do mapa municipal e não representa potencial de mercado externo."
+        )
     st.caption(
         "ⓘ Potencial = faturamento positivo do mesmo período do ano anterior. "
         "Potencial não atendido = diferença positiva entre esse valor e o faturamento atual. "
@@ -753,7 +867,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             )
 
     st.markdown("### Detalhamento")
-    dimensions = [column for column in ("Vendedor", "Grupo Produto", "Segmento Cliente", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor", "Grupo Produto", "Segmento Cliente", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     dimension = st.selectbox("Analisar por", dimensions, key="executive_breakdown")
     view = _summary(data, dimension, current["revenue"])
     if view.empty:
@@ -919,7 +1033,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     portfolio = customer_portfolio(current, client_history, start_date, end_date, mode)
     if selected == "Todos os clientes" and not portfolio.empty:
         columns = [column for column in [
-            "Cliente", "Vendedor", "Canal", "UF", "Município", "Última compra", "Dias sem comprar",
+            "Cliente", "Vendedor", "Canal", "Cluster PIVOT", "UF", "Município", "Última compra", "Dias sem comprar",
             "Faturamento atual", "Faturamento referência", "Variação faturamento %",
             "KG atual", "Margem % atual", "Preço médio atual", "Mix atual", "Situação",
         ] if column in portfolio]
@@ -1097,7 +1211,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
 def _pivot(data, show_table, can_export):
     st.subheader("Tabela dinâmica", help=PANEL_HELP["pivot"])
-    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
     selected_metrics = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes"], default=["Faturamento", "Margem"])
@@ -1180,7 +1294,7 @@ def _unified_view(data, targets, flow_events, indicators, start_date, end_date, 
     result = unified[unified["Fonte"].isin(selected_sources)].copy()
     core = [
         "Fonte", "Tipo de registro", "Data de referência", "Data faturamento", "Competência",
-        "Pedido", "NF", "OP", "Vendedor", "Cliente", "Segmento Cliente", "Grupo Produto", "Produto",
+        "Pedido", "NF", "OP", "Vendedor", "Cliente", "Segmento Cliente", "Cluster PIVOT", "UF", "Município", "Grupo Produto", "Produto",
         "Faturamento", "Peso faturado (kg)", "Margem (R$)", "Margem faturamento %",
         "Meta (R$)", "Meta (kg)", "Valor funil (R$)", "Peso funil (kg)", "Métrica", "Indicador (R$)", "Indicador (kg)",
     ]
@@ -1202,7 +1316,7 @@ def _unified_view(data, targets, flow_events, indicators, start_date, end_date, 
 
 def _yoy(data, history, start_date, end_date, show_chart, show_table):
     st.subheader("Comparativo com o ano anterior", help=PANEL_HELP["yoy"])
-    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     dimension = st.selectbox("Analisar por", dimensions, key="yoy_dimension")
     previous = _shifted_period(history, start_date, end_date, years=1)
     current_view = _summary(data, dimension, data["Faturamento"].sum()).set_index(dimension)
@@ -1798,7 +1912,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         )
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None):
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
@@ -1853,7 +1967,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_funnel":
         _funnel_view(commercial_indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_map":
-        _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+        _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters)
     elif permission == "view_heatmap":
         _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":

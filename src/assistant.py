@@ -34,7 +34,7 @@ def _top_lines(table,dim,value="faturamento",limit=10,extra=None):
     return "\n".join(lines)
 
 def _dimension(q):
-    for terms,dim in [(("vendedor","equipe"),"Vendedor"),(("produto","sku"),"Produto"),(("grupo","portfólio","portfolio"),"Grupo Produto"),(("uf","estado"),"UF"),(("município","municipio","cidade"),"Município"),(("cliente","carteira"),"Cliente")]:
+    for terms,dim in [(("cluster","cidade pivot","cidade pivô"),"Cluster PIVOT"),(("vendedor","equipe"),"Vendedor"),(("produto","sku"),"Produto"),(("grupo","portfólio","portfolio"),"Grupo Produto"),(("uf","estado"),"UF"),(("município","municipio","cidade"),"Município"),(("cliente","carteira"),"Cliente")]:
         if any(t in q for t in terms): return dim
     return "Cliente"
 
@@ -92,6 +92,9 @@ def answer(question,df,history_df=None,start_date=None,end_date=None):
         t=group_metrics(df,"Produto").sort_values("faturamento",ascending=False).head(10); return _top_lines(t,"Produto")
     if "uf" in q or "estado" in q:
         t=group_metrics(df,"UF").sort_values("faturamento",ascending=False).head(10); return "\n".join([f"{i+1}. **{r.UF}**: {money(r.faturamento)} | margem {pct(r.margem_pct)}" for i,r in t.iterrows()])
+    if "cluster" in q or "cidade pivot" in q or "cidade pivô" in q:
+        if "Cluster PIVOT" not in df: return "A matriz de cidades PIVOT não está disponível neste recorte."
+        t=group_metrics(df,"Cluster PIVOT").sort_values("faturamento",ascending=False).head(10); return "\n".join([f"{i+1}. **{r['Cluster PIVOT']}**: {money(r.faturamento)} | margem {pct(r.margem_pct)}" for i,r in t.iterrows()])
     if "municip" in q or "cidade" in q:
         t=group_metrics(df,"Município").sort_values("faturamento",ascending=False).head(10); return "\n".join([f"{i+1}. **{r['Município']}**: {money(r.faturamento)}" for i,r in t.iterrows()])
     if "margem negativa" in q:

@@ -239,6 +239,12 @@ with st.sidebar:
     selected_client=None if client_scope=="Todos os clientes" else client_scope
     with st.expander("Mais filtros"):
         pool=df if not uf else df[df["UF"].isin(uf)]
+        cidade_pivot=st.multiselect(
+            "Cluster de cidades (PIVOT)", sorted(pool["Cluster PIVOT"].unique()),
+            help="Agrupa cada município à cidade PIVOT de maior potencial de sua região.",
+        ) if "Cluster PIVOT" in pool else []
+        if cidade_pivot:
+            pool=pool[pool["Cluster PIVOT"].isin(cidade_pivot)]
         city=st.multiselect("Município",sorted(pool["Município"].unique()))
         canal=st.multiselect(
             "Canal (segmento de clientes)", sorted(df["Canal"].unique())
@@ -255,12 +261,12 @@ with st.sidebar:
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
         ct=st.text_input("Buscar cliente")
         pt=st.text_input("Buscar produto")
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
-monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
-target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,
@@ -279,5 +285,6 @@ render_operational_dashboard(
     target_history=target_history, target_filters=target_filters,
     commercial_indicators=load_status.get("indicadores", {}),
     flow_events=flow_events,
+    view_filters={"uf": uf, "clusters": cidade_pivot},
 )
 st.stop()

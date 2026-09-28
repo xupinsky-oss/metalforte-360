@@ -25,6 +25,15 @@
 - Valores vazios permanecem identificados como `Não mapeado`; a rotina não infere especificações ausentes.
 - A carga falha se a matriz contiver códigos duplicados ou se menos de 50% dos produtos realizados forem conciliados.
 
+## Clusters de cidades PIVOT
+
+- A matriz versionada `resources/cidades_pivot.csv.gz` deriva da planilha **CIDADES PIVOT.xlsx**, aba `DIM_CIDADES`.
+- A junção usa `UF + Município`, com remoção apenas de acentos, espaços nas extremidades e diferença entre maiúsculas/minúsculas.
+- O cluster exibido combina cidade PIVOT e UF, evitando colisões entre cidades homônimas de estados diferentes.
+- A matriz possui 6.152 combinações únicas de UF e município e 157 cidades PIVOT.
+- Latitude e longitude permanecem somente na matriz geográfica; não alteram o grão nem os valores da base realizada.
+- Ausências de correspondência são publicadas como `Não mapeado`; nenhuma cidade PIVOT é inferida por proximidade.
+
 ## Metas e orçamento
 
 - `Rel.044 Comercial - Analítico Metas` (`11081881`) fornece a meta mensal de peso por vendedor e grupo de produto.
