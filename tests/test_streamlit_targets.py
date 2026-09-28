@@ -184,10 +184,11 @@ _funnel_view(
 '''
         app = AppTest.from_string(script).run(timeout=20)
         self.assertEqual(len(app.exception), 0)
-        self.assertGreaterEqual(len(app.tabs), 5)
+        self.assertEqual(len(app.tabs), 3)
         rendered = "\n".join(str(item.value) for item in app.markdown)
-        self.assertIn("Pedidos emitidos", rendered)
-        self.assertIn("Posição atual da carteira", rendered)
+        self.assertIn("Conversão comercial", rendered)
+        self.assertIn("Carteira em execução", rendered)
+        self.assertIn("Pendências para faturar", rendered)
         self.assertIn("Pedido liberado", rendered)
         self.assertNotIn("Orçamentos em aberto</span>", rendered)
 

@@ -1871,7 +1871,7 @@ def _flow_deadlines(flow, start_date, end_date):
     return pd.DataFrame(rows, columns=columns)
 
 
-def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export):
+def _legacy_funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export):
     st.subheader("Funil comercial e operacional", help=PANEL_HELP["funnel"])
     st.caption(
         f"ⓘ Calendário selecionado: {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
@@ -2124,6 +2124,164 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             "Exportar fotografia do funil", export.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
             "funil_acompanhamento.csv", "text/csv", width="stretch",
         )
+
+
+def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export):
+    """Visão operacional enxuta: conversão, posição, pendências e desvios."""
+    st.subheader("Funil comercial", help=PANEL_HELP["funnel"])
+    st.caption(
+        f"Calendário: {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
+        "A sequência abaixo separa conversão, posição atual, pendências e perdas para não somar populações diferentes."
+    )
+    conversion = _conversion_funnel_snapshot(indicators or {})
+    queues = _operational_queue_snapshot(indicators or {})
+    losses = _loss_reasons_snapshot(indicators or {})
+    current_positions, position_summary = _flow_current_positions(flow_events)
+    approval_exceptions = _approval_exceptions(current_positions, end_date)
+    date_summary = _flow_event_summary(flow_events, start_date, end_date)
+    deadlines = _flow_deadlines(flow_events, start_date, end_date)
+
+    st.markdown("### 1. Conversão comercial")
+    conversion_index = conversion.set_index("Etapa")
+    implanted = conversion_index.loc["Orçamentos implantados"]
+    converted = conversion_index.loc["Convertidos em pedidos"]
+    invoiced = conversion_index.loc["Faturados"]
+    _metric_cards([
+        (
+            "Orçamentos implantados",
+            brl(float(implanted["Valor (R$)"])) if pd.notna(implanted["Valor (R$)"]) else "Não publicado",
+            (("Quantidade", f"{_quantity(float(implanted['Quantidade']))} orçamento(s)", None, False),) if pd.notna(implanted["Quantidade"]) else (),
+        ),
+        (
+            "Convertidos em pedidos",
+            f"{_quantity(float(converted['Quantidade']))} pedido(s)" if pd.notna(converted["Quantidade"]) else "Não publicado",
+            (("Critério", "Liberados pelo crédito", None, False),),
+        ),
+        (
+            "Faturados",
+            brl(float(invoiced["Valor (R$)"])) if pd.notna(invoiced["Valor (R$)"]) else "Não publicado",
+            (("Quantidade", f"{_quantity(float(invoiced['Quantidade']))} pedido(s)", None, False),) if pd.notna(invoiced["Quantidade"]) else (),
+        ),
+    ])
+    conversion_chart, conversion_table = st.columns((1.05, 1), gap="large")
+    with conversion_chart:
+        chart_rows = conversion[conversion["Etapa"].isin(["Orçamentos implantados", "Convertidos em pedidos", "Faturados"])].dropna(subset=["Quantidade"]).sort_values("Ordem", ascending=False)
+        if chart_rows.empty:
+            st.info("A carga atual ainda não publicou quantidades para a conversão.")
+        else:
+            chart = px.funnel(chart_rows, x="Quantidade", y="Etapa", color="Etapa", title="Orçamentos que avançaram para pedido e faturamento", color_discrete_sequence=["#F36A2D", "#2F8FD8", "#177245"])
+            chart.update_traces(texttemplate="%{value:,.0f}", textposition="inside", hovertemplate="%{y}<br>%{x:,.0f} documento(s)<extra></extra>")
+            show_chart(_polish_chart(chart, height=310, x_title="Quantidade", y_title=""))
+    with conversion_table:
+        table = conversion[conversion["Etapa"].isin(["Orçamentos implantados", "Convertidos em pedidos", "Faturados"])].drop(columns="Ordem").copy()
+        table["Valor (R$)"] = table["Valor (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+        table["Quantidade"] = table["Quantidade"].map(lambda value: _quantity(float(value)) if pd.notna(value) else "—")
+        show_table(table, height=310, width="stretch", hide_index=True)
+
+    st.markdown("### 2. Carteira em execução")
+    st.caption("Cada pedido ou OP ocupa somente a etapa mais avançada já registrada. Ao avançar, ele sai da caixa anterior.")
+    _position_stage_cards(position_summary, brl)
+    position_chart, position_table = st.columns((1.05, 1), gap="large")
+    with position_chart:
+        chart_rows = position_summary[position_summary["Documentos"].gt(0)].sort_values("Ordem", ascending=False)
+        if chart_rows.empty:
+            st.info("A carga atual ainda não publicou posições da carteira.")
+        else:
+            chart = px.bar(chart_rows, x="Documentos", y="Etapa", orientation="h", color="Macroetapa", text="Documentos", title="Documentos na posição atual", color_discrete_sequence=["#F36A2D", "#D89A20", "#2F8FD8", "#7C6CC4", "#177245"])
+            chart.update_traces(textposition="outside", cliponaxis=False)
+            show_chart(_polish_chart(chart, height=max(320, 38 * len(chart_rows) + 100), x_title="Documentos", y_title=""))
+    with position_table:
+        table = position_summary[["Macroetapa", "Etapa", "Documentos", "Peso", "Valor"]].copy()
+        table["Peso"] = table["Peso"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+        table["Valor"] = table["Valor"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+        show_table(table, height=max(320, 38 * len(table) + 100), width="stretch", hide_index=True)
+
+    st.markdown("### 3. Pendências para faturar")
+    non_invoiced_value = _indicator_number(indicators, "pedidos_liberados_credito_valor")
+    non_invoiced_count = _indicator_number(indicators, "aguardando_faturamento_quantidade")
+    non_invoiced_weight = _indicator_number(indicators, "aguardando_faturamento_peso")
+    _metric_cards([(
+        "Saldo liberado aguardando faturamento",
+        brl(float(non_invoiced_value)) if pd.notna(non_invoiced_value) else "Não publicado",
+        tuple(detail for detail in (
+            ("Pedidos", f"{_quantity(float(non_invoiced_count))}", None, False) if pd.notna(non_invoiced_count) else None,
+            ("Peso", f"{_quantity(float(non_invoiced_weight))} kg", None, False) if pd.notna(non_invoiced_weight) else None,
+        ) if detail),
+    )])
+    queue_chart, queue_table = st.columns((1.05, 1), gap="large")
+    with queue_chart:
+        chart_rows = queues.dropna(subset=["Peso (kg)"]).sort_values("Peso (kg)")
+        if chart_rows.empty:
+            st.info("A fonte ainda não publicou a distribuição operacional por peso.")
+        else:
+            chart = px.bar(chart_rows, x="Peso (kg)", y="Etapa", orientation="h", color="Macroetapa", text="Peso (kg)", title="Em qual fila está o peso não faturado", color_discrete_sequence=["#D89A20", "#2F8FD8", "#F36A2D"])
+            chart.update_traces(texttemplate="%{text:,.0f} kg", textposition="outside", cliponaxis=False)
+            show_chart(_polish_chart(chart, height=max(300, 42 * len(chart_rows) + 90), x_title="Peso (kg)", y_title=""))
+    with queue_table:
+        table = queues.copy()
+        table["Peso (kg)"] = table["Peso (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "Não publicado")
+        show_table(table, height=max(300, 42 * len(table) + 90), width="stretch", hide_index=True)
+
+    st.markdown("### 4. Exceções e perdas")
+    rejected_value = _indicator_number(indicators, "pedidos_rejeitados_valor")
+    rejected_quantity = _indicator_number(indicators, "pedidos_rejeitados_quantidade")
+    total_loss = losses["Valor perdido (R$)"].sum(min_count=1) if not losses.empty else np.nan
+    _metric_cards([
+        ("Não aprovados / rejeitados", brl(float(rejected_value)) if pd.notna(rejected_value) else "Não publicado", (("Quantidade", f"{_quantity(float(rejected_quantity))}", None, False),) if pd.notna(rejected_quantity) else ()),
+        ("Orçamentos sem aprovação há mais de 30 dias", f"{_quantity(len(approval_exceptions))} documento(s)", ()),
+        ("Perdas registradas", brl(float(total_loss)) if pd.notna(total_loss) else "Não publicado", (("Motivos", f"{_quantity(len(losses))} classificados", None, False),) if not losses.empty else ()),
+    ])
+    loss_chart, loss_table = st.columns((1.1, 1), gap="large")
+    with loss_chart:
+        chart_rows = losses.head(12).sort_values("Valor perdido (R$)")
+        if chart_rows.empty:
+            st.info("A carga atual ainda não publicou perdas por motivo.")
+        else:
+            chart = px.bar(chart_rows, x="Valor perdido (R$)", y="Motivo da perda", orientation="h", text="Valor perdido (R$)", title="Perdas por motivo", color_discrete_sequence=["#D84A3A"])
+            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.2f}<br>Peso: %{customdata[0]:,.2f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
+            show_chart(_polish_chart(chart, height=max(300, 35 * len(chart_rows) + 100), x_title="Valor perdido (R$)", y_title=""))
+    with loss_table:
+        table = losses.copy()
+        table["Valor perdido (R$)"] = table["Valor perdido (R$)"].map(lambda value: brl(float(value)) if pd.notna(value) else "—")
+        table["Peso perdido (kg)"] = table["Peso perdido (kg)"].map(lambda value: f"{_quantity(float(value))} kg" if pd.notna(value) else "—")
+        show_table(table, height=max(300, 35 * len(table) + 100), width="stretch", hide_index=True)
+
+    st.markdown("### Detalhamento para investigação")
+    position_tab, events_tab, deadlines_tab = st.tabs(["Posição atual", "Movimentações no período", "Prazos entre etapas"])
+    with position_tab:
+        if current_positions.empty:
+            st.info("A carga atual ainda não publicou documentos com uma etapa de processo identificável.")
+        else:
+            show_table(current_positions.sort_values(["Ordem", "Data da posição"], ascending=[False, False]), height=520, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button("Exportar posição atual", current_positions.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "funil_posicao_atual.csv", "text/csv", width="stretch")
+    with events_tab:
+        active = date_summary[date_summary["Registros"].fillna(0).gt(0)].sort_values("Ordem", ascending=False)
+        if active.empty:
+            st.info("Não há movimentações publicadas para o período selecionado.")
+        else:
+            events_chart, events_table = st.columns((1.05, 1), gap="large")
+            with events_chart:
+                chart = px.bar(active, x="Registros", y="Movimentação", orientation="h", color="Macroetapa", text="Registros", title="Movimentações ocorridas no período", color_discrete_sequence=["#F36A2D", "#D89A20", "#2F8FD8", "#7C6CC4", "#177245"])
+                chart.update_traces(textposition="outside", cliponaxis=False)
+                show_chart(_polish_chart(chart, height=max(320, 38 * len(active) + 100), x_title="Registros", y_title=""))
+            with events_table:
+                show_table(active.drop(columns="Ordem"), height=max(320, 38 * len(active) + 100), width="stretch", hide_index=True)
+    with deadlines_tab:
+        if deadlines.empty:
+            st.info("Ainda não há pares de datas válidos no período para calcular prazos.")
+        else:
+            deadline_chart, deadline_table = st.columns((1.05, 1), gap="large")
+            with deadline_chart:
+                chart_rows = deadlines.sort_values("Prazo mediano (dias)")
+                chart = px.bar(chart_rows, x="Prazo mediano (dias)", y="Transição", orientation="h", text="Prazo mediano (dias)", title="Tempo mediano entre etapas", color_discrete_sequence=["#2F8FD8"])
+                chart.update_traces(texttemplate="%{text:.1f} dias", textposition="outside", cliponaxis=False)
+                show_chart(_polish_chart(chart, height=max(280, 48 * len(chart_rows) + 90), x_title="Dias", y_title=""))
+            with deadline_table:
+                show_table(deadlines, height=max(280, 48 * len(deadlines) + 90), width="stretch", hide_index=True)
+
+    if can_export and not losses.empty:
+        st.download_button("Exportar perdas por motivo", losses.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "perdas_por_motivo.csv", "text/csv", width="stretch")
 
 
 def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None):
