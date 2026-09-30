@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.23.4 — correção da unidade na tabela de metas
+
+- corrigida a máscara de `Realizado KG`, que agora aparece como quantidade inteira em vez de moeda;
+- preservada a formatação monetária de preço por kg e demais indicadores em reais.
+
 ## v2.23.3 — seleção de medida na aba Metas
 
 - removidos os detalhamentos gerenciais de meta por cliente e produto;

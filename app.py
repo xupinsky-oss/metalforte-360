@@ -44,13 +44,15 @@ def _is_fraction_percent(name):
     name=str(name).lower()
     return ("_pct" in name or "margem %" in name or name.endswith(" %") or any(term in name for term in ("variação %","variacao %","share","participação","participacao","cobertura","atingimento"))) and "desvio_%" not in name
 
-def _is_money_column(name):
-    name=str(name).lower()
-    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial","r$")) and not _is_fraction_percent(name) and "p.p." not in name
-
 def _is_weight_column(name):
     name=str(name).lower()
-    return "peso" in name or "kg" in name
+    is_weight="peso" in name or "kg" in name
+    is_unit_price=any(term in name for term in ("preço","preco","custo","valor","ticket","r$"))
+    return is_weight and not is_unit_price
+
+def _is_money_column(name):
+    name=str(name).lower()
+    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial","r$")) and not _is_fraction_percent(name) and not _is_weight_column(name) and "p.p." not in name
 
 def _numeric_column_config(data):
     """Configuração de reserva para números que continuam numéricos na tabela."""
