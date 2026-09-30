@@ -2,6 +2,7 @@ import unittest
 
 import pandas as pd
 
+from src.product_groups import normalize_product_group
 from src.targets import allocate_target, consolidate_targets, merge_target_history, target_scope
 
 
@@ -19,6 +20,21 @@ class TargetTests(unittest.TestCase):
         self.assertAlmostEqual(result["Meta KG"].sum(), 4000.0)
         self.assertAlmostEqual(result["Meta R$"].sum(), 40000.0)
         self.assertEqual(result["Competência"].nunique(), 1)
+
+    def test_product_group_names_use_matrix_nomenclature(self):
+        self.assertEqual(normalize_product_group("14 - TUBO"), "0014 Tubos")
+        self.assertEqual(normalize_product_group("Grupo Produto: tubos"), "0014 Tubos")
+        self.assertEqual(normalize_product_group("0007 ISOTÉRMICOS"), "0007 Isotermicos")
+        self.assertEqual(normalize_product_group("promoção"), "0025 PROMOCAO")
+
+        duplicated = pd.DataFrame({
+            "Vendedor": ["ANA", "ANA", "ANA"],
+            "Grupo Prod.": ["TUBO", "0014 - TUBOS", "Grupo Produto: Tubos"],
+            "Meta Mês": [1.0, 2.0, 3.0],
+        })
+        result = consolidate_targets(duplicated, self.meta_value, "2026-09-01")
+        self.assertEqual(result["Grupo Produto"].tolist(), ["0014 Tubos"])
+        self.assertAlmostEqual(result["Meta KG"].sum(), 6000.0)
 
     def test_history_replaces_only_current_month(self):
         august = consolidate_targets(self.meta_kg, self.meta_value, "2026-08-01")
@@ -50,6 +66,21 @@ class TargetTests(unittest.TestCase):
         self.assertAlmostEqual(product_allocated.loc["P1", "Meta KG"] / targets["Meta KG"].sum(), 0.60)
         self.assertAlmostEqual(product_allocated.loc["P2", "Meta KG"] / targets["Meta KG"].sum(), 0.40)
         self.assertEqual(product_reserve, {"Meta R$": 0.0, "Meta KG": 0.0})
+
+    def test_allocation_matches_legacy_target_to_matrix_group(self):
+        targets = consolidate_targets(
+            pd.DataFrame({"Vendedor": ["ANA"], "Grupo Prod.": ["TUBO"], "Meta Mês": [1.0]}),
+            self.meta_value, "2026-09-01",
+        )
+        history = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-08-10"]),
+            "Vendedor": ["ANA"], "Grupo Produto": ["0014 Tubos"],
+            "Cliente": ["CLIENTE 1"], "Produto": ["P1"],
+            "Faturamento": [1000.0], "Peso": [100.0],
+        })
+        result, reserve = allocate_target(targets, history, "Cliente")
+        self.assertEqual(result["Cliente"].tolist(), ["CLIENTE 1"])
+        self.assertEqual(reserve, {"Meta R$": 0.0, "Meta KG": 0.0})
 
     def test_scope_uses_explicit_filters(self):
         targets = consolidate_targets(self.meta_kg, self.meta_value, "2026-09-01")

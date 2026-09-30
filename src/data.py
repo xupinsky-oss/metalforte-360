@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 from src.cloud_storage import download_bytes, is_configured
+from src.product_groups import normalize_product_group
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
 DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
@@ -66,6 +67,8 @@ def load_data(path=None):
         if c in df: df[c]=pd.to_numeric(df[c],errors="coerce")
     for c in ["UF","Município","Grupo Produto","Subgrupo Produto","Tipo Produto","ESPEC.","Sub Espec.","Fonte Classificação Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
+    if "Grupo Produto" in df:
+        df["Grupo Produto"]=df["Grupo Produto"].map(normalize_product_group)
     # Regra comercial METALFORTE: "Canal" é o segmento de clientes.
     # Mantemos o alias para preservar filtros e relatórios legados que já usam
     # o nome Canal, mas a fonte oficial passa a ser Segmento Cliente.
@@ -83,6 +86,7 @@ def load_targets(path=None):
     except Exception:
         return pd.DataFrame()
     if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
+    if "Grupo Produto" in result: result["Grupo Produto"]=result["Grupo Produto"].map(normalize_product_group)
     for column in ("Meta KG","Meta R$"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result

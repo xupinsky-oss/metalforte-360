@@ -8,6 +8,8 @@ import unicodedata
 
 import pandas as pd
 
+from src.product_groups import normalize_product_group
+
 
 TARGET_COLUMNS = [
     "Competência", "Vendedor", "Grupo Produto", "Meta KG", "Meta R$",
@@ -50,7 +52,7 @@ def consolidate_targets(meta_kg, meta_value, competence=None):
 
     detail = pd.DataFrame({
         "Vendedor": meta_kg[seller].astype("string").str.strip(),
-        "Grupo Produto": meta_kg[group].astype("string").str.strip(),
+        "Grupo Produto": meta_kg[group].map(normalize_product_group),
         "Meta KG": _number(meta_kg[monthly]),
     }).dropna(subset=["Vendedor", "Grupo Produto", "Meta KG"])
     detail = detail[(detail["Vendedor"] != "") & (detail["Grupo Produto"] != "")]
@@ -75,15 +77,21 @@ def consolidate_targets(meta_kg, meta_value, competence=None):
 
 def merge_target_history(existing, current):
     """Substitui as competências consultadas e preserva as demais competências."""
+    current = current.copy()
+    current["Grupo Produto"] = current["Grupo Produto"].map(normalize_product_group)
     if existing is None or existing.empty:
-        return current.copy()
+        return current
     old = existing.copy()
     old["Competência"] = pd.to_datetime(old["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+    old["Grupo Produto"] = old["Grupo Produto"].map(normalize_product_group)
     keys = current[["Competência"]].drop_duplicates()["Competência"]
     old = old[~old["Competência"].isin(keys)]
-    return pd.concat([old[TARGET_COLUMNS], current[TARGET_COLUMNS]], ignore_index=True).sort_values(
-        ["Competência", "Vendedor", "Grupo Produto"]
-    )
+    combined = pd.concat([old[TARGET_COLUMNS], current[TARGET_COLUMNS]], ignore_index=True)
+    aggregations = {"Meta KG": "sum", "Meta R$": "sum"}
+    aggregations.update({column: "first" for column in TARGET_COLUMNS[5:]})
+    return combined.groupby(
+        ["Competência", "Vendedor", "Grupo Produto"], as_index=False, dropna=False
+    ).agg(aggregations).sort_values(["Competência", "Vendedor", "Grupo Produto"])
 
 
 def target_scope(targets, start_date, end_date, sellers=None, groups=None):
@@ -91,6 +99,7 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     if targets is None or targets.empty:
         return pd.DataFrame(columns=TARGET_COLUMNS)
     scoped = targets.copy()
+    scoped["Grupo Produto"] = scoped["Grupo Produto"].map(normalize_product_group)
     scoped["Competência"] = pd.to_datetime(scoped["Competência"], errors="coerce").dt.to_period("M").dt.start_time
     first = pd.Timestamp(start_date).to_period("M").start_time
     last = pd.Timestamp(end_date).to_period("M").start_time
@@ -98,7 +107,8 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     if sellers:
         scoped = scoped[scoped["Vendedor"].astype(str).isin(set(map(str, sellers)))]
     if groups:
-        scoped = scoped[scoped["Grupo Produto"].astype(str).isin(set(map(str, groups)))]
+        normalized_groups = {normalize_product_group(group) for group in groups}
+        scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
     return scoped
 
 
@@ -106,6 +116,11 @@ def allocate_target(targets, history, dimension):
     """Aloca vendedor×grupo para cliente/SKU pelo peso faturado nos 3 meses anteriores."""
     if targets.empty:
         return pd.DataFrame(), {"Meta R$": 0.0, "Meta KG": 0.0}
+    targets = targets.copy()
+    targets["Grupo Produto"] = targets["Grupo Produto"].map(normalize_product_group)
+    history = history.copy()
+    if "Grupo Produto" in history:
+        history["Grupo Produto"] = history["Grupo Produto"].map(normalize_product_group)
     if dimension in ("Vendedor", "Grupo Produto"):
         return targets.groupby(dimension, as_index=False)[["Meta R$", "Meta KG"]].sum(), {"Meta R$": 0.0, "Meta KG": 0.0}
     if dimension not in history:

@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.23.2 — grupos de produto normalizados nas metas
+
+- unificada a nomenclatura de grupos entre a matriz de produtos, o realizado e os relatórios oficiais de meta;
+- nomes legados, abreviações, diferenças de caixa, acentuação e códigos passam a convergir para o rótulo oficial da matriz;
+- metas históricas são normalizadas no carregamento, sem exigir uma nova extração para corrigir a aba;
+- alocações por cliente e produto passam a cruzar vendedor × grupo pela mesma chave canônica.
+
 ## v2.19.0 — clusters de cidades PIVOT
 
 - incorporada a matriz `CIDADES PIVOT.xlsx`, com 6.152 combinações únicas de UF e município, 157 nomes de cidades PIVOT e 175 clusters estaduais;

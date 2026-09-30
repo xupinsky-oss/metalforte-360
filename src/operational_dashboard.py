@@ -16,6 +16,7 @@ from src.analytics import group_metrics, metrics
 from src.assistant import answer, SUGGESTED_QUESTIONS
 from src.auth import render_user_admin
 from src.data import load_city_clusters
+from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
 from src.commercial_intelligence import (
     actionable_insights,
@@ -1380,6 +1381,8 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         f"{future_count} futura(s)."
     )
     actual_source = history.copy()
+    if "Grupo Produto" in actual_source:
+        actual_source["Grupo Produto"] = actual_source["Grupo Produto"].map(normalize_product_group)
     actual_source = actual_source[
         (actual_source["Data"] >= target_start) & (actual_source["Data"] < target_end + pd.DateOffset(months=1))
     ]

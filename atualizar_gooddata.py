@@ -6,6 +6,7 @@ from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_RE
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import consolidate_targets,merge_target_history
+from src.product_groups import normalize_product_group
 
 ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
@@ -263,6 +264,7 @@ def consolidate(downloaded,product_matrix=None):
     matrix=load_product_matrix() if product_matrix is None else prepare_product_matrix(product_matrix)
     x=x.merge(matrix,on='Produto Codigo',how='left',validate='many_to_one')
     x['Grupo Produto']=x['Grupo Produto Matriz'].combine_first(x['Grupo Produto'])
+    x['Grupo Produto']=x['Grupo Produto'].map(normalize_product_group)
     x['Tipo Produto']=x['Tipo Produto Matriz'].combine_first(x['Tipo Produto'])
     x['Espessura']=x['Espessura Matriz'].combine_first(pd.to_numeric(x['Espessura'],errors='coerce'))
     x=x.drop(columns=['Grupo Produto Matriz','Tipo Produto Matriz','Espessura Matriz'])
