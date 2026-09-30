@@ -394,6 +394,39 @@ _targets_view(
         self.assertEqual(len(app.exception), 0)
         self.assertGreaterEqual(len(app.metric), 4)
 
+    def test_target_page_limits_dimensions_and_switches_measure(self):
+        script = r'''
+import pandas as pd
+import streamlit as st
+from src.operational_dashboard import _targets_view
+from src.targets import consolidate_targets
+
+sales = pd.DataFrame({
+    "Data": pd.to_datetime(["2026-08-10", "2026-09-05"]),
+    "Vendedor": ["ANA", "ANA"], "Grupo Produto": ["0014 Tubos", "0014 Tubos"],
+    "Cliente": ["CLIENTE 1", "CLIENTE 1"], "Produto": ["P1", "P1"],
+    "Faturamento": [10000.0, 4000.0], "Peso": [1000.0, 400.0], "Margem": [1500.0, 600.0],
+})
+targets = consolidate_targets(
+    pd.DataFrame({"Vendedor": ["ANA"], "Grupo Prod.": ["TUBOS"], "Meta Mês": [1.0]}),
+    pd.DataFrame({"Vlr Orçamento": [10000.0]}), "2026-09-01",
+)
+_targets_view(
+    sales[sales["Data"].dt.month == 9], sales, targets, "2026-09-01", "2026-09-30",
+    lambda value: f"R$ {value:,.2f}", lambda value: f"{value*100:.2f}%",
+    lambda fig: st.plotly_chart(fig), lambda frame, **kwargs: st.text("|".join(frame.columns)),
+    {}, False,
+)
+'''
+        app = AppTest.from_string(script).run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertEqual(app.segmented_control(key="target_dimension").options, ["Vendedor", "Grupo Produto"])
+        measure = app.segmented_control(key="target_measure")
+        self.assertEqual(measure.options, ["Faturamento (R$)", "Peso (kg)"])
+        app = measure.select("Peso (kg)").run(timeout=20)
+        self.assertEqual(len(app.exception), 0)
+        self.assertEqual(app.segmented_control(key="target_measure").value, "Peso (kg)")
+
     def test_responsive_cards_render_without_legacy_component(self):
         script = r'''
 import pandas as pd

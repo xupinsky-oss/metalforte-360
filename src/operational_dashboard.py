@@ -1386,16 +1386,6 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     actual_source = actual_source[
         (actual_source["Data"] >= target_start) & (actual_source["Data"] < target_end + pd.DateOffset(months=1))
     ]
-    selected_client = (filters or {}).get("client")
-    client_query = (filters or {}).get("client_text")
-    product_query = (filters or {}).get("product_text")
-    if selected_client:
-        actual_source = actual_source[actual_source["Cliente"].astype(str) == str(selected_client)]
-    if client_query:
-        actual_source = actual_source[actual_source["Cliente"].astype(str).str.contains(client_query, case=False, na=False)]
-    if product_query:
-        actual_source = actual_source[actual_source["Produto"].astype(str).str.contains(product_query, case=False, na=False)]
-
     target_value = float(scoped["Meta R$"].sum())
     target_kg = float(scoped["Meta KG"].sum())
     actual_value = float(actual_source["Faturamento"].sum()) if not actual_source.empty else 0.0
@@ -1412,29 +1402,23 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
     indicators = indicators or {}
     st.markdown("### Pendências comerciais")
-    st.caption("ⓘ Totais oficiais da carteira na última carga. Estes indicadores são globais e não seguem o detalhamento por cliente ou produto.")
+    st.caption("ⓘ Totais oficiais da carteira na última carga. Estes indicadores são globais e não seguem o detalhamento abaixo.")
     _metric_cards([
         ("Pedidos liberados", brl(float(indicators.get("pedidos_liberados_valor", 0) or 0)), ()),
         ("Peso liberado", f"{_quantity(float(indicators.get('pedidos_liberados_peso', 0) or 0))} kg", ()),
         ("Pedidos a faturar", brl(float(indicators.get("pedidos_nao_faturados_valor", 0) or 0)), ()),
         ("Peso a faturar", f"{_quantity(float(indicators.get('pedidos_nao_faturados_peso', 0) or 0))} kg", ()),
     ])
-    dimension = st.segmented_control(
-        "Detalhar por", ["Vendedor", "Grupo Produto", "Cliente", "Produto"],
+    controls = st.columns(2)
+    dimension = controls[0].segmented_control(
+        "Detalhar por", ["Vendedor", "Grupo Produto"],
         default="Vendedor", key="target_dimension",
     )
-    allocation, unallocated = allocate_target(scoped, history, dimension)
-    if dimension == "Cliente":
-        selected = (filters or {}).get("client")
-        query = (filters or {}).get("client_text")
-        if selected:
-            allocation = allocation[allocation["Cliente"].astype(str) == str(selected)]
-        if query:
-            allocation = allocation[allocation["Cliente"].astype(str).str.contains(query, case=False, na=False)]
-    elif dimension == "Produto":
-        query = (filters or {}).get("product_text")
-        if query:
-            allocation = allocation[allocation["Produto"].astype(str).str.contains(query, case=False, na=False)]
+    measure = controls[1].segmented_control(
+        "Medida da meta", ["Faturamento (R$)", "Peso (kg)"],
+        default="Faturamento (R$)", key="target_measure",
+    )
+    allocation, _ = allocate_target(scoped, history, dimension)
 
     if actual_source.empty or dimension not in actual_source:
         actual = pd.DataFrame(columns=[dimension, "Realizado R$", "Realizado KG"])
@@ -1447,27 +1431,36 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     view["Saldo R$"] = view["Realizado R$"] - view["Meta R$"]
     view["Atingimento KG %"] = view["Realizado KG"] / view["Meta KG"].replace(0, pd.NA)
     view["Saldo KG"] = view["Realizado KG"] - view["Meta KG"]
-    view = view.sort_values("Meta R$", ascending=False)
+    metric = {
+        "Faturamento (R$)": {
+            "target": "Meta R$", "actual": "Realizado R$", "attainment": "Atingimento R$ %",
+            "balance": "Saldo R$", "axis": "Valor (R$)", "title": "faturamento",
+        },
+        "Peso (kg)": {
+            "target": "Meta KG", "actual": "Realizado KG", "attainment": "Atingimento KG %",
+            "balance": "Saldo KG", "axis": "Peso (kg)", "title": "peso",
+        },
+    }[measure]
+    view = view.sort_values(metric["target"], ascending=False)
 
-    if dimension in ("Cliente", "Produto"):
-        st.info(
-            "Este detalhamento é uma alocação gerencial: Meta R$ e Meta KG usam a participação do peso faturado nos 3 meses-calendário anteriores à competência, dentro de cada vendedor × grupo."
-        )
-        if unallocated["Meta R$"] or unallocated["Meta KG"]:
-            st.warning(f"Sem histórico para alocar: {brl(unallocated['Meta R$'])} e {_quantity(unallocated['Meta KG'])} kg.")
     if view.empty:
         st.info("Não há linhas para o detalhamento escolhido.")
         return
-    chart_data = view.head(15).sort_values("Meta R$")
+    chart_data = view.head(15).sort_values(metric["target"])
     chart = px.bar(
-        chart_data, x=["Meta R$", "Realizado R$"], y=dimension, orientation="h", barmode="group",
-        title=f"Meta x realizado por {dimension.lower()}", color_discrete_sequence=["#94A3B8", "#F36A2D"],
+        chart_data, x=[metric["target"], metric["actual"]], y=dimension, orientation="h", barmode="group",
+        title=f"Meta x realizado em {metric['title']} por {dimension.lower()}",
+        labels={"value": metric["axis"], "variable": "Indicador"},
+        color_discrete_sequence=["#94A3B8", "#F36A2D"],
     )
-    show_chart(_polish_chart(chart, height=max(390, 31 * len(chart_data) + 130), x_title="Valor (R$)", y_title=""))
-    show_table(view, height=560, width="stretch", hide_index=True)
+    show_chart(_polish_chart(chart, height=max(390, 31 * len(chart_data) + 130), x_title=metric["axis"], y_title=""))
+    displayed = view[[dimension, metric["target"], metric["actual"], metric["attainment"], metric["balance"]]].rename(
+        columns={metric["attainment"]: "Atingimento %"}
+    )
+    show_table(displayed, height=560, width="stretch", hide_index=True)
     if can_export:
         st.download_button(
-            "Exportar metas", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "Exportar metas", displayed.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
             "metas_orcamento.csv", "text/csv", width="stretch",
         )
 

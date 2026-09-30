@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.23.3 — seleção de medida na aba Metas
+
+- removidos os detalhamentos gerenciais de meta por cliente e produto;
+- mantidas apenas as aberturas oficiais por vendedor e grupo de produto;
+- incluído seletor entre faturamento em R$ e peso em kg, aplicado ao gráfico, à tabela e à exportação;
+- filtros individuais de cliente e produto deixam de reduzir o realizado usado na comparação oficial de metas.
+
 ## v2.23.2 — grupos de produto normalizados nas metas
 
 - unificada a nomenclatura de grupos entre a matriz de produtos, o realizado e os relatórios oficiais de meta;
