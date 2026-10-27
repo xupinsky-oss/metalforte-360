@@ -18,6 +18,12 @@ from src.auth import render_user_admin
 from src.data import load_city_clusters
 from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
+from src.value_intelligence import (
+    customer_rfmv,
+    margin_volume_quadrants,
+    portfolio_health,
+    price_reference_matrix,
+)
 from src.commercial_intelligence import (
     actionable_insights,
     commercial_metrics,
@@ -32,7 +38,7 @@ from src.commercial_intelligence import (
 PANEL_HELP = {
     "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. As referências usam o mesmo intervalo deslocado.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
-    "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses.",
+    "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses. A matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
@@ -44,6 +50,8 @@ PANEL_HELP = {
     "unified": "Reúne, sem misturar grãos, os registros faturados, metas, eventos do funil e indicadores. Cada linha informa sua fonte; valores de meta, faturamento e funil permanecem em colunas próprias para evitar dupla contagem.",
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
+    "pricing": "Calcula referências observadas por produto e segmento usando percentis ponderados pelo KG. A mediana é a referência central; P25 e P75 mostram a faixa praticada. Telhas, isotérmicos e serralheria são excluídos por padrão quando o peso não é comparável.",
+    "margin_volume": "Posiciona cada entidade por volume faturado e margem de contribuição. O corte vertical é a mediana do volume entre as entidades exibidas; o piso de margem é uma referência analítica ajustável e não bloqueia pedidos.",
 }
 
 
@@ -981,6 +989,64 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     )
     _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
 
+    # O cliente isolado mantém sua posição na carteira filtrada; selecionar um
+    # nome não recalcula os quintis contra uma população de uma única pessoa.
+    rfmv_all = customer_rfmv(history, end_date)
+    rfmv_view = (
+        rfmv_all if selected == "Todos os clientes"
+        else rfmv_all[rfmv_all["Cliente"].astype(str).eq(selected)]
+    )
+    st.markdown("### Matriz RFMV")
+    st.caption(
+        "R = relacionamento, F = frequência de pedidos, M = faturamento e V = volume em KG. "
+        "Notas maiores indicam melhor posição relativa na carteira."
+    )
+    if rfmv_view.empty:
+        st.info("Sem histórico positivo suficiente para calcular a matriz RFMV neste recorte.")
+    elif selected != "Todos os clientes":
+        rfmv_row = rfmv_view.iloc[0]
+        _metric_cards([
+            ("Classe RFMV", str(rfmv_row["Classe RFMV"]), []),
+            ("Nota RFMV", f"{int(rfmv_row['Nota RFMV'])}/20", []),
+            ("R · Relacionamento", f"{int(rfmv_row['Nota R'])}/5", []),
+            ("F · Frequência", f"{int(rfmv_row['Nota F'])}/5", []),
+            ("M · Faturamento", f"{int(rfmv_row['Nota M'])}/5", []),
+            ("V · Volume", f"{int(rfmv_row['Nota V'])}/5", []),
+        ])
+        st.caption(
+            f"Código {rfmv_row['Código RFMV']} • {int(rfmv_row['Anos elegíveis'])} ano(s) com pelo menos 6 pedidos "
+            f"em {int(rfmv_row['Anos disponíveis'])} ano(s) disponíveis desde 2024."
+        )
+    else:
+        class_order = ["A", "B", "C", "D"]
+        class_counts = rfmv_view["Classe RFMV"].value_counts().reindex(class_order, fill_value=0)
+        _metric_cards([
+            (f"Classe {customer_class}", _quantity(int(class_counts[customer_class])), [])
+            for customer_class in class_order
+        ])
+        distribution = class_counts.rename_axis("Classe RFMV").reset_index(name="Clientes")
+        distribution["Classe RFMV"] = pd.Categorical(
+            distribution["Classe RFMV"], categories=class_order, ordered=True,
+        )
+        class_chart = px.bar(
+            distribution, x="Classe RFMV", y="Clientes", color="Classe RFMV",
+            title="Distribuição da carteira por classe RFMV", text="Clientes",
+            color_discrete_map={
+                "A": "#147D64", "B": "#43A047", "C": "#F2B134",
+                "D": "#C63D3D",
+            },
+        )
+        class_chart.update_traces(textposition="outside", showlegend=False)
+        show_chart(_polish_chart(class_chart, height=330, x_title="", y_title="Clientes"))
+    with st.expander("Como a classificação RFMV é calculada"):
+        st.markdown(
+            "- **R — Relacionamento:** cada ano com pelo menos 6 pedidos é elegível. Como o histórico disponível começa em 2024, os anos elegíveis são normalizados na janela disponível até a data final.\n"
+            "- **F — Frequência:** quantidade de pedidos distintos nos últimos 12 meses.\n"
+            "- **M — Faturamento:** faturamento positivo acumulado nos últimos 12 meses.\n"
+            "- **V — Volume:** KG positivos faturados nos últimos 12 meses.\n"
+            "- **Nota total e classe:** a Nota RFMV é a soma das quatro notas, em uma escala de até 20 pontos. Classe D = 0 a 5; C = 6 a 10; B = 11 a 15; A = 16 a 20."
+        )
+
     if selected != "Todos os clientes":
         before_end = client_history[client_history["Data"] <= pd.Timestamp(end_date)]
         last_purchase = before_end["Data"].max() if not before_end.empty else pd.NaT
@@ -1032,9 +1098,17 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
     st.markdown("### Carteira e movimentação")
     portfolio = customer_portfolio(current, client_history, start_date, end_date, mode)
+    if not portfolio.empty and not rfmv_all.empty:
+        rfmv_columns = [
+            "Cliente", "Classe RFMV", "Nota RFMV", "Código RFMV", "Nota R", "Nota F",
+            "Nota M", "Nota V", "Anos elegíveis", "Pedidos 12m", "Faturamento 12m", "KG 12m",
+        ]
+        portfolio = portfolio.merge(rfmv_all[rfmv_columns], on="Cliente", how="left")
     if selected == "Todos os clientes" and not portfolio.empty:
         columns = [column for column in [
-            "Cliente", "Vendedor", "Canal", "Cluster PIVOT", "UF", "Município", "Última compra", "Dias sem comprar",
+            "Cliente", "Vendedor", "Canal", "Classe RFMV", "Nota RFMV", "Código RFMV",
+            "Nota R", "Nota F", "Nota M", "Nota V", "Cluster PIVOT", "UF", "Município",
+            "Última compra", "Dias sem comprar",
             "Faturamento atual", "Faturamento referência", "Variação faturamento %",
             "KG atual", "Margem % atual", "Preço médio atual", "Mix atual", "Situação",
         ] if column in portfolio]
@@ -1182,6 +1256,49 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     reference, ref_start, ref_end = reference_period(seller_history, start_date, end_date, mode)
     st.caption(f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}.")
     _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
+
+    st.markdown("### Saúde da carteira")
+    health_controls = st.columns([1, 2])
+    inactivity_days = health_controls[0].selectbox(
+        "Considerar inativo após", [120, 180, 365], index=1,
+        format_func=lambda value: f"{value} dias", key="seller_inactivity_days",
+    )
+    health_controls[1].caption(
+        "ⓘ Carteira atribuída ao vendedor da compra mais recente. Cobertura 90d = clientes "
+        "com compra positiva nos últimos 90 dias ÷ carteira total."
+    )
+    health_summary, health_detail = portfolio_health(
+        seller_history, end_date, inactivity_days=inactivity_days,
+    )
+    if health_summary.empty:
+        st.info("Sem histórico positivo suficiente para calcular a saúde da carteira.")
+    else:
+        if selected != "Todos os vendedores":
+            row = health_summary.iloc[0]
+            health_cards = st.columns(4)
+            health_cards[0].metric("Carteira total", int(row["Carteira total"]))
+            health_cards[1].metric("Cobertura 90d", pct(row["Cobertura 90d"]))
+            health_cards[2].metric("Em risco", int(row["Em risco"]))
+            health_cards[3].metric("Inativos", int(row["Inativos"]))
+        else:
+            show_table(health_summary, height=420, width="stretch", hide_index=True)
+
+        action_status = st.segmented_control(
+            "Fila de ação", ["Em risco", "Inativos", "Todos"], default="Em risco",
+            key="seller_portfolio_action_status",
+        )
+        status_name = "Inativo" if action_status == "Inativos" else action_status
+        action_queue = health_detail if action_status == "Todos" else health_detail[health_detail["Status"].eq(status_name)]
+        if action_queue.empty:
+            st.success("Nenhum cliente encontrado para esta fila.")
+        else:
+            show_table(action_queue, height=460, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button(
+                    "Exportar saúde da carteira",
+                    action_queue.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                    "saude_carteira.csv", "text/csv", key="export_seller_portfolio_health",
+                )
     view = entity_comparison(current, reference, "Vendedor")
     if view.empty:
         st.info("Sem vendedores no período.")
@@ -1207,6 +1324,140 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         st.download_button(
             "Exportar vendedores", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
             "performance_vendedores.csv", "text/csv", width="stretch",
+        )
+
+
+def _pricing_view(history, end_date, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Inteligência de preços", help=PANEL_HELP["pricing"])
+    st.caption(
+        "Referências estatísticas observadas na base faturada. Elas apoiam negociação e análise; "
+        "não substituem tabela oficial, impostos, frete ou aprovação comercial."
+    )
+    dimensions = [
+        column for column in ("Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Produto")
+        if column in history.columns
+    ]
+    if not dimensions or "Segmento Cliente" not in history:
+        st.info("A base atual não possui as dimensões necessárias para a matriz de preços.")
+        return
+    controls = st.columns([1.5, 1, 1])
+    dimension = controls[0].selectbox("Nível de produto", dimensions, key="pricing_product_dimension")
+    months = controls[1].selectbox(
+        "Janela de referência", [3, 6, 12], index=2,
+        format_func=lambda value: f"Últimos {value} meses", key="pricing_reference_months",
+    )
+    exclude_unreliable = controls[2].toggle(
+        "Excluir pesos não comparáveis", value=True, key="pricing_exclude_unreliable",
+        help="Exclui telhas, isotérmicos e serralheria da referência de R$/kg.",
+    )
+    matrix = price_reference_matrix(
+        history, end_date, dimension, months=months, exclude_unreliable=exclude_unreliable,
+    )
+    if matrix.empty:
+        st.info("Sem registros com faturamento e peso positivos para calcular as referências.")
+        return
+
+    reliable = matrix["Amostra confiável"].eq("Sim")
+    revenue = float(matrix["Faturamento"].sum())
+    weight = float(matrix["KG"].sum())
+    weighted_margin = float((matrix["Margem %"] * matrix["Faturamento"]).sum() / revenue) if revenue else np.nan
+    cards = st.columns(4)
+    cards[0].metric("Combinações produto × segmento", len(matrix))
+    cards[1].metric("Amostras confiáveis", int(reliable.sum()))
+    cards[2].metric("Preço médio/kg", brl2(revenue / weight) if weight else "—")
+    cards[3].metric("Margem %", pct(weighted_margin) if pd.notna(weighted_margin) else "—")
+
+    segment_options = ["Todos os segmentos"] + sorted(matrix["Segmento Cliente"].dropna().astype(str).unique().tolist())
+    selected_segment = st.selectbox("Segmento", segment_options, key="pricing_segment")
+    scoped = matrix if selected_segment == "Todos os segmentos" else matrix[matrix["Segmento Cliente"].astype(str).eq(selected_segment)]
+    top_entities = matrix.groupby(dimension)["Faturamento"].sum().nlargest(20).index
+    heat = matrix[matrix[dimension].isin(top_entities)].pivot_table(
+        index=dimension, columns="Segmento Cliente", values="Preço referência/kg", aggfunc="first",
+    )
+    if not heat.empty:
+        heat = heat.loc[heat.mean(axis=1).sort_values(ascending=False).index]
+        chart = px.imshow(
+            heat, aspect="auto", color_continuous_scale=["#FFF2EB", "#F36A2D", "#7A1F00"],
+            labels={"x": "Segmento do cliente", "y": dimension, "color": "R$/kg"},
+            title="Preço de referência por produto e segmento",
+        )
+        chart.update_traces(hovertemplate=f"{dimension}: %{{y}}<br>Segmento: %{{x}}<br>Referência: R$ %{{z:.2f}}/kg<extra></extra>")
+        show_chart(_polish_chart(chart, height=max(420, 30 * len(heat) + 130), x_title="", y_title=""))
+
+    st.markdown("### Faixas observadas")
+    st.caption(
+        "P25 é o primeiro quartil, a referência é a mediana ponderada pelo KG e P75 é o terceiro quartil. "
+        "Amostra confiável exige ao menos 3 clientes e 5 pedidos; linhas menores continuam visíveis, mas pedem cautela."
+    )
+    show_table(scoped, height=620, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button(
+            "Exportar matriz de preços", scoped.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "matriz_precos_segmento.csv", "text/csv", key="export_pricing_matrix", width="stretch",
+        )
+
+
+def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export):
+    st.subheader("Volume × margem", help=PANEL_HELP["margin_volume"])
+    dimensions = [
+        column for column in (
+            "Cliente", "Vendedor", "Segmento Cliente", "Grupo Produto", "Subgrupo Produto",
+            "Tipo Produto", "ESPEC.", "Produto", "UF", "Município",
+        ) if column in data.columns
+    ]
+    if not dimensions:
+        st.info("A base atual não possui dimensões para a análise.")
+        return
+    controls = st.columns([1.5, 1, 1])
+    dimension = controls[0].selectbox("Analisar por", dimensions, key="margin_volume_dimension")
+    floor_percent = controls[1].number_input(
+        "Referência de margem %", min_value=-20.0, max_value=80.0, value=14.0, step=0.5,
+        key="margin_volume_floor",
+    )
+    log_scale = controls[2].toggle("Escala log no volume", value=True, key="margin_volume_log")
+    view, volume_cut = margin_volume_quadrants(data, dimension, margin_floor=floor_percent / 100)
+    if view.empty:
+        st.info("Sem entidades com faturamento e peso positivos no recorte atual.")
+        return
+
+    counts = view["Quadrante"].value_counts()
+    cards = st.columns(4)
+    for card, quadrant in zip(cards, ("Proteger", "Desenvolver", "Reprecificar", "Rever")):
+        card.metric(quadrant, int(counts.get(quadrant, 0)))
+
+    color_map = {
+        "Proteger": "#20A36A", "Desenvolver": "#2F8FD8",
+        "Reprecificar": "#F36A2D", "Rever": "#C94B4B",
+    }
+    chart = px.scatter(
+        view, x="Volume t", y="Margem %", size="Faturamento", color="Quadrante",
+        hover_name=dimension, custom_data=["Faturamento", "Preço médio/kg", "Clientes", "Pedidos"],
+        color_discrete_map=color_map, size_max=56, log_x=log_scale,
+        title=f"{dimension}: volume, rentabilidade e faturamento",
+    )
+    chart.update_traces(
+        hovertemplate=(
+            f"{dimension}: %{{hovertext}}<br>Volume: %{{x:,.1f}} t<br>Margem: %{{y:.2%}}"
+            "<br>Faturamento: R$ %{customdata[0]:,.2f}<br>Preço: R$ %{customdata[1]:.2f}/kg"
+            "<br>Clientes: %{customdata[2]}<br>Pedidos: %{customdata[3]}<extra></extra>"
+        )
+    )
+    chart.add_hline(y=floor_percent / 100, line_dash="dash", line_color="#C94B4B", annotation_text=f"Referência {floor_percent:.1f}%")
+    if pd.notna(volume_cut) and volume_cut > 0:
+        chart.add_vline(x=volume_cut, line_dash="dot", line_color="#667085", annotation_text="Mediana de volume")
+    chart.update_yaxes(tickformat=".1%")
+    show_chart(_polish_chart(chart, height=620, x_title="Volume faturado (t)", y_title="Margem %"))
+
+    st.markdown("### Fila de decisão")
+    selected_quadrants = st.multiselect(
+        "Quadrantes exibidos", list(color_map), default=list(color_map), key="margin_volume_quadrants",
+    )
+    table = view[view["Quadrante"].isin(selected_quadrants)]
+    show_table(table, height=620, width="stretch", hide_index=True)
+    if can_export:
+        st.download_button(
+            "Exportar análise volume × margem", table.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "volume_margem.csv", "text/csv", key="export_margin_volume", width="stretch",
         )
 
 
@@ -2380,10 +2631,12 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Performance diária", "view_daily"))
     if "view_sellers" in permissions:
         pages.append(("Vendedores", "view_sellers"))
+    if "view_pricing" in permissions:
+        pages.append(("Preços", "view_pricing"))
+    if "view_margin_volume" in permissions:
+        pages.append(("Volume × margem", "view_margin_volume"))
     if "view_targets" in permissions:
         pages.append(("Metas", "view_targets"))
-    if "view_funnel" in permissions:
-        pages.append(("Funil", "view_funnel"))
     if "view_map" in permissions:
         pages.append(("Mapa", "view_map"))
     if "view_heatmap" in permissions:
@@ -2416,10 +2669,12 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":
         _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_pricing":
+        _pricing_view(history, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_margin_volume":
+        _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_targets":
         _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
-    elif permission == "view_funnel":
-        _funnel_view(commercial_indicators, flow_events, start_date, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_map":
         _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters)
     elif permission == "view_heatmap":

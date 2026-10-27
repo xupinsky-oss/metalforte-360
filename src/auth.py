@@ -22,8 +22,9 @@ PERMISSION_LABELS = {
     "view_products": "Inteligência de produtos",
     "view_daily": "Performance diária",
     "view_sellers": "Visão por vendedor",
+    "view_pricing": "Inteligência de preços",
+    "view_margin_volume": "Volume × margem",
     "view_targets": "Metas e orçamento",
-    "view_funnel": "Funil de acompanhamento",
     "view_map": "Mapa comercial por município",
     "view_heatmap": "Mapa mensal de positivação e faturamento",
     "view_insights": "Insights e oportunidades",
@@ -47,17 +48,17 @@ ROLE_PRESETS = {
     "seller": {
         "view_overview", "view_clients", "view_products", "view_daily",
         "view_sellers", "view_targets", "view_insights",
-        "view_funnel", "view_map", "view_heatmap",
+        "view_map", "view_heatmap",
     },
     "analyst": {
         "view_overview", "view_clients", "view_products", "view_daily",
-        "view_sellers", "view_targets", "view_insights", "view_yoy",
-        "view_funnel", "view_map", "view_heatmap",
+        "view_sellers", "view_pricing", "view_margin_volume", "view_targets", "view_insights", "view_yoy",
+        "view_map", "view_heatmap",
     },
     "manager": {
         "view_overview", "view_clients", "view_products", "view_daily",
-        "view_sellers", "view_targets", "view_insights", "view_pivot", "view_yoy",
-        "view_funnel", "view_map", "view_heatmap", "use_assistant", "export_data",
+        "view_sellers", "view_pricing", "view_margin_volume", "view_targets", "view_insights", "view_pivot", "view_yoy",
+        "view_map", "view_heatmap", "use_assistant", "export_data",
     },
     "admin": set(PERMISSION_LABELS),
 }

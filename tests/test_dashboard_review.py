@@ -114,7 +114,8 @@ render(
     def test_every_reader_page_opens_without_runtime_error(self):
         permissions = [
             "view_overview", "view_clients", "view_products", "view_daily", "view_sellers",
-            "view_targets", "view_funnel", "view_map", "view_heatmap", "view_insights",
+            "view_pricing", "view_margin_volume",
+            "view_targets", "view_map", "view_heatmap", "view_insights",
             "view_pivot", "view_yoy", "use_assistant",
             "manage_users",
         ]
@@ -122,6 +123,14 @@ render(
             with self.subTest(permission=permission):
                 app = AppTest.from_string(self._script(permission)).run(timeout=30)
                 self.assertEqual(list(app.exception), [])
+
+    def test_navigation_no_longer_exposes_funnel(self):
+        script = self._script("view_overview").replace(
+            "permissions=set(['view_overview'])",
+            "permissions={'view_overview', 'view_clients', 'view_products', 'view_daily', 'view_sellers', 'view_targets', 'view_map', 'view_heatmap', 'view_insights'}",
+        )
+        app = AppTest.from_string(script).run(timeout=30)
+        self.assertNotIn("Funil", app.segmented_control(key="mf_page").options)
 
 
 if __name__ == "__main__":

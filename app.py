@@ -182,6 +182,12 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stDataFrame"]{border:1px solid #DCE3EC;border-radius:10px;overflow:hidden}
 .mf-funnel-note{padding:.85rem 1rem;background:#FFF4EE;border:1px solid #FFD5C2;border-radius:10px;color:#71371E;margin:.5rem 0 1rem}
 button,input,[role="combobox"]{font-size:.95rem!important}
+.st-key-mf_page{margin:.35rem 0 1.15rem}
+.st-key-mf_page [data-testid="stWidgetLabel"] p{font-size:.86rem!important;font-weight:750!important;letter-spacing:.02em;color:#52647A!important;text-transform:uppercase}
+.st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:.38rem;width:100%;padding:.42rem;background:#F2F5F9;border:1px solid #DCE3EC;border-radius:12px}
+.st-key-mf_page [role="radiogroup"]>*{width:100%!important;min-width:0!important}
+.st-key-mf_page [role="radiogroup"] button,.st-key-mf_page [role="radiogroup"] label{justify-content:center!important;min-height:42px!important;border-radius:8px!important}
+.st-key-mf_page [role="radiogroup"] p{white-space:normal!important;text-align:center!important;line-height:1.15!important;font-size:.88rem!important;font-weight:650!important}
 @media(min-width:700px) and (max-width:1400px){
   .block-container{padding:1.1rem 1.15rem 2.4rem;max-width:100%}
   h1{font-size:1.9rem!important} h2{font-size:1.42rem!important} h3{font-size:1.16rem!important}
@@ -196,6 +202,7 @@ button,input,[role="combobox"]{font-size:.95rem!important}
   .mf-kpi-compare{align-items:flex-start!important;flex-direction:column!important;gap:0!important;white-space:normal!important}
   .mf-kpi-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
+  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
   [data-baseweb="tab-list"]{overflow-x:auto!important;scrollbar-width:thin}
   [data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}
 }
@@ -204,6 +211,7 @@ button,input,[role="combobox"]{font-size:.95rem!important}
   [data-testid="stMetric"]{min-height:100px;padding:.75rem}
   [data-testid="stMetricValue"]{font-size:1.28rem!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
+  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:.3rem!important;padding:.32rem!important}
   .mf-kpi-grid{grid-template-columns:1fr!important}
 }
 </style>""",unsafe_allow_html=True)

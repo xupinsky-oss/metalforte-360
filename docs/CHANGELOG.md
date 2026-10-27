@@ -1,5 +1,27 @@
 # Changelog
 
+## v2.26.0 — menu simplificado e novas faixas RFMV
+
+- retirada a aba Funil da navegação e da gestão de permissões;
+- menu principal reorganizado em grade responsiva com 6 colunas no desktop, 3 no tablet e 2 no celular;
+- Nota RFMV alterada da média para a soma das quatro notas, em escala de até 20 pontos;
+- classificação atualizada para D (0–5), C (6–10), B (11–15) e A (16–20);
+- removida a antiga classe E.
+
+## v2.25.0 — matriz RFMV na inteligência de clientes
+
+- adicionadas notas de 1 a 5 para relacionamento, frequência, faturamento e volume;
+- relacionamento considera anos com pelo menos 6 pedidos e normaliza a janela disponível desde 2024;
+- incluídos score médio, código RFMV e classes A, B, C, D e E;
+- classificação exibida no cliente isolado, na distribuição da carteira, na tabela operacional e na exportação;
+- quintis permanecem calculados contra toda a carteira filtrada, mesmo ao selecionar um cliente isolado.
+
+## v2.24.0 — inteligência comercial
+
+- adicionadas saúde da carteira, inteligência de preços e análise volume × margem;
+- incluídas filas de ação e exportações operacionais;
+- criadas permissões próprias para as novas páginas.
+
 ## v2.23.4 — correção da unidade na tabela de metas
 
 - corrigida a máscara de `Realizado KG`, que agora aparece como quantidade inteira em vez de moeda;

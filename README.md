@@ -1,4 +1,24 @@
-# METALFORTE 360 v2.10
+# METALFORTE 360 v2.26
+
+## Navegação e classificação — v2.26
+
+- A aba **Funil** foi retirada da navegação e da gestão de permissões.
+- O menu principal foi reorganizado em uma grade alinhada e responsiva para desktop, tablet e celular.
+- A Nota RFMV passa a ser a soma de R, F, M e V, com até 20 pontos: D de 0 a 5; C de 6 a 10; B de 11 a 15; A de 16 a 20.
+
+## Matriz RFMV — v2.25
+
+A aba **Clientes** passa a exibir a classificação RFMV integrada à carteira e ao cliente isolado: relacionamento, frequência, faturamento e volume recebem notas de 1 a 5, uma nota total e classes de A a D. A exportação da carteira inclui as notas e o código RFMV.
+
+## Inteligência comercial — v2.24
+
+Esta versão acrescenta três visões operacionais inspiradas no material **Geração de Valor**:
+
+- **Saúde da carteira**, dentro de Vendedores: cobertura de clientes nos últimos 90 dias, clientes novos, em risco e inativos, com fila de ação exportável.
+- **Inteligência de preços**: matriz produto × segmento com preço médio ponderado, referências P25/mediana/P75, tendência recente, cobertura e sinal de confiabilidade.
+- **Volume × margem**: dispersão por produto, cliente, vendedor ou segmento, separada nos quadrantes Proteger, Desenvolver, Reprecificar e Rever.
+
+As novas páginas usam somente dados já carregados no painel, respeitam os filtros e as permissões existentes e não armazenam credenciais. A referência de margem da análise é configurável e não substitui a política comercial aprovada.
 
 ## Como executar
 
