@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import html
 import json
+import inspect
 from pathlib import Path
 from src.data import load_data,load_targets,apply_filters
 try:
@@ -296,14 +297,24 @@ target_filters={
 if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
+dashboard_kwargs={
+    "permissions": access["permissions"], "current_user": access["user"], "targets": targets,
+    "target_history": target_history, "target_filters": target_filters,
+    "commercial_indicators": load_status.get("indicadores", {}),
+    "flow_events": flow_events,
+    "view_filters": {"uf": uf, "clusters": cidade_pivot},
+}
+# O Streamlit pode recarregar app.py antes dos módulos importados. Durante essa
+# janela curta, só envia os argumentos novos se a função já os reconhecer.
+dashboard_parameters=inspect.signature(render_operational_dashboard).parameters
+if "stock" in dashboard_parameters:
+    dashboard_kwargs["stock"]=stock
+if "inventory_history" in dashboard_parameters:
+    dashboard_kwargs["inventory_history"]=inventory_history
+
 render_operational_dashboard(
     f, monitor_scope, start_date, end_date, last_load,
     brl, brl2, pct, pp, show_chart, show_table,
-    permissions=access["permissions"], current_user=access["user"], targets=targets,
-    target_history=target_history, target_filters=target_filters,
-    commercial_indicators=load_status.get("indicadores", {}),
-    flow_events=flow_events,
-    view_filters={"uf": uf, "clusters": cidade_pivot},
-    stock=stock, inventory_history=inventory_history,
+    **dashboard_kwargs,
 )
 st.stop()
