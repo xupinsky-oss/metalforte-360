@@ -18,6 +18,7 @@ from src.auth import render_user_admin
 from src.data import load_city_clusters
 from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
+from src.inventory import build_inventory_analysis
 from src.value_intelligence import (
     customer_rfmv,
     margin_volume_quadrants,
@@ -40,6 +41,7 @@ PANEL_HELP = {
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses. A matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
+    "stock": "Cruza a fotografia atual do estoque com as vendas do período móvel escolhido. A curva ABC usa a participação acumulada em KG ou faturamento: A até 80%, B de 80% a 95% e C no restante. Dias de estoque é o saldo disponível dividido pela venda média diária; ABC e cobertura são classificações independentes.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
@@ -2617,7 +2619,90 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
         st.download_button("Exportar perdas por motivo", losses.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "perdas_por_motivo.csv", "text/csv", width="stretch")
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None):
+def _stock_view(stock, sales, brl, show_chart, show_table, can_export):
+    st.subheader("Estoque atual × giro de vendas", help=PANEL_HELP["stock"])
+    st.caption("Fotografia atual do estoque comparada ao consumo histórico. O saldo não é somado mês a mês.")
+    if stock is None or stock.empty:
+        st.info("A fotografia de estoque ainda não foi publicada. Execute a próxima atualização da base para liberar esta visão.")
+        return
+
+    control_a, control_b = st.columns(2)
+    with control_a:
+        months = st.selectbox("Histórico para calcular o giro", [3, 6, 12], index=0, format_func=lambda value: f"Últimos {value} meses", key="stock_months")
+    with control_b:
+        abc_measure = st.segmented_control("Base da curva ABC", ["Peso", "Faturamento"], default="Peso", key="stock_abc_measure")
+    analysis = build_inventory_analysis(stock, sales, months=months, abc_measure=abc_measure or "Peso")
+    if analysis.empty:
+        st.info("Nenhum produto disponível para o cruzamento de estoque e vendas.")
+        return
+
+    filter_a, filter_b, filter_c = st.columns(3)
+    with filter_a:
+        groups = st.multiselect("Grupo de produto", sorted(analysis["Grupo Produto"].dropna().astype(str).unique()), key="stock_groups")
+    with filter_b:
+        curves = st.multiselect("Curva ABC", ["A", "B", "C"], key="stock_curves")
+    coverage_order = ["Ruptura", "Baixo (≤30 dias)", "Adequado (31–90 dias)", "Alto (>90 dias)", "Sem giro", "Sem estoque e sem giro"]
+    with filter_c:
+        coverages = st.multiselect("Cobertura", coverage_order, key="stock_coverages")
+    filtered = analysis.copy()
+    if groups:
+        filtered = filtered[filtered["Grupo Produto"].astype(str).isin(groups)]
+    if curves:
+        filtered = filtered[filtered["Curva ABC"].isin(curves)]
+    if coverages:
+        filtered = filtered[filtered["Cobertura"].isin(coverages)]
+    if filtered.empty:
+        st.info("Nenhum produto encontrado com os filtros desta visão.")
+        return
+
+    stock_total = float(filtered["Saldo Total"].sum())
+    reserved = float(filtered["Reserva Total"].sum())
+    available = float(filtered["Estoque disponível (kg)"].sum())
+    rupture = int(filtered["Cobertura"].eq("Ruptura").sum())
+    no_turn = int(filtered["Cobertura"].eq("Sem giro").sum())
+    excess = float(filtered["Excesso potencial (kg)"].sum())
+    kpis = st.columns(6)
+    for column, label, value in zip(
+        kpis,
+        ["Estoque físico", "Reservado", "Disponível", "Produtos em ruptura", "Produtos sem giro", "Excesso potencial"],
+        [f"{_quantity(stock_total)} kg", f"{_quantity(reserved)} kg", f"{_quantity(available)} kg", _quantity(rupture), _quantity(no_turn), f"{_quantity(excess)} kg"],
+    ):
+        column.metric(label, value)
+
+    left, right = st.columns(2)
+    abc = filtered.groupby("Curva ABC", as_index=False).agg(**{
+        "Estoque disponível (kg)": ("Estoque disponível (kg)", "sum"),
+        "Vendas históricas (kg)": ("Vendas históricas (kg)", "sum"),
+    })
+    with left:
+        chart = px.bar(abc, x="Curva ABC", y=["Estoque disponível (kg)", "Vendas históricas (kg)"], barmode="group", color_discrete_sequence=["#2F8FD8", "#F36A2D"], title="Estoque e vendas por curva")
+        show_chart(_polish_chart(chart, height=360, x_title="Curva ABC", y_title="kg"), key="stock_abc_chart")
+    coverage = filtered["Cobertura"].value_counts().reindex(coverage_order, fill_value=0).rename_axis("Cobertura").reset_index(name="Produtos")
+    with right:
+        chart = px.bar(coverage, x="Produtos", y="Cobertura", orientation="h", color="Cobertura", color_discrete_map={
+            "Ruptura": "#C9363E", "Baixo (≤30 dias)": "#F0A12C", "Adequado (31–90 dias)": "#35A66F",
+            "Alto (>90 dias)": "#6C5DD3", "Sem giro": "#485568", "Sem estoque e sem giro": "#A7B0BD",
+        }, title="Produtos por faixa de cobertura")
+        show_chart(_polish_chart(chart, height=360, x_title="Produtos", y_title=""), key="stock_coverage_chart")
+
+    scatter = filtered[np.isfinite(filtered["Dias de estoque"]) & (filtered["Vendas históricas (kg)"] > 0)].copy()
+    if not scatter.empty:
+        scatter["Tamanho do ponto"] = scatter["Estoque disponível (kg)"].clip(lower=0) + 1
+        chart = px.scatter(scatter, x="Vendas históricas (kg)", y="Dias de estoque", color="Curva ABC", size="Tamanho do ponto", hover_name="Produto", hover_data=["Grupo Produto", "Cobertura", "Estoque disponível (kg)"], color_discrete_map={"A": "#F36A2D", "B": "#2F8FD8", "C": "#8B95A5"}, title="Giro × dias de estoque")
+        chart.add_hline(y=30, line_dash="dot", line_color="#F0A12C")
+        chart.add_hline(y=90, line_dash="dot", line_color="#C9363E")
+        show_chart(_polish_chart(chart, height=430, x_title=f"Vendas nos últimos {months} meses (kg)", y_title="Dias de estoque"), key="stock_scatter_chart")
+
+    columns = ["Grupo Produto", "Produto Codigo", "Produto", "Curva ABC", "Giro", "Cobertura", "Saldo Total", "Reserva Total", "Estoque disponível (kg)", "Vendas históricas (kg)", "Faturamento histórico (R$)", "Pedidos históricos", "Venda média diária (kg)", "Dias de estoque", "Excesso potencial (kg)", "Reposição para 30 dias (kg)"]
+    table = filtered[columns].sort_values(["Curva ABC", "Vendas históricas (kg)"], ascending=[True, False])
+    st.markdown("#### Detalhamento por produto")
+    show_table(table, height=560, width="stretch", hide_index=True)
+    st.caption("Cobertura: baixo até 30 dias; adequado de 31 a 90; alto acima de 90. Produtos com saldo e sem venda no período são classificados como sem giro.")
+    if can_export:
+        st.download_button("Exportar análise de estoque", table.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "estoque_giro_produtos.csv", "text/csv", width="stretch")
+
+
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None, stock=None, inventory_history=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
@@ -2627,6 +2712,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Clientes", "view_clients"))
     if "view_products" in permissions:
         pages.append(("Produtos", "view_products"))
+    if "view_stock" in permissions:
+        pages.append(("Estoque", "view_stock"))
     if "view_daily" in permissions:
         pages.append(("Performance diária", "view_daily"))
     if "view_sellers" in permissions:
@@ -2665,6 +2752,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_products":
         _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_stock":
+        _stock_view(stock, inventory_history if inventory_history is not None else history, brl, show_chart, show_table, can_export)
     elif permission == "view_daily":
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":

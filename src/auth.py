@@ -20,6 +20,7 @@ PERMISSION_LABELS = {
     "view_overview": "Visão executiva",
     "view_clients": "Inteligência de clientes",
     "view_products": "Inteligência de produtos",
+    "view_stock": "Estoque e giro de produtos",
     "view_daily": "Performance diária",
     "view_sellers": "Visão por vendedor",
     "view_pricing": "Inteligência de preços",
@@ -51,12 +52,12 @@ ROLE_PRESETS = {
         "view_map", "view_heatmap",
     },
     "analyst": {
-        "view_overview", "view_clients", "view_products", "view_daily",
+        "view_overview", "view_clients", "view_products", "view_stock", "view_daily",
         "view_sellers", "view_pricing", "view_margin_volume", "view_targets", "view_insights", "view_yoy",
         "view_map", "view_heatmap",
     },
     "manager": {
-        "view_overview", "view_clients", "view_products", "view_daily",
+        "view_overview", "view_clients", "view_products", "view_stock", "view_daily",
         "view_sellers", "view_pricing", "view_margin_volume", "view_targets", "view_insights", "view_pivot", "view_yoy",
         "view_map", "view_heatmap", "use_assistant", "export_data",
     },

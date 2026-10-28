@@ -2,7 +2,8 @@ import io,json,logging,os,shutil,sys,unicodedata,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS
+from src.inventory import prepare_stock
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import consolidate_targets,merge_target_history
@@ -12,6 +13,7 @@ ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
 ACTIVE_TARGETS=DATA/'metalforte_metas.csv.gz'; ACTIVE_FLOW=DATA/'metalforte_fluxo.csv.gz'
+ACTIVE_STOCK=DATA/'metalforte_estoque.csv.gz'
 INDICATORS=DATA/'indicadores_comerciais.json'
 PRODUCT_MATRIX=ROOT/'resources'/'produtos_classificacao.csv.gz'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
@@ -355,6 +357,14 @@ def main():
         frame=parse_raw(content); detail_frames[name]=frame
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
+    stock_frames={}
+    for name,report_id in STOCK_REPORTS.items():
+        logging.info('Baixando fotografia de estoque %s (%s)',name,report_id)
+        content=con.raw_report(report_id,date_filter_obj=None,fixed_filters=[])
+        (RAW/f'{name}_{stamp}.raw').write_bytes(content)
+        frame=prepare_stock(parse_raw(content))
+        frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
+        stock_frames[name]=frame
     main_df=consolidate(downloaded)
     current_targets=collect_target_periods(con,detail_frames['meta_kg_vendedor_grupo'],indicator_frames['meta_valor'])
     previous_targets=pd.DataFrame()
@@ -383,6 +393,12 @@ def main():
     target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
     target_cloud_updated=upload_file(target_tmp,object_path=target_path)
     target_tmp.replace(ACTIVE_TARGETS)
+    stock_df=stock_frames['estoque_atual']
+    stock_tmp=DATA/'metalforte_estoque.novo.csv.gz'
+    stock_df.to_csv(stock_tmp,index=False,compression='gzip')
+    stock_path=os.getenv('SUPABASE_STOCK_PATH','bases/metalforte_estoque.csv.gz')
+    stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
+    stock_tmp.replace(ACTIVE_STOCK)
     flow=build_flow_timeline(flow_frames)
     flow_cloud_updated=False
     if not flow.empty:
@@ -398,7 +414,7 @@ def main():
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=pd.Timestamp.today().to_period('M').start_time
     current_snapshot=current_targets[current_targets['Competência']==current_competence]
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':str(current_targets['Competência'].min().date()),'meta_cobertura_fim':str(current_targets['Competência'].max().date()),'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':str(current_targets['Competência'].min().date()),'meta_cobertura_fim':str(current_targets['Competência'].max().date()),'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 

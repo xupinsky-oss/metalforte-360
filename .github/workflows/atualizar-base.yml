@@ -57,6 +57,7 @@ jobs:
       # A homologação publica em objetos isolados e nunca substitui a base ativa.
       SUPABASE_DATA_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_base.csv.gz' || 'bases/metalforte_base.csv.gz' }}
       SUPABASE_TARGET_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_metas.csv.gz' || 'bases/metalforte_metas.csv.gz' }}
+      SUPABASE_STOCK_PATH: ${{ inputs.environment == 'homologacao' && 'bases/homologacao/metalforte_estoque.csv.gz' || 'bases/metalforte_estoque.csv.gz' }}
       TOTVS_TARGET_KG_MULTIPLIER: "1000"
       TOTVS_INDICATOR_WEIGHT_MULTIPLIER: "1"
       TOTVS_TARGET_OFFSET_FROM: "-12"

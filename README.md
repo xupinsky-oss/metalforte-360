@@ -1,4 +1,11 @@
-# METALFORTE 360 v2.26
+# METALFORTE 360 v2.27
+
+## Estoque atual e giro — v2.27
+
+- Fotografia oficial do estoque atual, preservada separadamente da base de faturamento.
+- Curva ABC por peso vendido ou faturamento nos últimos 3, 6 ou 12 meses.
+- Giro alto, médio, baixo ou sem giro e cobertura em dias: ruptura, baixo, adequado e alto.
+- Alertas de excesso potencial, reserva e necessidade de reposição para 30 dias.
 
 ## Navegação e classificação — v2.26
 

@@ -9,9 +9,11 @@ from src.data import load_data,load_targets,apply_filters
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
     # quando app.py pode reiniciar antes de src/data.py ser recarregado.
-    from src.data import load_flow
+    from src.data import load_flow, load_stock
 except ImportError:
     def load_flow():
+        return pd.DataFrame()
+    def load_stock():
         return pd.DataFrame()
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
@@ -36,6 +38,8 @@ def get_data(): return load_data()
 def get_targets(): return load_targets()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_flow(): return load_flow()
+@st.cache_data(ttl=300,show_spinner=False)
+def get_stock(): return load_stock()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_load_status():
     try: return download_status()
@@ -132,6 +136,7 @@ access=require_login()
 df=get_data()
 targets=get_targets()
 flow_events=get_flow()
+stock=get_stock()
 if access["role"] == "seller":
     seller_scope = access.get("seller_scope", "")
     if not seller_scope:
@@ -277,6 +282,9 @@ f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,
 # para projetar o fechamento do ano.
 monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
 target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+# Estoque e corporativo; filtros de produto permanecem validos, mas cliente e
+# vendedor nao recortam fisicamente o saldo compartilhado da companhia.
+inventory_history=apply_filters(df,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,produto_text=pt)
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,
@@ -296,5 +304,6 @@ render_operational_dashboard(
     commercial_indicators=load_status.get("indicadores", {}),
     flow_events=flow_events,
     view_filters={"uf": uf, "clusters": cidade_pivot},
+    stock=stock, inventory_history=inventory_history,
 )
 st.stop()

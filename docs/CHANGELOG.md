@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.27.0 — estoque atual e giro
+
+- nova aba **Estoque**, baseada no relatório oficial `Rel.003 Estoque - Peso de produtos em estoque (Todos)`;
+- curva ABC configurável por peso vendido ou faturamento, com A até 80%, B até 95% e C no restante;
+- classificação independente de cobertura: ruptura, baixo, adequado, alto e sem giro;
+- indicadores de saldo físico, reserva, estoque disponível, excesso potencial e reposição para 30 dias;
+- publicação privada do estoque em objeto separado, sem concatenar saldos à base transacional.
+
 ## v2.26.0 — menu simplificado e novas faixas RFMV
 
 - retirada a aba Funil da navegação e da gestão de permissões;

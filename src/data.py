@@ -5,11 +5,13 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 from src.cloud_storage import download_bytes, is_configured
+from src.inventory import prepare_stock
 from src.product_groups import normalize_product_group
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
 DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
 DEFAULT_FLOW = Path(__file__).resolve().parents[1] / "data" / "metalforte_fluxo.csv.gz"
+DEFAULT_STOCK = Path(__file__).resolve().parents[1] / "data" / "metalforte_estoque.csv.gz"
 CITY_CLUSTERS = Path(__file__).resolve().parents[1] / "resources" / "cidades_pivot.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
 
@@ -107,6 +109,19 @@ def load_flow(path=None):
     for column in ("Peso","Valor","Projeção Custo","Projeção Imposto","Projeção Margem","Margem %"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
+
+
+def load_stock(path=None):
+    """Carrega a fotografia atual do relatório de estoque 19745161."""
+    path=Path(path) if path else DEFAULT_STOCK
+    try:
+        if path.exists(): source=path
+        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_STOCK_PATH", "bases/metalforte_estoque.csv.gz")))
+        else: return pd.DataFrame()
+        result=pd.read_csv(source,low_memory=False,compression="gzip")
+        return prepare_stock(result)
+    except Exception:
+        return pd.DataFrame()
 
 def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, cidade_pivot=None, vendedor=None, canal=None, tipologia=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df
