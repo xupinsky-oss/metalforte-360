@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.27.1 — revisão visual
+
+- ocultados temporariamente os gráficos de distribuição RFMV, giro × dias de estoque e preço de referência por produto × segmento;
+- cálculos, cartões, filtros, tabelas e exportações foram preservados para a reconstrução contextual de cada visual.
+
 ## v2.27.0 — estoque atual e giro
 
 - nova aba **Estoque**, baseada no relatório oficial `Rel.003 Estoque - Peso de produtos em estoque (Todos)`;

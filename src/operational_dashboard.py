@@ -1026,20 +1026,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             (f"Classe {customer_class}", _quantity(int(class_counts[customer_class])), [])
             for customer_class in class_order
         ])
-        distribution = class_counts.rename_axis("Classe RFMV").reset_index(name="Clientes")
-        distribution["Classe RFMV"] = pd.Categorical(
-            distribution["Classe RFMV"], categories=class_order, ordered=True,
-        )
-        class_chart = px.bar(
-            distribution, x="Classe RFMV", y="Clientes", color="Classe RFMV",
-            title="Distribuição da carteira por classe RFMV", text="Clientes",
-            color_discrete_map={
-                "A": "#147D64", "B": "#43A047", "C": "#F2B134",
-                "D": "#C63D3D",
-            },
-        )
-        class_chart.update_traces(textposition="outside", showlegend=False)
-        show_chart(_polish_chart(class_chart, height=330, x_title="", y_title="Clientes"))
+        # Visual de distribuição ocultado até a revisão contextual da RFMV.
     with st.expander("Como a classificação RFMV é calculada"):
         st.markdown(
             "- **R — Relacionamento:** cada ano com pelo menos 6 pedidos é elegível. Como o histórico disponível começa em 2024, os anos elegíveis são normalizados na janela disponível até a data final.\n"
@@ -1372,19 +1359,7 @@ def _pricing_view(history, end_date, brl, brl2, pct, show_chart, show_table, can
     segment_options = ["Todos os segmentos"] + sorted(matrix["Segmento Cliente"].dropna().astype(str).unique().tolist())
     selected_segment = st.selectbox("Segmento", segment_options, key="pricing_segment")
     scoped = matrix if selected_segment == "Todos os segmentos" else matrix[matrix["Segmento Cliente"].astype(str).eq(selected_segment)]
-    top_entities = matrix.groupby(dimension)["Faturamento"].sum().nlargest(20).index
-    heat = matrix[matrix[dimension].isin(top_entities)].pivot_table(
-        index=dimension, columns="Segmento Cliente", values="Preço referência/kg", aggfunc="first",
-    )
-    if not heat.empty:
-        heat = heat.loc[heat.mean(axis=1).sort_values(ascending=False).index]
-        chart = px.imshow(
-            heat, aspect="auto", color_continuous_scale=["#FFF2EB", "#F36A2D", "#7A1F00"],
-            labels={"x": "Segmento do cliente", "y": dimension, "color": "R$/kg"},
-            title="Preço de referência por produto e segmento",
-        )
-        chart.update_traces(hovertemplate=f"{dimension}: %{{y}}<br>Segmento: %{{x}}<br>Referência: R$ %{{z:.2f}}/kg<extra></extra>")
-        show_chart(_polish_chart(chart, height=max(420, 30 * len(heat) + 130), x_title="", y_title=""))
+    # Heatmap ocultado até a revisão de contexto, escala e comparabilidade.
 
     st.markdown("### Faixas observadas")
     st.caption(
@@ -2685,13 +2660,7 @@ def _stock_view(stock, sales, brl, show_chart, show_table, can_export):
         }, title="Produtos por faixa de cobertura")
         show_chart(_polish_chart(chart, height=360, x_title="Produtos", y_title=""), key="stock_coverage_chart")
 
-    scatter = filtered[np.isfinite(filtered["Dias de estoque"]) & (filtered["Vendas históricas (kg)"] > 0)].copy()
-    if not scatter.empty:
-        scatter["Tamanho do ponto"] = scatter["Estoque disponível (kg)"].clip(lower=0) + 1
-        chart = px.scatter(scatter, x="Vendas históricas (kg)", y="Dias de estoque", color="Curva ABC", size="Tamanho do ponto", hover_name="Produto", hover_data=["Grupo Produto", "Cobertura", "Estoque disponível (kg)"], color_discrete_map={"A": "#F36A2D", "B": "#2F8FD8", "C": "#8B95A5"}, title="Giro × dias de estoque")
-        chart.add_hline(y=30, line_dash="dot", line_color="#F0A12C")
-        chart.add_hline(y=90, line_dash="dot", line_color="#C9363E")
-        show_chart(_polish_chart(chart, height=430, x_title=f"Vendas nos últimos {months} meses (kg)", y_title="Dias de estoque"), key="stock_scatter_chart")
+    # Dispersão giro × dias ocultada até a reconstrução por faixas comparáveis.
 
     columns = ["Grupo Produto", "Produto Codigo", "Produto", "Curva ABC", "Giro", "Cobertura", "Saldo Total", "Reserva Total", "Estoque disponível (kg)", "Vendas históricas (kg)", "Faturamento histórico (R$)", "Pedidos históricos", "Venda média diária (kg)", "Dias de estoque", "Excesso potencial (kg)", "Reposição para 30 dias (kg)"]
     table = filtered[columns].sort_values(["Curva ABC", "Vendas históricas (kg)"], ascending=[True, False])
