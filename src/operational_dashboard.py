@@ -21,6 +21,7 @@ from src.targets import allocate_target, target_scope
 from src.inventory import build_inventory_analysis
 from src.value_intelligence import (
     customer_rfmv,
+    iqr_inlier_mask,
     margin_volume_quadrants,
     portfolio_health,
     price_reference_matrix,
@@ -53,7 +54,7 @@ PANEL_HELP = {
     "yoy": "Compara o período selecionado com as mesmas datas deslocadas em um ano, preservando a duração e os filtros atuais.",
     "assistant": "Responde somente com base nos dados do período e filtros ativos; não consulta fontes externas e não altera a base.",
     "pricing": "Calcula referências observadas por produto e segmento usando percentis ponderados pelo KG. A mediana é a referência central; P25 e P75 mostram a faixa praticada. Telhas, isotérmicos e serralheria são excluídos por padrão quando o peso não é comparável.",
-    "margin_volume": "Posiciona cada entidade por volume faturado e margem de contribuição. O corte vertical é a mediana do volume entre as entidades exibidas; o piso de margem é uma referência analítica ajustável e não bloqueia pedidos.",
+    "margin_volume": "Posiciona cada entidade por volume faturado e margem de contribuição. O corte vertical é a mediana do volume entre as entidades exibidas; o piso de margem é uma referência analítica ajustável e não bloqueia pedidos. O gráfico oculta outliers pelo intervalo interquartil, mas a tabela e a exportação preservam todas as entidades.",
 }
 
 
@@ -1406,8 +1407,14 @@ def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export
         "Proteger": "#20A36A", "Desenvolver": "#2F8FD8",
         "Reprecificar": "#F36A2D", "Rever": "#C94B4B",
     }
+    chart_mask = (
+        iqr_inlier_mask(view["Margem %"])
+        & iqr_inlier_mask(view["Volume t"], log_scale=log_scale)
+    )
+    chart_view = view.loc[chart_mask].copy()
+    hidden_outliers = int(len(view) - len(chart_view))
     chart = px.scatter(
-        view, x="Volume t", y="Margem %", size="Faturamento", color="Quadrante",
+        chart_view, x="Volume t", y="Margem %", size="Faturamento", color="Quadrante",
         hover_name=dimension, custom_data=["Faturamento", "Preço médio/kg", "Clientes", "Pedidos"],
         color_discrete_map=color_map, size_max=56, log_x=log_scale,
         title=f"{dimension}: volume, rentabilidade e faturamento",
@@ -1424,6 +1431,11 @@ def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export
         chart.add_vline(x=volume_cut, line_dash="dot", line_color="#667085", annotation_text="Mediana de volume")
     chart.update_yaxes(tickformat=".1%")
     show_chart(_polish_chart(chart, height=620, x_title="Volume faturado (t)", y_title="Margem %"))
+    if hidden_outliers:
+        st.caption(
+            f"{hidden_outliers} ponto(s) extremo(s) ocultado(s) somente neste gráfico pelo critério IQR (1,5×). "
+            "Todos permanecem na fila de decisão e na exportação."
+        )
 
     st.markdown("### Fila de decisão")
     selected_quadrants = st.multiselect(

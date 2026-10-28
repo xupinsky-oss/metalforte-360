@@ -322,3 +322,19 @@ def margin_volume_quadrants(data, dimension, *, margin_floor=0.14):
         ["Proteger", "Desenvolver", "Reprecificar"], default="Rever",
     )
     return grouped[columns].sort_values("Faturamento", ascending=False), volume_cut
+
+
+def iqr_inlier_mask(series, *, log_scale=False, whisker=1.5):
+    """Marca valores dentro da faixa interquartil sem remover a fonte original."""
+    values = pd.to_numeric(series, errors="coerce")
+    transformed = np.log10(values.where(values > 0)) if log_scale else values
+    finite = transformed.replace([np.inf, -np.inf], np.nan).notna()
+    sample = transformed[finite]
+    if len(sample) < 8:
+        return finite
+    q1, q3 = sample.quantile([0.25, 0.75])
+    spread = q3 - q1
+    if not np.isfinite(spread) or spread <= 0:
+        return finite
+    lower, upper = q1 - whisker * spread, q3 + whisker * spread
+    return finite & transformed.between(lower, upper, inclusive="both")

@@ -3,6 +3,7 @@ import unittest
 import pandas as pd
 
 from src.value_intelligence import (
+    iqr_inlier_mask,
     customer_rfmv,
     margin_volume_quadrants,
     portfolio_health,
@@ -23,6 +24,12 @@ def _sale(client, seller, date, revenue, weight, margin, invoice, product="TUBO"
 
 
 class ValueIntelligenceTests(unittest.TestCase):
+    def test_iqr_inlier_mask_hides_extreme_value_only(self):
+        values = pd.Series([10, 11, 12, 13, 14, 15, 16, 1000])
+        mask = iqr_inlier_mask(values)
+        self.assertEqual(int(mask.sum()), 7)
+        self.assertFalse(bool(mask.iloc[-1]))
+
     def test_weighted_quantile(self):
         self.assertEqual(weighted_quantile([1, 2, 10], [1, 1, 1], 0.5), 2)
         self.assertGreater(weighted_quantile([1, 2, 10], [1, 1, 10], 0.5), 2)

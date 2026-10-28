@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.2 — outliers no gráfico volume × margem
+
+- outliers de margem e volume são ocultados no gráfico pelo critério IQR de 1,5×;
+- o filtro é apenas visual: tabela, cartões e exportação continuam usando a população completa;
+- o painel informa quantos pontos foram ocultados.
+
 ## v2.27.1 — revisão visual
 
 - ocultados temporariamente os gráficos de distribuição RFMV, giro × dias de estoque e preço de referência por produto × segmento;
