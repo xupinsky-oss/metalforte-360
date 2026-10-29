@@ -2,6 +2,7 @@
 
 import html
 import json
+import math
 import gzip
 import unicodedata
 from collections.abc import Mapping
@@ -149,7 +150,7 @@ def _metric_card_html(label, value, comparisons=()):
 
 def _metric_cards(cards):
     st.markdown(
-        '<div class="mf-kpi-grid">' + ''.join(
+        f'<div class="mf-kpi-grid" style="--mf-kpi-count:{max(len(cards), 1)}">' + ''.join(
             _metric_card_html(label, value, comparisons) for label, value, comparisons in cards
         ) + '</div>',
         unsafe_allow_html=True,
@@ -174,13 +175,37 @@ def _metric_value(key, value, brl, brl2, pct):
     return _quantity(value)
 
 
+def _balanced_columns(total, max_columns):
+    """Menor número de linhas possível, com itens repartidos igualmente entre elas."""
+    total = max(int(total), 1)
+    rows = math.ceil(total / max_columns)
+    return math.ceil(total / rows)
+
+
+def _inject_navigation_layout(total):
+    wide, medium, small = (_balanced_columns(total, limit) for limit in (8, 4, 2))
+    st.markdown(
+        f"""<style>
+        .st-key-mf_page{{--mf-nav-cols:{wide};--mf-nav-cols-md:{wide};--mf-nav-cols-sm:{small}}}
+        .st-key-mf_page,.st-key-mf_page [data-testid="stButtonGroup"],.st-key-mf_page div:has(>[role="radiogroup"]),
+        .st-key-mf_page [role="radiogroup"]{{width:100%!important;max-width:100%!important}}
+        @media(min-width:700px) and (max-width:1100px){{.st-key-mf_page{{--mf-nav-cols-md:{medium}}}}}
+        </style>""",
+        unsafe_allow_html=True,
+    )
+
+
 def _inject_kpi_styles():
     st.markdown("""
     <style>
-    .mf-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:.8rem;margin:.45rem 0 1rem}
-    .mf-kpi{background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:1rem;min-height:162px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
-    .mf-kpi-label{font-size:.86rem;font-weight:700;color:#52647A}.mf-kpi-value{font-size:1.65rem;font-weight:800;color:#172033;margin:.3rem 0 .55rem}
-    .mf-kpi-compare{display:flex;align-items:center;justify-content:space-between;gap:.35rem;font-size:.72rem;line-height:1.55;white-space:nowrap}
+    /* Cards sempre em uma linha: cada card recebe uma fração igual da largura e o texto
+       escala pelo tamanho do próprio card (container query), sem quebrar a grade. */
+    .mf-kpi-grid{display:grid;grid-template-columns:repeat(var(--mf-kpi-count,4),minmax(0,1fr));gap:clamp(.4rem,.9vw,.8rem);margin:.45rem 0 1rem}
+    .mf-kpi{container-type:inline-size;min-width:0;background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:clamp(.6rem,1vw,1rem);min-height:132px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
+    .mf-kpi-label{font-size:clamp(.74rem,7cqi,.86rem);font-weight:700;color:#52647A;line-height:1.25}
+    .mf-kpi-value{font-size:clamp(1rem,10.5cqi,1.65rem);font-weight:800;color:#172033;margin:.3rem 0 .55rem;white-space:nowrap;line-height:1.2}
+    .mf-kpi-compare{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:.35rem;font-size:clamp(.62rem,5.6cqi,.74rem);line-height:1.5}
+    .mf-kpi-ref{min-width:0}.mf-kpi-delta{white-space:nowrap;margin-left:auto}
     .mf-kpi-ref{color:#64748B}.mf-kpi-delta{font-weight:700}.mf-kpi-delta.up{color:#177245}.mf-kpi-delta.down{color:#B33A2B}.mf-kpi-delta.neutral{color:#64748B}
     .mf-flow{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:.65rem;margin:.8rem 0 1.25rem;overflow-x:auto;padding:.2rem .05rem .65rem}
     .mf-stage{position:relative;background:#fff;border:1px solid #DCE3EC;border-top:4px solid #F36A2D;border-radius:12px;padding:.8rem;min-height:180px;box-shadow:0 3px 12px rgba(23,32,51,.05)}
@@ -193,6 +218,16 @@ def _inject_kpi_styles():
     @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
     @media(min-width:700px) and (max-width:1400px){[data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.75rem!important}[data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{flex:1 1 min(100%,260px)!important;width:auto!important;min-width:min(100%,220px)!important}}
     @media(max-width:699px){.mf-flow{grid-template-columns:repeat(6,minmax(210px,1fr))}.mf-stage:nth-child(3)::after{display:block}}
+    [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"]){flex-wrap:nowrap!important;gap:clamp(.4rem,.9vw,.8rem)!important}
+    [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"])>[data-testid="stColumn"]{flex:1 1 0!important;width:auto!important;min-width:0!important}
+    [data-testid="stMetric"]{container-type:inline-size;min-width:0}
+    [data-testid="stMetric"] [data-testid="stMetricValue"]{font-size:clamp(1rem,10.5cqi,1.9rem)!important;white-space:nowrap!important}
+    /* Celular: a linha única rola na horizontal em vez de espremer os valores. */
+    @media(max-width:699px){
+      .mf-kpi-grid{grid-template-columns:repeat(var(--mf-kpi-count,4),minmax(150px,1fr));overflow-x:auto;padding-bottom:.35rem}
+      [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"]){overflow-x:auto!important;padding-bottom:.35rem}
+      [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"])>[data-testid="stColumn"]{min-width:150px!important}
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -2724,6 +2759,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         return
 
     labels = [label for label, _ in pages]
+    _inject_navigation_layout(len(labels))
     selected = st.segmented_control("Navegação", labels, default=labels[0], key="mf_page")
     permission = dict(pages)[selected]
     can_export = "export_data" in permissions
