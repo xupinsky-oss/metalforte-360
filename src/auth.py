@@ -69,6 +69,15 @@ class AuthError(RuntimeError):
     """Erro controlado de autenticação ou administração."""
 
 
+class AuthUnavailable(AuthError):
+    """Serviço de login fora do ar, lento ou com resposta inesperada (não é senha errada)."""
+
+
+UNAVAILABLE_MESSAGE = (
+    "Não foi possível conectar ao serviço de login. Tente novamente em instantes."
+)
+
+
 def _settings(require_admin=False):
     url = os.getenv("SUPABASE_URL", "").rstrip("/")
     service_key = os.getenv("SUPABASE_SERVICE_KEY", "")
@@ -87,16 +96,28 @@ def _request(method, path, *, admin=False, token=None, payload=None, timeout=30)
     headers = {"apikey": api_key, "Content-Type": "application/json"}
     if bearer:
         headers["Authorization"] = f"Bearer {bearer}"
-    response = requests.request(
-        method, f"{url}{path}", headers=headers, json=payload, timeout=timeout
-    )
+    try:
+        response = requests.request(
+            method, f"{url}{path}", headers=headers, json=payload, timeout=timeout
+        )
+    except requests.RequestException as exc:
+        # Sem rede, DNS, recusa de conexão ou tempo esgotado: nunca expor o detalhe técnico.
+        raise AuthUnavailable(UNAVAILABLE_MESSAGE) from exc
+    if response.status_code >= 500 or response.status_code == 429:
+        raise AuthUnavailable(UNAVAILABLE_MESSAGE)
     if response.status_code >= 400:
         try:
-            detail = response.json().get("msg") or response.json().get("message")
+            body = response.json()
+            detail = (body.get("msg") or body.get("message")) if isinstance(body, dict) else None
         except ValueError:
             detail = None
         raise AuthError(detail or f"Operação não concluída ({response.status_code}).")
-    return response.json() if response.content else {}
+    if not response.content:
+        return {}
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise AuthUnavailable(UNAVAILABLE_MESSAGE) from exc
 
 
 def sign_in(email, password):
@@ -143,6 +164,41 @@ def authorization_for(user):
     }
 
 
+def _inject_login_styles():
+    st.markdown(
+        """<style>
+        .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F2F5F9 100%)}
+        [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"]{display:none}
+        .block-container{padding-top:clamp(1.5rem,8vh,5rem)!important;padding-bottom:2rem!important}
+        .st-key-mf_login{max-width:430px;margin:0 auto;background:#FFFFFF;border:1px solid #DCE3EC;
+          border-top:4px solid #F36A2D;border-radius:14px;padding:2rem 2rem 1.4rem;
+          box-shadow:0 12px 36px rgba(23,32,51,.08);gap:.6rem}
+        .mf-login-head{margin-bottom:1rem}
+        .mf-login-eyebrow{font-size:.74rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#C54112}
+        .mf-login-title{font-size:2rem!important;font-weight:800!important;color:#172033!important;
+          letter-spacing:-.02em;margin:.15rem 0 .35rem!important;padding:0!important;line-height:1.15!important}
+        .mf-login-sub{font-size:.95rem;color:#52647A;margin:0}
+        .st-key-mf_login [data-testid="stForm"]{padding:0}
+        .st-key-mf_login label p{font-size:.88rem!important;font-weight:650!important;color:#27364A!important}
+        .st-key-mf_login [data-testid="stTextInputRootElement"]{background:#F7F9FC!important;border:1px solid #CBD5E1!important;
+          border-radius:9px!important;transition:border-color .15s,box-shadow .15s}
+        .st-key-mf_login [data-testid="stTextInputRootElement"]:hover{border-color:#94A3B8!important}
+        .st-key-mf_login [data-testid="stTextInputRootElement"]:focus-within{border-color:#F36A2D!important;
+          box-shadow:0 0 0 3px rgba(243,106,45,.15)!important;background:#FFFFFF!important}
+        .st-key-mf_login input{background:transparent!important;color:#172033!important;font-size:.98rem!important}
+        .st-key-mf_login input::placeholder{color:#8391A5!important;opacity:1!important}
+        .st-key-mf_login [data-testid="stFormSubmitButton"] button{background:#F36A2D!important;border:1px solid #F36A2D!important;
+          color:#FFFFFF!important;font-weight:700!important;min-height:44px;border-radius:9px!important;margin-top:.35rem}
+        .st-key-mf_login [data-testid="stFormSubmitButton"] button:hover{background:#D9561D!important;border-color:#D9561D!important}
+        .st-key-mf_login [data-testid="stFormSubmitButton"] button p{color:#FFFFFF!important;font-weight:700!important}
+        .mf-login-foot{font-size:.78rem;color:#8391A5;text-align:center;margin-top:.4rem}
+        @media(max-width:699px){.st-key-mf_login{padding:1.5rem 1.2rem 1.1rem;border-radius:12px}
+          .mf-login-title{font-size:1.7rem!important}}
+        </style>""",
+        unsafe_allow_html=True,
+    )
+
+
 def require_login():
     """Mostra o login e interrompe a página até haver uma sessão válida."""
     try:
@@ -158,27 +214,46 @@ def require_login():
         if expires_at and time.time() >= expires_at - 60:
             try:
                 session = _refresh_session(session)
+            except AuthUnavailable:
+                if time.time() >= expires_at:
+                    st.session_state.pop("mf_auth_session", None)
+                    session = None
             except AuthError:
                 st.session_state.pop("mf_auth_session", None)
                 session = None
     if not session:
-        left, center, right = st.columns([1, 1.15, 1])
-        with center:
+        _inject_login_styles()
+        with st.container(key="mf_login"):
             logo_path = Path(__file__).resolve().parents[1] / "LOGO_METALFORTE.jpg"
             if logo_path.exists():
-                st.image(str(logo_path), width=220)
-            st.title("METALFORTE 360")
-            st.caption(f"Acesso ao painel comercial · versão {APP_RELEASE}")
-            with st.form("secure_login"):
-                email = st.text_input("E-mail")
-                password = st.text_input("Senha", type="password")
-                submit = st.form_submit_button("Entrar", width="stretch")
+                st.image(str(logo_path), width=200)
+            st.markdown(
+                '<div class="mf-login-head">'
+                '<div class="mf-login-eyebrow">Painel comercial</div>'
+                '<h1 class="mf-login-title">METALFORTE 360</h1>'
+                '<p class="mf-login-sub">Entre com seu e-mail corporativo para acessar o painel.</p>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+            with st.form("secure_login", border=False):
+                email = st.text_input("E-mail", placeholder="nome@empresa.com.br")
+                password = st.text_input("Senha", type="password", placeholder="Sua senha")
+                submit = st.form_submit_button("Entrar", type="primary", width="stretch")
             if submit:
-                try:
-                    st.session_state["mf_auth_session"] = sign_in(email, password)
-                    st.rerun()
-                except AuthError:
-                    st.error("E-mail ou senha inválidos.")
+                if not email.strip() or not password:
+                    st.warning("Informe e-mail e senha para entrar.")
+                else:
+                    try:
+                        st.session_state["mf_auth_session"] = sign_in(email, password)
+                        st.rerun()
+                    except AuthUnavailable:
+                        st.error(UNAVAILABLE_MESSAGE)
+                    except AuthError:
+                        st.error("E-mail ou senha inválidos.")
+            st.markdown(
+                f'<div class="mf-login-foot">Acesso restrito a usuários autorizados · versão {APP_RELEASE}</div>',
+                unsafe_allow_html=True,
+            )
         st.stop()
     return authorization_for(session.get("user") or {})
 
