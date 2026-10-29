@@ -2722,6 +2722,8 @@ def _stock_view(stock, sales, brl, show_chart, show_table, can_export):
 
     columns = ["Grupo Produto", "Produto Codigo", "Produto", "Curva ABC", "Giro", "Cobertura", "Saldo Total", "Reserva Total", "Estoque disponível (kg)", "Vendas históricas (kg)", "Faturamento histórico (R$)", "Pedidos históricos", "Venda média diária (kg)", "Dias de estoque", "Excesso potencial (kg)", "Reposição para 30 dias (kg)"]
     table = filtered[columns].sort_values(["Curva ABC", "Vendas históricas (kg)"], ascending=[True, False])
+    # Os saldos e reservas do relatório ERP são quantidades em quilogramas.
+    table = table.rename(columns={"Saldo Total": "Saldo Total (kg)", "Reserva Total": "Reserva Total (kg)"})
     st.markdown("#### Detalhamento por produto")
     show_table(table, height=560, width="stretch", hide_index=True)
     st.caption("Cobertura: baixo até 30 dias; adequado de 31 a 90; alto acima de 90. Produtos com saldo e sem venda no período são classificados como sem giro.")
