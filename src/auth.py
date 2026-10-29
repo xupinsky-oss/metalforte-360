@@ -6,6 +6,7 @@ Todas as chamadas acontecem no servidor Streamlit. A chave administrativa nunca
 
 from __future__ import annotations
 
+import base64
 import os
 import time
 from pathlib import Path
@@ -164,39 +165,80 @@ def authorization_for(user):
     }
 
 
+LOGIN_BACKGROUND = Path(__file__).resolve().parents[1] / "assets" / "login_background.jpg"
+
+
+@st.cache_data(show_spinner=False)
+def _login_background(path, modified):
+    """Imagem de fundo embutida no CSS; sem o arquivo, usa um degradê da marca."""
+    if not path:
+        return "linear-gradient(135deg,#0B1220 0%,#1C2A3F 100%)"
+    data = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+    return f'url("data:image/jpeg;base64,{data}")'
+
+
 def _inject_login_styles():
-    st.markdown(
-        """<style>
-        .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F2F5F9 100%)}
-        [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"]{display:none}
-        .block-container{padding-top:clamp(1.5rem,8vh,5rem)!important;padding-bottom:2rem!important}
-        .st-key-mf_login{max-width:430px;margin:0 auto;background:#FFFFFF;border:1px solid #DCE3EC;
-          border-top:4px solid #F36A2D;border-radius:14px;padding:2rem 2rem 1.4rem;
-          box-shadow:0 12px 36px rgba(23,32,51,.08);gap:.6rem}
-        .mf-login-head{margin-bottom:1rem}
-        .mf-login-eyebrow{font-size:.74rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#C54112}
-        .mf-login-title{font-size:2rem!important;font-weight:800!important;color:#172033!important;
-          letter-spacing:-.02em;margin:.15rem 0 .35rem!important;padding:0!important;line-height:1.15!important}
-        .mf-login-sub{font-size:.95rem;color:#52647A;margin:0}
-        .st-key-mf_login [data-testid="stForm"]{padding:0}
-        .st-key-mf_login label p{font-size:.88rem!important;font-weight:650!important;color:#27364A!important}
-        .st-key-mf_login [data-testid="stTextInputRootElement"]{background:#F7F9FC!important;border:1px solid #CBD5E1!important;
-          border-radius:9px!important;transition:border-color .15s,box-shadow .15s}
-        .st-key-mf_login [data-testid="stTextInputRootElement"]:hover{border-color:#94A3B8!important}
-        .st-key-mf_login [data-testid="stTextInputRootElement"]:focus-within{border-color:#F36A2D!important;
-          box-shadow:0 0 0 3px rgba(243,106,45,.15)!important;background:#FFFFFF!important}
-        .st-key-mf_login input{background:transparent!important;color:#172033!important;font-size:.98rem!important}
-        .st-key-mf_login input::placeholder{color:#8391A5!important;opacity:1!important}
-        .st-key-mf_login [data-testid="stFormSubmitButton"] button{background:#F36A2D!important;border:1px solid #F36A2D!important;
-          color:#FFFFFF!important;font-weight:700!important;min-height:44px;border-radius:9px!important;margin-top:.35rem}
-        .st-key-mf_login [data-testid="stFormSubmitButton"] button:hover{background:#D9561D!important;border-color:#D9561D!important}
-        .st-key-mf_login [data-testid="stFormSubmitButton"] button p{color:#FFFFFF!important;font-weight:700!important}
-        .mf-login-foot{font-size:.78rem;color:#8391A5;text-align:center;margin-top:.4rem}
-        @media(max-width:699px){.st-key-mf_login{padding:1.5rem 1.2rem 1.1rem;border-radius:12px}
-          .mf-login-title{font-size:1.7rem!important}}
-        </style>""",
-        unsafe_allow_html=True,
+    exists = LOGIN_BACKGROUND.exists()
+    background = _login_background(
+        str(LOGIN_BACKGROUND) if exists else "", LOGIN_BACKGROUND.stat().st_mtime if exists else 0
     )
+    css = """<style>
+    /* Fundo: foto do galpão, escurecida só em volta do cartão (o logotipo da foto fica nítido). */
+    .stApp{background:
+        radial-gradient(ellipse 46% 62% at 17% 60%,rgba(7,12,20,.78) 0%,rgba(7,12,20,.45) 45%,rgba(7,12,20,0) 100%),
+        linear-gradient(0deg,rgba(7,12,20,.5) 0%,rgba(7,12,20,0) 30%),
+        __BG__ left center/cover no-repeat,#0B1220!important}
+    [data-testid="stHeader"]{background:transparent!important}
+    [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"]{display:none}
+    .block-container{max-width:none!important;padding:clamp(7rem,24vh,14rem) clamp(1.25rem,6vw,7rem) 2.5rem!important}
+    [data-testid="InputInstructions"]{display:none}
+
+    /* Cartão de vidro escuro. */
+    .st-key-mf_login{max-width:410px;margin:0;background:rgba(12,19,31,.74);
+      backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);
+      border:1px solid rgba(255,255,255,.12);border-top:3px solid #F36A2D;border-radius:16px;
+      padding:2rem 2rem 1.35rem;box-shadow:0 24px 60px rgba(0,0,0,.45);gap:.6rem}
+    .mf-login-head{margin-bottom:1rem}
+    .mf-login-eyebrow{font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#F7894F}
+    .mf-login-title{font-size:2.05rem!important;font-weight:800!important;color:#FFFFFF!important;
+      letter-spacing:-.02em;margin:.2rem 0 .4rem!important;padding:0!important;line-height:1.12!important}
+    .mf-login-sub{font-size:.95rem;color:#CBD5E1;margin:0;line-height:1.45}
+    .st-key-mf_login [data-testid="stForm"]{padding:0}
+    .st-key-mf_login label p{font-size:.86rem!important;font-weight:650!important;color:#E2E8F0!important}
+    .st-key-mf_login [data-testid="stTextInputRootElement"]{background:rgba(255,255,255,.07)!important;
+      border:1px solid rgba(255,255,255,.2)!important;border-radius:10px!important;transition:border-color .15s,box-shadow .15s,background .15s}
+    .st-key-mf_login [data-testid="stTextInputRootElement"]:hover{border-color:rgba(255,255,255,.38)!important}
+    .st-key-mf_login [data-testid="stTextInputRootElement"]:focus-within{border-color:#F36A2D!important;
+      box-shadow:0 0 0 3px rgba(243,106,45,.25)!important;background:rgba(255,255,255,.11)!important}
+    .st-key-mf_login input{background:transparent!important;color:#FFFFFF!important;font-size:.98rem!important;caret-color:#F36A2D}
+    .st-key-mf_login input::placeholder{color:#8B9AAF!important;opacity:1!important}
+    .st-key-mf_login input:-webkit-autofill{-webkit-text-fill-color:#FFFFFF!important;
+      -webkit-box-shadow:0 0 0 1000px #1A2434 inset!important;transition:background-color 9999s}
+    .st-key-mf_login [data-testid="stTextInputRootElement"] button{color:#CBD5E1!important;background:transparent!important}
+    .st-key-mf_login [data-testid="stFormSubmitButton"] button{background:#F36A2D!important;border:1px solid #F36A2D!important;
+      color:#FFFFFF!important;font-weight:700!important;min-height:46px;border-radius:10px!important;margin-top:.4rem;
+      box-shadow:0 8px 22px rgba(243,106,45,.35)}
+    .st-key-mf_login [data-testid="stFormSubmitButton"] button:hover{background:#D9561D!important;border-color:#D9561D!important}
+    .st-key-mf_login [data-testid="stFormSubmitButton"] button p{color:#FFFFFF!important;font-weight:700!important}
+    .mf-login-foot{font-size:.76rem;color:#94A3B8;text-align:center;margin-top:.45rem}
+    /* Avisos legíveis sobre o cartão escuro. */
+    .st-key-mf_login [data-testid="stAlertContainer"]{border-radius:10px!important;padding:.7rem .9rem!important}
+    .st-key-mf_login [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]){background:rgba(239,68,68,.16)!important;border:1px solid rgba(248,113,113,.5)!important}
+    .st-key-mf_login [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]){background:rgba(245,158,11,.14)!important;border:1px solid rgba(251,191,36,.45)!important}
+    .st-key-mf_login [data-testid="stAlertContentError"] p{color:#FECACA!important;font-size:.9rem!important}
+    .st-key-mf_login [data-testid="stAlertContentWarning"] p{color:#FDE68A!important;font-size:.9rem!important}
+
+    /* Celular: a foto vira uma faixa no topo e o cartão ocupa a largura. */
+    @media(max-width:699px){
+      .stApp{background:
+          linear-gradient(180deg,rgba(11,18,32,0) 0,rgba(11,18,32,.35) 22vh,#0B1220 34vh),
+          __BG__ left top/auto 36vh no-repeat,#0B1220!important}
+      .block-container{padding:24vh 1rem 2rem!important}
+      .st-key-mf_login{max-width:none;padding:1.5rem 1.25rem 1.1rem;border-radius:14px}
+      .mf-login-title{font-size:1.75rem!important}
+    }
+    </style>""".replace("__BG__", background)
+    st.markdown(css, unsafe_allow_html=True)
 
 
 def require_login():
@@ -224,14 +266,12 @@ def require_login():
     if not session:
         _inject_login_styles()
         with st.container(key="mf_login"):
-            logo_path = Path(__file__).resolve().parents[1] / "LOGO_METALFORTE.jpg"
-            if logo_path.exists():
-                st.image(str(logo_path), width=200)
+            # O logotipo já aparece na imagem de fundo (assets/login_background.jpg).
             st.markdown(
                 '<div class="mf-login-head">'
                 '<div class="mf-login-eyebrow">Painel comercial</div>'
-                '<h1 class="mf-login-title">METALFORTE 360</h1>'
-                '<p class="mf-login-sub">Entre com seu e-mail corporativo para acessar o painel.</p>'
+                '<h1 class="mf-login-title">Metalforte 360</h1>'
+                '<p class="mf-login-sub">Inteligência comercial, metas e operação em um só lugar. Entre com seu e-mail corporativo.</p>'
                 '</div>',
                 unsafe_allow_html=True,
             )
