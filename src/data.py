@@ -5,7 +5,6 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 from src.cloud_storage import download_bytes, is_configured
-from src.inventory import prepare_stock
 from src.product_groups import normalize_product_group
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
@@ -115,6 +114,7 @@ def load_stock(path=None):
     """Carrega a fotografia atual do relatório de estoque 19745161."""
     path=Path(path) if path else DEFAULT_STOCK
     try:
+        from src.inventory import prepare_stock
         if path.exists(): source=path
         elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_STOCK_PATH", "bases/metalforte_estoque.csv.gz")))
         else: return pd.DataFrame()
