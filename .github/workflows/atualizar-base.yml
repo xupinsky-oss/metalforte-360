@@ -32,9 +32,8 @@ on:
         required: true
         type: string
   schedule:
-    - cron: "0 9,15 * * *"
-    - cron: "30 21 * * *"
-
+    - cron: "13 * * * *"
+    
 concurrency:
   group: atualizar-base-metalforte
   cancel-in-progress: false
