@@ -19,7 +19,6 @@ from src.auth import render_user_admin
 from src.data import load_city_clusters
 from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
-from src.inventory import build_inventory_analysis
 from src.value_intelligence import (
     customer_rfmv,
     iqr_inlier_mask,
@@ -2664,6 +2663,13 @@ def _stock_view(stock, sales, brl, show_chart, show_table, can_export):
         months = st.selectbox("Histórico para calcular o giro", [3, 6, 12], index=0, format_func=lambda value: f"Últimos {value} meses", key="stock_months")
     with control_b:
         abc_measure = st.segmented_control("Base da curva ABC", ["Peso", "Faturamento"], default="Peso", key="stock_abc_measure")
+    try:
+        # Carrega o módulo só quando a aba de estoque é usada; assim, falhas
+        # transitórias do import não impedem a inicialização do restante do app.
+        from src.inventory import build_inventory_analysis
+    except Exception:
+        st.warning("A análise de estoque está temporariamente indisponível. As demais áreas do painel continuam funcionando.")
+        return
     analysis = build_inventory_analysis(stock, sales, months=months, abc_measure=abc_measure or "Peso")
     if analysis.empty:
         st.info("Nenhum produto disponível para o cruzamento de estoque e vendas.")
