@@ -171,6 +171,11 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stCaptionContainer"]{font-size:.92rem;color:#52647A!important;opacity:1!important}
 [data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid #DCE3EC}
 [data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#27364A!important}
+[data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]){background:#F7F9FC!important;border:1px solid #CBD5E1!important;border-radius:8px!important;transition:border-color .15s,box-shadow .15s}
+[data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]):hover{border-color:#94A3B8!important}
+[data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]):focus-within{border-color:#F36A2D!important;box-shadow:0 0 0 3px rgba(243,106,45,.15)!important;background:#FFFFFF!important}
+[data-testid="stSidebar"] [data-testid="stTextInput"] [data-baseweb="base-input"],[data-testid="stSidebar"] [data-testid="stTextInput"] input{background:transparent!important;color:#172033!important}
+[data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder{color:#8391A5!important;opacity:1!important}
 .st-key-period_filter{min-height:178px}.st-key-period_filter [data-testid="stDateInput"]{min-height:72px}
 .st-key-period_filter [data-testid="stForm"]{border:0;padding:0}
 [data-testid="stMetric"]{background:#FFFFFF;border:1px solid #DCE3EC;border-radius:12px;padding:1rem 1.05rem;min-height:116px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
@@ -190,9 +195,9 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 button,input,[role="combobox"]{font-size:.95rem!important}
 .st-key-mf_page{margin:.35rem 0 1.15rem}
 .st-key-mf_page [data-testid="stWidgetLabel"] p{font-size:.86rem!important;font-weight:750!important;letter-spacing:.02em;color:#52647A!important;text-transform:uppercase}
-.st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:.38rem;width:100%;padding:.42rem;background:#F2F5F9;border:1px solid #DCE3EC;border-radius:12px}
-.st-key-mf_page [role="radiogroup"]>*{width:100%!important;min-width:0!important}
-.st-key-mf_page [role="radiogroup"] button,.st-key-mf_page [role="radiogroup"] label{justify-content:center!important;min-height:42px!important;border-radius:8px!important}
+.st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(var(--mf-nav-cols,8),minmax(0,1fr));grid-auto-rows:1fr;gap:.38rem;width:100%;padding:.42rem;background:#F2F5F9;border:1px solid #DCE3EC;border-radius:12px}
+.st-key-mf_page [role="radiogroup"]>*{width:100%!important;min-width:0!important;height:100%!important}
+.st-key-mf_page [role="radiogroup"] button,.st-key-mf_page [role="radiogroup"] label{justify-content:center!important;min-height:42px!important;height:100%!important;width:100%!important;border-radius:8px!important}
 .st-key-mf_page [role="radiogroup"] p{white-space:normal!important;text-align:center!important;line-height:1.15!important;font-size:.88rem!important;font-weight:650!important}
 @media(min-width:700px) and (max-width:1400px){
   .block-container{padding:1.1rem 1.15rem 2.4rem;max-width:100%}
@@ -203,12 +208,9 @@ button,input,[role="combobox"]{font-size:.95rem!important}
   [data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{flex:1 1 min(100%,260px)!important;width:auto!important;min-width:min(100%,220px)!important}
   [data-testid="stMetric"]{min-height:104px;padding:.78rem}
   [data-testid="stMetricValue"]{font-size:1.3rem!important}
-  .mf-kpi{min-height:146px!important;padding:.82rem!important}
-  .mf-kpi-value{font-size:1.35rem!important}
-  .mf-kpi-compare{align-items:flex-start!important;flex-direction:column!important;gap:0!important;white-space:normal!important}
-  .mf-kpi-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
+  .mf-kpi{min-height:146px!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
-  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(var(--mf-nav-cols-md,4),minmax(0,1fr))!important}
   [data-baseweb="tab-list"]{overflow-x:auto!important;scrollbar-width:thin}
   [data-testid="stDataFrame"]{max-width:100%;overflow-x:auto}
 }
@@ -217,8 +219,7 @@ button,input,[role="combobox"]{font-size:.95rem!important}
   [data-testid="stMetric"]{min-height:100px;padding:.75rem}
   [data-testid="stMetricValue"]{font-size:1.28rem!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
-  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:.3rem!important;padding:.32rem!important}
-  .mf-kpi-grid{grid-template-columns:1fr!important}
+  .st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(var(--mf-nav-cols-sm,2),minmax(0,1fr))!important;gap:.3rem!important;padding:.32rem!important}
 }
 </style>""",unsafe_allow_html=True)
 
@@ -253,7 +254,8 @@ with st.sidebar:
     client_options=["Todos os clientes"]+sorted(client_pool["Cliente"].dropna().astype(str).unique().tolist())
     client_scope=st.selectbox("Cliente",client_options,index=0,help="Selecione um cliente para isolar todas as análises.")
     selected_client=None if client_scope=="Todos os clientes" else client_scope
-    with st.expander("Mais filtros"):
+    st.subheader("Mais filtros")
+    with st.container(key="more_filters"):
         pool=df if not uf else df[df["UF"].isin(uf)]
         cidade_pivot=st.multiselect(
             "Cluster de cidades (PIVOT)", sorted(pool["Cluster PIVOT"].unique()),
@@ -275,8 +277,8 @@ with st.sidebar:
         espec=st.multiselect("ESPEC.",sorted(df["ESPEC."].unique())) if "ESPEC." in df else []
         sub_espec=st.multiselect("Sub Espec.",sorted(df["Sub Espec."].unique())) if "Sub Espec." in df else []
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
-        ct=st.text_input("Buscar cliente")
-        pt=st.text_input("Buscar produto")
+        ct=st.text_input("Buscar cliente",placeholder="🔍 Nome do cliente")
+        pt=st.text_input("Buscar produto",placeholder="🔍 Nome do produto")
 f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
