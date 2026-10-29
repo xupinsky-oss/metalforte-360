@@ -91,8 +91,80 @@ def show_table(data,**kwargs):
     inferred=_numeric_column_config(display)
     inferred.update(kwargs.pop("column_config",{}) or {})
     return st.dataframe(display,column_config=inferred,**kwargs)
+_HOVER_LABEL_COLOR="#64748B"
+_HOVER_COUNT_TERMS=("clientes","pedidos","produtos","documentos","registros","quantidade","notas","positivados","entidades","municípios","municipios","nfs","amostra")
+_HOVER_GENERIC_VALUES=("value","valor","valor (r$)","peso (kg)")
+
+def _hover_raw(trace,base):
+    """Dados do traço referenciados no popup, para descobrir se o campo é texto, data ou número."""
+    try:
+        if base in ("x","y","z"): values=getattr(trace,base,None)
+        elif base=="marker.size": values=trace.marker.size
+        elif base.startswith("customdata["):
+            index=int(base[len("customdata["):-1]); data=trace.customdata
+            values=None if data is None else [row[index] for row in data]
+        else: return None
+        if values is None or isinstance(values,(str,int,float)): return None
+        return pd.Series(list(values)).infer_objects()
+    except Exception:
+        return None
+
+def _hover_value(label,base,raw):
+    """Formata o valor do popup pelo nome da medida, no padrão brasileiro."""
+    name=str(label).lower()
+    if raw is not None and pd.api.types.is_datetime64_any_dtype(raw):
+        return f"%{{{base}|{'%m/%Y' if name in ('mês','mes','mês referência') else '%d/%m/%Y'}}}"
+    if raw is not None and not pd.api.types.is_numeric_dtype(raw): return f"%{{{base}}}"
+    if "p.p." in name: return f"%{{{base}:,.2f}} p.p."
+    if _is_fraction_percent(name): return f"%{{{base}:.2%}}"
+    if name.endswith(" t") or name.endswith("(t)"): return f"%{{{base}:,.1f}} t"
+    if _is_weight_column(name): return f"%{{{base}:,.0f}} kg"
+    if "preço" in name or "preco" in name or _is_money_column(name): return f"R$ %{{{base}:,.2f}}"
+    if "dias" in name: return f"%{{{base}:,.1f}} dias"
+    if any(term in name for term in _HOVER_COUNT_TERMS): return f"%{{{base}:,.0f}}"
+    return f"%{{{base}:,.2f}}"
+
+def _rich_hover(fig):
+    """Troca o popup padrão do Plotly ("Campo=valor") por título em destaque e valores formatados.
+
+    Só reescreve popups gerados automaticamente; os que o painel já define à mão ficam intactos.
+    """
+    for trace in fig.data:
+        template=getattr(trace,"hovertemplate",None)
+        if not isinstance(template,str) or "=%{" not in template: continue
+        parts=[part for part in template.replace("<extra></extra>","").split("<br>") if part]
+        static={}
+        for part in parts:
+            if "=" in part and "%{" not in part:
+                label,value=part.split("=",1); static[label]=value
+        title=None; lines=[]
+        for part in parts:
+            if "=" not in part:
+                if "%{hovertext}" in part: title=part
+                else: lines.append(part)
+                continue
+            label,expression=part.split("=",1)
+            if "%{" not in expression:
+                if len(static)==1 and any(p.split("=",1)[0].lower() in _HOVER_GENERIC_VALUES for p in parts if "=%{" in p):
+                    continue  # vira o rótulo do valor logo abaixo (gráficos em formato largo)
+                lines.append(f"<span style='color:{_HOVER_LABEL_COLOR}'>{label}:</span> <b>{expression}</b>"); continue
+            inner=expression[expression.index("%{")+2:expression.index("}")]
+            base=inner.split(":")[0].split("|")[0]
+            raw=_hover_raw(trace,base)
+            shown=label
+            if label.lower() in _HOVER_GENERIC_VALUES and len(static)==1: shown=next(iter(static.values()))
+            value=_hover_value(label if label.lower() not in ("value","valor") else shown,base,raw)
+            is_dimension=raw is not None and not pd.api.types.is_numeric_dtype(raw)
+            if title is None and is_dimension:
+                title=f"<b style='font-size:14px'>{value}</b>"; continue
+            lines.append(f"<span style='color:{_HOVER_LABEL_COLOR}'>{shown}:</span> <b>{value}</b>")
+        body=([title,""] if title else [])+lines
+        trace.hovertemplate="<br>".join(body)+"<extra></extra>"
+    return fig
+
 def show_chart(fig,**kwargs):
-    fig.update_layout(separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(font_size=14))
+    _rich_hover(fig)
+    fig.update_layout(separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
     fig.update_xaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
