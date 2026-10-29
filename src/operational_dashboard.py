@@ -1447,25 +1447,36 @@ def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export
         & iqr_inlier_mask(view["Volume t"], log_scale=log_scale)
     )
     chart_view = view.loc[chart_mask].copy()
+    # O eixo usa kg: na escala log, volumes abaixo de 1 t apareciam como "0" no rótulo.
+    chart_view["Volume (kg)"] = pd.to_numeric(chart_view["Volume t"], errors="coerce") * 1000
     hidden_outliers = int(len(view) - len(chart_view))
     chart = px.scatter(
-        chart_view, x="Volume t", y="Margem %", size="Faturamento", color="Quadrante",
+        chart_view, x="Volume (kg)", y="Margem %", size="Faturamento", color="Quadrante",
         hover_name=dimension, custom_data=["Faturamento", "Preço médio/kg", "Clientes", "Pedidos"],
         color_discrete_map=color_map, size_max=56, log_x=log_scale,
         title=f"{dimension}: volume, rentabilidade e faturamento",
     )
     chart.update_traces(
         hovertemplate=(
-            f"{dimension}: %{{hovertext}}<br>Volume: %{{x:,.1f}} t<br>Margem: %{{y:.2%}}"
+            f"{dimension}: %{{hovertext}}<br>Volume: %{{x:,.0f}} kg<br>Margem: %{{y:.2%}}"
             "<br>Faturamento: R$ %{customdata[0]:,.2f}<br>Preço: R$ %{customdata[1]:.2f}/kg"
             "<br>Clientes: %{customdata[2]}<br>Pedidos: %{customdata[3]}<extra></extra>"
         )
     )
-    chart.add_hline(y=floor_percent / 100, line_dash="dash", line_color="#C94B4B", annotation_text=f"Referência {floor_percent:.1f}%")
+    chart.add_hline(y=floor_percent / 100, line_dash="dash", line_color="#C94B4B", annotation_text=f"Referência {floor_percent:.1f}%".replace(".", ","))
     if pd.notna(volume_cut) and volume_cut > 0:
-        chart.add_vline(x=volume_cut, line_dash="dot", line_color="#667085", annotation_text="Mediana de volume")
+        median_kg = volume_cut * 1000
+        chart.add_vline(x=median_kg, line_dash="dot", line_color="#667085")
+        # Em eixo log o Plotly posiciona anotações em log10; sem isto o texto ficava longe da linha.
+        chart.add_annotation(
+            x=float(np.log10(median_kg)) if log_scale else median_kg, xref="x", y=1, yref="paper",
+            text=f"Mediana de volume: {_quantity(median_kg)} kg", showarrow=False, xanchor="left", yanchor="top",
+            xshift=6, font=dict(size=12, color="#52647A"), bgcolor="rgba(255,255,255,.85)",
+        )
     chart.update_yaxes(tickformat=".1%")
-    show_chart(_polish_chart(chart, height=620, x_title="Volume faturado (t)", y_title="Margem %"))
+    _polish_chart(chart, height=620, x_title="Volume faturado (kg)", y_title="Margem %")
+    chart.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="right", x=1, title_text=""))
+    show_chart(chart)
     if hidden_outliers:
         st.caption(
             f"{hidden_outliers} ponto(s) extremo(s) ocultado(s) somente neste gráfico pelo critério IQR (1,5×). "
