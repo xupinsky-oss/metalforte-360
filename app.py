@@ -23,7 +23,7 @@ from src.operational_dashboard import render as render_operational_dashboard
 from src.auth import require_login, logout, ROLE_LABELS
 from src.version import APP_RELEASE
 
-st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon="🏭")
+st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon=str(Path(__file__).parent / "LOGO_METALFORTE.jpg"))
 px.defaults.template="plotly_white"
 px.defaults.color_discrete_sequence=["#F36A2D","#2F8FD8","#34B27B","#F2B84B","#A78BFA","#EC6F91"]
 def _ptbr_number(v, decimals=2):
