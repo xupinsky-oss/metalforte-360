@@ -52,9 +52,9 @@ def customer_rfmv(history, end_date, *, months=12, relationship_start_year=2024)
     nos últimos ``months`` meses. Todas as notas variam de 1 a 5.
     """
     columns = [
-        "Cod Cliente", "Cliente", "Vendedor", "Segmento Cliente", "Última compra",
+        "Cod Cliente", "Cliente", "Vendedor", "Segmento Cliente", "Tipologia Cliente", "Última compra",
         "Dias sem comprar", "Anos elegíveis", "Anos disponíveis", "Pedidos 12m",
-        "Faturamento 12m", "KG 12m", "Nota R", "Nota F", "Nota M", "Nota V",
+        "Faturamento 12m", "Margem 12m", "KG 12m", "Nota R", "Nota F", "Nota M", "Nota V",
         "Nota RFMV", "Classe RFMV", "Código RFMV",
     ]
     required = {"Data", "Cliente", "Faturamento", "Peso", "NF"}
@@ -66,6 +66,8 @@ def customer_rfmv(history, end_date, *, months=12, relationship_start_year=2024)
     source["Data"] = pd.to_datetime(source["Data"], errors="coerce")
     for column in ("Faturamento", "Peso"):
         source[column] = pd.to_numeric(source[column], errors="coerce").fillna(0)
+    if "Margem" in source:
+        source["Margem"] = pd.to_numeric(source["Margem"], errors="coerce").fillna(0)
     source = source[
         source["Data"].notna() & source["Data"].le(end) & source["Faturamento"].gt(0)
     ].copy()
@@ -80,13 +82,16 @@ def customer_rfmv(history, end_date, *, months=12, relationship_start_year=2024)
 
     start = end.to_period("M").start_time - pd.DateOffset(months=max(int(months), 1) - 1)
     recent = source[source["Data"].between(start, end, inclusive="both")]
-    measures = recent.groupby("_cliente_key", dropna=False).agg(
-        **{
-            "Pedidos 12m": ("NF", "nunique"),
-            "Faturamento 12m": ("Faturamento", "sum"),
-            "KG 12m": ("Peso", "sum"),
-        }
-    )
+    aggregations = {
+        "Pedidos 12m": ("NF", "nunique"),
+        "Faturamento 12m": ("Faturamento", "sum"),
+        "KG 12m": ("Peso", "sum"),
+    }
+    if "Margem" in source:
+        aggregations["Margem 12m"] = ("Margem", "sum")
+    measures = recent.groupby("_cliente_key", dropna=False).agg(**aggregations)
+    if "Margem 12m" not in measures:
+        measures["Margem 12m"] = np.nan
 
     orders_by_year = source.groupby(["_cliente_key", "_ano"], dropna=False)["NF"].nunique()
     eligible_years = orders_by_year.ge(6).groupby(level=0).sum().astype(int)
@@ -94,7 +99,7 @@ def customer_rfmv(history, end_date, *, months=12, relationship_start_year=2024)
 
     result = pd.DataFrame(index=latest.index)
     result["Cod Cliente"] = latest["Cod Cliente"] if "Cod Cliente" in latest else latest.index
-    for column in ("Cliente", "Vendedor", "Segmento Cliente"):
+    for column in ("Cliente", "Vendedor", "Segmento Cliente", "Tipologia Cliente"):
         result[column] = latest[column] if column in latest else "Não informado"
     result["Última compra"] = last_purchase
     result["Dias sem comprar"] = (end - result["Última compra"].dt.normalize()).dt.days.clip(lower=0)

@@ -156,6 +156,36 @@ def _metric_cards(cards):
     )
 
 
+def _rfmv_class_cards(rfmv_view, brl, pct, margin_available):
+    class_order = ["A", "B", "C", "D"]
+    cards = []
+    for customer_class in class_order:
+        group = rfmv_view[rfmv_view["Classe RFMV"].eq(customer_class)]
+        revenue = pd.to_numeric(group["Faturamento 12m"], errors="coerce").fillna(0).sum()
+        orders = pd.to_numeric(group["Pedidos 12m"], errors="coerce").fillna(0).sum()
+        margin = pd.to_numeric(group["Margem 12m"], errors="coerce").sum(min_count=1)
+        ticket = brl(revenue / orders) if orders > 0 else "—"
+        margin_text = pct(margin / revenue) if margin_available and revenue > 0 and pd.notna(margin) else "—"
+        details = [
+            ("Faturamento", brl(revenue)),
+            ("Ticket médio", ticket),
+            ("Margem %", margin_text),
+        ]
+        detail_html = "".join(
+            f'<div class="mf-kpi-compare"><span class="mf-kpi-ref">{html.escape(label)}</span>'
+            f'<span class="mf-kpi-delta neutral">{html.escape(value)}</span></div>'
+            for label, value in details
+        )
+        cards.append(
+            f'<div class="mf-kpi"><div class="mf-kpi-label">Classe {html.escape(customer_class)} · Clientes</div>'
+            f'<div class="mf-kpi-value">{_quantity(len(group))}</div>{detail_html}</div>'
+        )
+    st.markdown(
+        '<div class="mf-kpi-grid" style="--mf-kpi-count:4">' + "".join(cards) + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _quantity(value):
     return f"{value:,.0f}".replace(",", ".")
 
@@ -1029,15 +1059,19 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     # O cliente isolado mantém sua posição na carteira filtrada; selecionar um
     # nome não recalcula os quintis contra uma população de uma única pessoa.
     rfmv_all = customer_rfmv(history, end_date)
-    rfmv_view = (
-        rfmv_all if selected == "Todos os clientes"
-        else rfmv_all[rfmv_all["Cliente"].astype(str).eq(selected)]
-    )
     st.markdown("### Matriz RFMV")
     st.caption(
         "R = relacionamento, F = frequência de pedidos, M = faturamento e V = volume em KG. "
         "Notas maiores indicam melhor posição relativa na carteira."
     )
+    rfmv_type_options = sorted(rfmv_all["Tipologia Cliente"].fillna("Não informado").astype(str).unique().tolist())
+    selected_rfmv_types = st.multiselect(
+        "Tipos de cliente", rfmv_type_options, default=rfmv_type_options, key="rfmv_client_types"
+    )
+    st.caption("Indicadores dos últimos 12 meses: ticket médio = faturamento ÷ pedidos; margem % = margem ÷ faturamento. O filtro não recalcula as notas relativas da carteira.")
+    rfmv_view = rfmv_all[rfmv_all["Tipologia Cliente"].astype(str).isin(selected_rfmv_types)]
+    if selected != "Todos os clientes":
+        rfmv_view = rfmv_view[rfmv_view["Cliente"].astype(str).eq(selected)]
     if rfmv_view.empty:
         st.info("Sem histórico positivo suficiente para calcular a matriz RFMV neste recorte.")
     elif selected != "Todos os clientes":
@@ -1055,12 +1089,7 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             f"em {int(rfmv_row['Anos disponíveis'])} ano(s) disponíveis desde 2024."
         )
     else:
-        class_order = ["A", "B", "C", "D"]
-        class_counts = rfmv_view["Classe RFMV"].value_counts().reindex(class_order, fill_value=0)
-        _metric_cards([
-            (f"Classe {customer_class}", _quantity(int(class_counts[customer_class])), [])
-            for customer_class in class_order
-        ])
+        _rfmv_class_cards(rfmv_view, brl, pct, "Margem" in history.columns)
         # Visual de distribuição ocultado até a revisão contextual da RFMV.
     with st.expander("Como a classificação RFMV é calculada"):
         st.markdown(
