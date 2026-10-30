@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.6 — ocultar valores de pedidos não conciliados
+
+- removido do Command Center o cruzamento de pedidos liberados com faturamento;
+- removidos da aba Metas os cartões de pedidos liberados e pedidos a faturar;
+- preservados os indicadores de faturamento realizado, KG, margem, preço médio e metas;
+
 ## v2.27.5 — Rel.029 como fonte oficial dos pedidos liberados
 
 - pedidos liberados passam a vir do Rel.029 no grão pedido × item, incluindo cliente, produto, vendedor, modalidade, peso, valor e datas;

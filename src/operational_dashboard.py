@@ -39,7 +39,7 @@ from src.commercial_intelligence import (
 
 
 PANEL_HELP = {
-    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. A conciliação compara pedidos liberados pela Data Liberação com notas emitidas até a data final, usando pedido, cliente e produto. Diferenças podem refletir pendência ou bases de valor distintas e devem ser conferidas nas linhas sem correspondência.",
+    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
@@ -1072,8 +1072,6 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         ]))
     _metric_cards(cards)
 
-    _released_orders_view(history, flow_events, start_date, end_date, brl, show_table, can_export, view_filters)
-
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
     monthly = _monthly_summary(history[(history["Data"] >= monthly_start) & (history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1))])
@@ -2091,15 +2089,6 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
 
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
     st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
-    indicators = indicators or {}
-    st.markdown("### Pendências comerciais")
-    st.caption("ⓘ Totais oficiais da carteira na última carga. Estes indicadores são globais e não seguem o detalhamento abaixo.")
-    _metric_cards([
-        ("Pedidos liberados", brl(float(indicators.get("pedidos_liberados_valor", 0) or 0)), ()),
-        ("Peso liberado", f"{_quantity(float(indicators.get('pedidos_liberados_peso', 0) or 0))} kg", ()),
-        ("Pedidos a faturar", brl(float(indicators.get("pedidos_nao_faturados_valor", 0) or 0)), ()),
-        ("Peso a faturar", f"{_quantity(float(indicators.get('pedidos_nao_faturados_peso', 0) or 0))} kg", ()),
-    ])
     controls = st.columns(2)
     dimension = controls[0].segmented_control(
         "Detalhar por", ["Vendedor", "Grupo Produto"],
