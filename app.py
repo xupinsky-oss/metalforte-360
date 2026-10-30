@@ -164,7 +164,8 @@ def _rich_hover(fig):
 
 def show_chart(fig,**kwargs):
     _rich_hover(fig)
-    fig.update_layout(dragmode="pan",separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
+    # Mantém a seta padrão ao passar sobre o gráfico e habilita seleção por clique.
+    fig.update_layout(dragmode=False,clickmode="event+select",separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
     fig.update_xaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
@@ -173,6 +174,8 @@ def show_chart(fig,**kwargs):
         elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".2%")
         elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.2f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
+    kwargs.setdefault("on_select","rerun")
+    kwargs.setdefault("selection_mode","points")
     return st.plotly_chart(fig,width="stretch",**kwargs)
 
 def yoy_comparison(current,previous,dimension):
