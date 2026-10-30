@@ -164,7 +164,7 @@ def _rich_hover(fig):
 
 def show_chart(fig,**kwargs):
     _rich_hover(fig)
-    fig.update_layout(separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
+    fig.update_layout(dragmode="pan",separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
     fig.update_xaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
