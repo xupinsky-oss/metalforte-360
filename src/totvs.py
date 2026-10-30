@@ -65,6 +65,7 @@ LOSS_DETAIL_REPORTS={"perdas_por_motivo": "21335179"}
 # Relatórios analíticos do painel "Datas". O grão é pedido × item; eles
 # preservam as datas reais do processo e não apenas a posição atual da fila.
 FUNNEL_DATE_REPORTS={
+    "pedidos_liberados_detalhe":"11228340",
     "fluxo_liberados_cif":"38943094",
     "fluxo_liberados_fob":"38943353",
     "op_sob_encomenda":"1236344",

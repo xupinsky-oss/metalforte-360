@@ -161,15 +161,56 @@ def _parse_percentage(value):
     text=str(value)
     return parsed/100 if '%' in text or abs(parsed)>1 else parsed
 
+def _released_detail(frame):
+    """Normaliza o Rel.029 no grão pedido × item, fonte oficial dos liberados."""
+    if frame is None or frame.empty:
+        raise ValueError("Rel.029 não retornou linhas de pedidos liberados.")
+    required = {
+        "pedido": _flow_column(frame, "Nº Pedido", "N Pedido", "Pedido"),
+        "item": _flow_column(frame, "Item"),
+        "cliente": _flow_column(frame, "Cliente", "Nome Cliente"),
+        "produto": _flow_column(frame, "Produto", "Descrição Produto", "Descrição Prod."),
+        "valor": _flow_column(frame, "Valor R$", "Valor"),
+        "peso": _flow_column(frame, "Peso em kg", "Peso Kg", "Peso"),
+    }
+    missing = [key for key, column in required.items() if column is None]
+    if missing:
+        raise ValueError(f"Rel.029 sem campos obrigatórios: {', '.join(missing)}")
+    rows = pd.DataFrame({
+        "Origem": "Pedido liberado",
+        "Modalidade": _flow_series(frame, "CIF / FOB", "CIF/FOB", "Modalidade"),
+        "Vendedor": _flow_series(frame, "Vendedor", "Nome Vendedor"),
+        "Cod Cliente": _flow_series(frame, "Cod Cliente", "Código Cliente", "Codigo Cliente", "Cód. Cliente", "Cod. Cliente"),
+        "Cliente": frame[required["cliente"]],
+        "Grupo Produto": _flow_series(frame, "Grupo", "Grupo Prod.", "Grupo Produto"),
+        "Produto Codigo": _flow_series(frame, "Cod. Prod.", "Código Produto", "Codigo Produto", "Cód. Produto", "Produto Codigo"),
+        "Produto": frame[required["produto"]],
+        "Pedido": frame[required["pedido"]],
+        "Item": frame[required["item"]],
+        "OP": pd.NA, "Data Orçamento": pd.NaT,
+        "Data Pedido": _flow_series(frame, "Emissão", "Emissao", "Emissão Pedido", "Data Emissão", date=True),
+        "Data Liberação": _flow_series(frame, "Liberação", "Liberacao", "Data Liberação", date=True),
+        "Data Emissão OP": pd.NaT, "Data Confirmação OP": pd.NaT, "Data OS": pd.NaT,
+        "Data Montagem Carga": pd.NaT, "Data Emissão NF": pd.NaT, "Data Saída": pd.NaT,
+        "Hora Saída": pd.NA, "Data Desejo Cliente": pd.NaT, "Data Previsão Entrega": pd.NaT,
+        "Data Produção": pd.NaT, "Peso": frame[required["peso"]], "Valor": frame[required["valor"]],
+        "Projeção Custo": pd.NA, "Projeção Imposto": pd.NA, "Projeção Margem": pd.NA, "Margem %": pd.NA,
+    })
+    for col in ("Peso", "Valor"):
+        rows[col] = rows[col].map(_parse_indicator_value)
+    order = rows["Pedido"].astype("string").str.strip()
+    return rows[order.notna() & ~order.str.casefold().isin(["", "sum", "rollup", "total"])]
+
 def build_flow_timeline(frames):
     """Normaliza eventos oficiais sem imputar datas ausentes."""
     columns=['Origem','Modalidade','Vendedor','Cod Cliente','Cliente','Grupo Produto','Produto Codigo','Produto','Pedido','Item','OP','Data Orçamento','Data Pedido','Data Liberação','Data Emissão OP','Data Confirmação OP','Data OS','Data Montagem Carga','Data Emissão NF','Data Saída','Hora Saída','Data Desejo Cliente','Data Previsão Entrega','Data Produção','Peso','Valor','Projeção Custo','Projeção Imposto','Projeção Margem','Margem %']
     rows=[]
-    for name,modalidade in (('fluxo_liberados_cif','CIF'),('fluxo_liberados_fob','FOB')):
-        frame=frames.get(name)
-        if frame is None or frame.empty: continue
-        item=pd.DataFrame({'Origem':'Pedido liberado','Modalidade':modalidade,'Vendedor':_flow_series(frame,'Vendedor','Nome Vendedor'),'Cod Cliente':_flow_series(frame,'Cod Cliente','Código Cliente','Codigo Cliente','Cód. Cliente','Cod. Cliente'),'Cliente':_flow_series(frame,'Cliente','Nome Cliente'),'Grupo Produto':_flow_series(frame,'Grupo Prod.','Grupo Produto'),'Produto Codigo':_flow_series(frame,'Produto Codigo','Código Produto','Codigo Produto','Cód. Produto','Cod. Produto'),'Produto':_flow_series(frame,'Produto','Descrição Prod.'),'Pedido':_flow_series(frame,'Nº Pedido','N Pedido'),'Item':_flow_series(frame,'Item'),'OP':pd.NA,'Data Orçamento':pd.NaT,'Data Pedido':_flow_series(frame,'Emiss. PV','Emiss PV',date=True),'Data Liberação':_flow_series(frame,'Lib. PV','Lib PV',date=True),'Data Emissão OP':_flow_series(frame,'Emissão OP','Emissao OP',date=True),'Data Confirmação OP':_flow_series(frame,'Confirm. OP','Confirm OP',date=True),'Data OS':_flow_series(frame,'Data O.S.','Data OS',date=True),'Data Montagem Carga':_flow_series(frame,'Mont. Carga','Mont Carga',date=True),'Data Emissão NF':_flow_series(frame,'Emiss. NF','Emiss NF',date=True),'Data Saída':_flow_series(frame,'Data Saída','Data Saida',date=True),'Hora Saída':_flow_series(frame,'Hora Saída','Hora Saida'),'Data Desejo Cliente':_flow_series(frame,'Desejo Cli.','Desejo Cli',date=True),'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(frame,'Peso Pedidos'),'Valor':_flow_series(frame,'Vlr. Pedidos','Vlr Pedidos'),'Projeção Custo':pd.NA,'Projeção Imposto':pd.NA,'Projeção Margem':pd.NA,'Margem %':pd.NA})
-        rows.append(item)
+    released=frames.get('pedidos_liberados_detalhe')
+    if released is None:
+        raise ValueError('Rel.029 não foi carregado; publicação do fluxo interrompida.')
+    # Rel.029 é a fonte única das linhas e valores liberados. Não somar as
+    # antigas extrações CIF/FOB junto com ela: duplicaria pedido, cliente e item.
+    rows.append(_released_detail(released))
     quote=frames.get('orcamentos_abertos_detalhe')
     if quote is not None and not quote.empty:
         rows.append(pd.DataFrame({'Origem':'Orçamento em aberto','Modalidade':pd.NA,'Vendedor':_flow_series(quote,'Nome Vendedor','Vendedor'),'Cod Cliente':_flow_series(quote,'Cod Cliente','Código Cliente','Codigo Cliente','Cód. Cliente','Cod. Cliente'),'Cliente':_flow_series(quote,'Nome Cliente','Cliente'),'Grupo Produto':_flow_series(quote,'Grupo Prod.','Grupo Produto'),'Produto Codigo':_flow_series(quote,'Produto Codigo','Código Produto','Codigo Produto','Cód. Produto','Cod. Produto'),'Produto':_flow_series(quote,'Produto','Descrição Produto'),'Pedido':_flow_series(quote,'Pedido'),'Item':pd.NA,'OP':pd.NA,'Data Orçamento':_flow_series(quote,'Emissão','Emissao',date=True),'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':pd.NaT,'Data Confirmação OP':pd.NaT,'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':pd.NaT,'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(quote,'Peso'),'Valor':_flow_series(quote,'Total'),'Projeção Custo':_flow_series(quote,'Projeção Custo','Projecao Custo'),'Projeção Imposto':_flow_series(quote,'Projeção Imposto','Projecao Imposto'),'Projeção Margem':_flow_series(quote,'Projeção Margem','Projecao Margem'),'Margem %':_flow_series(quote,'Margem %','%')}))
@@ -349,6 +390,15 @@ def main():
             logging.warning('Perdas por motivo indisponíveis %s: %s', name, type(exc).__name__)
     flow_frames={}
     for name,report_id in FUNNEL_DATE_REPORTS.items():
+        if name == 'pedidos_liberados_detalhe':
+            logging.info('Baixando fonte oficial de pedidos liberados Rel.029 (%s)', report_id)
+            flow_frames[name]=parse_raw(con.raw_report(report_id,offset_from=-90,offset_to=0))
+            _released_detail(flow_frames[name])
+            released_indicator_frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0))
+            released_indicator_rows=_released_detail(released_indicator_frame)
+            if released_indicator_rows.empty:
+                raise ValueError('Rel.029 não retornou linhas para o período do indicador.')
+            continue
         try:
             logging.info('Baixando eventos de data %s (%s)',name,report_id)
             flow_frames[name]=parse_raw(con.raw_report(report_id,offset_from=-90,offset_to=0))
@@ -415,6 +465,10 @@ def main():
     stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
     stock_tmp.replace(ACTIVE_STOCK)
     flow=build_flow_timeline(flow_frames)
+    # Os cartões de pedidos liberados e a abertura por cliente/produto usam
+    # exatamente a mesma fonte e o período corrente padrão do Rel.029.
+    indicators['pedidos_liberados_valor']=round(float(released_indicator_rows['Valor'].fillna(0).sum()),4)
+    indicators['pedidos_liberados_peso']=round(float(released_indicator_rows['Peso'].fillna(0).sum()),4)
     flow_cloud_updated=False
     if not flow.empty:
         flow_tmp=DATA/'metalforte_fluxo.novo.csv.gz'; flow.to_csv(flow_tmp,index=False,compression='gzip')
@@ -424,7 +478,7 @@ def main():
         except Exception as exc:
             logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
             flow_tmp.unlink(missing_ok=True)
-    indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()},**LOSS_DETAIL_REPORTS}
+    indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()},**LOSS_DETAIL_REPORTS,'pedidos_liberados_detalhe':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_valor':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_peso':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe']}
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=pd.Timestamp.today().to_period('M').start_time

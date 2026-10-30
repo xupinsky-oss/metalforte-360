@@ -1,8 +1,10 @@
 # METALFORTE 360 v2.27
 
-## Pedidos liberados × faturados — v2.27.4
+## Pedidos liberados × faturados — v2.27.5
 
 O Command Center compara os pedidos liberados no período (pela **Data Liberação**) com as notas dos mesmos pedidos até a data final, cruzando pedido, cliente e produto. A abertura cliente × produto exibe liberado, faturado e diferença em R$ e kg; linhas sem chave ou sem faturamento vinculado ficam identificadas para conferência. A diferença é uma pendência operacional apenas quando as medidas de liberado e faturado usam a mesma base de valor.
+
+As linhas liberadas e os indicadores de R$ e kg agora usam o **Rel.029 — Analítico Peso e Valor Pedidos Liberados**, no grão pedido × item, com cliente e produto. Os antigos relatórios CIF/FOB não são somados como linhas liberadas para evitar duplicidade. O detalhamento operacional mantém uma janela móvel de 90 dias; os cartões usam a janela corrente do próprio Rel.029. A conciliação com faturamento continua usando a Data Liberação no intervalo selecionado.
 
 ## Estoque atual e giro — v2.27
 

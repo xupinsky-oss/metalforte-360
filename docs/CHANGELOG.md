@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.27.5 — Rel.029 como fonte oficial dos pedidos liberados
+
+- pedidos liberados passam a vir do Rel.029 no grão pedido × item, incluindo cliente, produto, vendedor, modalidade, peso, valor e datas;
+- cartões de liberados em R$ e kg são totalizados das mesmas linhas do Rel.029 para manter os valores cruzáveis;
+- os antigos detalhamentos CIF/FOB não são somados às linhas do Rel.029;
+- a atualização para antes da publicação se o relatório estiver indisponível ou sem os campos mínimos.
+
 ## v2.27.4 — conciliação por cliente e produto
 
 - faturamento conciliado por pedido + cliente + produto (usa códigos quando ambas as bases os disponibilizam; caso contrário, descrições normalizadas);
