@@ -94,6 +94,86 @@ def show_table(data,**kwargs):
 _HOVER_LABEL_COLOR="#64748B"
 _HOVER_COUNT_TERMS=("clientes","pedidos","produtos","documentos","registros","quantidade","notas","positivados","entidades","municípios","municipios","nfs","amostra")
 _HOVER_GENERIC_VALUES=("value","valor","valor (r$)","peso (kg)")
+_CHART_RENDER_INDEX=0
+
+def _plotly_points(event):
+    """Retorna os pontos selecionados pelo usuário em um gráfico Plotly."""
+    try:
+        selection=event.get("selection",{})
+        return list(selection.get("points",[]) or [])
+    except Exception:
+        return []
+
+def _chart_filter_candidates(data,point):
+    """Relaciona o rótulo clicado a uma dimensão existente na base comercial."""
+    dimensions=("Cliente","Produto","Vendedor","Canal","Segmento Cliente","Grupo Produto",
+                "Subgrupo Produto","Tipo Produto","Tipologia Cliente","Filial","UF","Município",
+                "Cluster PIVOT","ESPEC.","Sub Espec.","Espessura")
+    candidates=[]
+    values=[point.get(axis) for axis in ("x","y")]
+    custom=point.get("customdata")
+    if isinstance(custom,(list,tuple)):
+        values.extend(custom)
+    values.extend(point.get(name) for name in ("text","hovertext","label"))
+    for value in values:
+        if value is None or isinstance(value,(int,float)) and not isinstance(value,bool):
+            continue
+        text=str(value).strip()
+        if not text:
+            continue
+        for column in dimensions:
+            if column not in data.columns:
+                continue
+            try:
+                matches=data[column].notna() & data[column].astype(str).str.strip().eq(text)
+            except Exception:
+                continue
+            if matches.any():
+                candidate=(column,text)
+                if candidate not in candidates:
+                    candidates.append(candidate)
+        if "Data" in data.columns:
+            try:
+                month_text=None
+                if len(text)==7 and text[4] in "-/" and text[:4].isdigit() and text[5:7].isdigit():
+                    month_text=f"{text[:4]}-{text[5:7]}"
+                elif len(text)==7 and text[2] in "/-" and text[:2].isdigit() and text[3:].isdigit():
+                    month_text=f"{text[3:]}-{text[:2]}"
+                dates=pd.to_datetime(data["Data"],errors="coerce")
+                if month_text:
+                    period=pd.Period(month_text,freq="M")
+                    if dates.dt.to_period("M").eq(period).any():
+                        candidate=("Data",month_text)
+                        if candidate not in candidates:
+                            candidates.append(candidate)
+                    continue
+                parsed=pd.to_datetime(value,errors="coerce")
+                if pd.notna(parsed):
+                    if (dates.dt.normalize()==parsed.normalize()).any():
+                        candidate=("Data",parsed.strftime("%Y-%m-%d"))
+                        if candidate not in candidates:
+                            candidates.append(candidate)
+            except Exception:
+                pass
+    return candidates
+
+def _filter_chart_dimension(data,dimension,value):
+    """Aplica o valor selecionado às tabelas e visuais seguintes do painel."""
+    if data is None or data.empty:
+        return data
+    if dimension=="Data" and "Data" in data.columns:
+        dates=pd.to_datetime(data["Data"],errors="coerce")
+        if len(str(value))==7:
+            try:
+                period=pd.Period(value,freq="M")
+                return data.loc[dates.dt.to_period("M")==period].copy()
+            except Exception:
+                pass
+        parsed=pd.to_datetime(value,errors="coerce")
+        return data.loc[dates.dt.normalize()==parsed.normalize()].copy() if pd.notna(parsed) else data
+    if dimension not in data.columns:
+        return data
+    return data.loc[data[dimension].notna() & data[dimension].astype(str).str.strip().eq(str(value))].copy()
 
 def _hover_raw(trace,base):
     """Dados do traço referenciados no popup, para descobrir se o campo é texto, data ou número."""
@@ -163,6 +243,7 @@ def _rich_hover(fig):
     return fig
 
 def show_chart(fig,**kwargs):
+    global _CHART_RENDER_INDEX
     _rich_hover(fig)
     # Mantém a seta padrão ao passar sobre o gráfico e habilita seleção por clique.
     fig.update_layout(dragmode=False,clickmode="event+select",separators=",.",font=dict(size=14,color="#27364A"),title_font=dict(size=18,color="#172033"),legend_font=dict(size=13,color="#27364A"),paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="#FFFFFF",margin=dict(l=28,r=28,t=60,b=42),hoverlabel=dict(bgcolor="#FFFFFF",bordercolor="#CBD5E1",align="left",namelength=-1,font=dict(family="Source Sans Pro, Arial, sans-serif",size=13,color="#172033")))
@@ -174,9 +255,22 @@ def show_chart(fig,**kwargs):
         elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".2%")
         elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.2f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
+    chart_title=getattr(getattr(fig.layout,"title",None),"text",None) or "gráfico"
+    chart_key=kwargs.setdefault("key",f"mf_chart_{_CHART_RENDER_INDEX}_{abs(hash(str(chart_title)))%100000000}")
+    _CHART_RENDER_INDEX+=1
     kwargs.setdefault("on_select","rerun")
     kwargs.setdefault("selection_mode","points")
-    return st.plotly_chart(fig,width="stretch",**kwargs)
+    event=st.plotly_chart(fig,width="stretch",**kwargs)
+    points=_plotly_points(event)
+    point=points[0] if points else None
+    signature=json.dumps(point,ensure_ascii=False,sort_keys=True,default=str) if point else ""
+    signature_key=f"_chart_selection_signature_{chart_key}"
+    previous=st.session_state.get(signature_key,"")
+    if signature!=previous:
+        st.session_state[signature_key]=signature
+        st.session_state["_chart_crossfilter_point"]=point
+        st.rerun()
+    return event
 
 def yoy_comparison(current,previous,dimension):
     """Compara dois períodos equivalentes no grão comercial selecionado."""
@@ -354,15 +448,42 @@ with st.sidebar:
         esp=st.multiselect("Espessura",sorted(df["Espessura"].dropna().unique()))
         ct=st.text_input("Buscar cliente",placeholder="🔍 Nome do cliente")
         pt=st.text_input("Buscar produto",placeholder="🔍 Nome do produto")
+        chart_point=st.session_state.get("_chart_crossfilter_point")
+        chart_filter=None
+        if chart_point:
+            candidates=_chart_filter_candidates(df,chart_point)
+            if candidates:
+                option_labels=[f"{dimension}: {value}" for dimension,value in candidates]
+                point_token=abs(hash(json.dumps(chart_point,ensure_ascii=False,sort_keys=True,default=str)))%100000000
+                chosen=st.selectbox(
+                    "Filtrar pelo ponto clicado",option_labels,
+                    key=f"chart_crossfilter_choice_{point_token}",
+                    help="O clique em um gráfico aplica esta dimensão às análises e tabelas do painel.",
+                )
+                chart_filter=candidates[option_labels.index(chosen)]
+                st.caption("Filtro de gráfico aplicado ao painel.")
+            else:
+                st.caption("O ponto foi selecionado, mas seus valores não correspondem a uma dimensão da base para cruzar os visuais.")
+            if st.button("Limpar filtro do gráfico",key="clear_chart_crossfilter",width="stretch"):
+                st.session_state["_chart_crossfilter_point"]=None
+                st.rerun()
 f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+if chart_filter:
+    f=_filter_chart_dimension(f,*chart_filter)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
 monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+if chart_filter:
+    monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
 target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+if chart_filter:
+    target_history=_filter_chart_dimension(target_history,*chart_filter)
 # Estoque e corporativo; filtros de produto permanecem validos, mas cliente e
 # vendedor nao recortam fisicamente o saldo compartilhado da companhia.
 inventory_history=apply_filters(df,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,produto_text=pt)
+if chart_filter:
+    inventory_history=_filter_chart_dimension(inventory_history,*chart_filter)
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,
