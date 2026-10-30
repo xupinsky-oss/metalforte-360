@@ -3028,7 +3028,13 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
 
     labels = [label for label, _ in pages]
     _inject_navigation_layout(len(labels))
+    # A stale or empty widget value can survive a Streamlit Cloud reload and
+    # make the page lookup fail before any dashboard view is rendered.
+    if st.session_state.get("mf_page") not in labels:
+        st.session_state.pop("mf_page", None)
     selected = st.segmented_control("Navegação", labels, default=labels[0], key="mf_page")
+    if selected not in labels:
+        selected = labels[0]
     permission = dict(pages)[selected]
     can_export = "export_data" in permissions
     if permission == "view_overview":
