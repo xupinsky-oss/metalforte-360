@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.27.3 — conciliação de pedidos liberados
+
+- Command Center concilia pedidos liberados no período pela Data Liberação com faturamento por número do pedido até a data final selecionada;
+- exibe valor e peso liberados, faturados e pendentes, com visão por vendedor ou cliente e detalhe/exportação por pedido;
+- pedidos sem nota conciliada aparecem como pendentes; divergências negativas são destacadas para revisão;
+- respeita escopo de vendedor e filtros compatíveis da carteira.
+
 ## v2.27.2 — outliers no gráfico volume × margem
 
 - outliers de margem e volume são ocultados no gráfico pelo critério IQR de 1,5×;

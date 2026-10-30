@@ -1,5 +1,9 @@
 # METALFORTE 360 v2.27
 
+## Pedidos liberados × faturados — v2.27.3
+
+O Command Center compara a carteira de pedidos cuja **Data Liberação** está no período com as notas faturadas desses mesmos pedidos até a data final selecionada. A pendência é calculada como liberado menos faturado, em R$ e kg, conciliada pelo número do pedido e detalhada por vendedor, cliente e pedido. Pedidos sem nota conciliada permanecem como pendentes; saldos negativos são sinalizados para revisão.
+
 ## Estoque atual e giro — v2.27
 
 - Fotografia oficial do estoque atual, preservada separadamente da base de faturamento.

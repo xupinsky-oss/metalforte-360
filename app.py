@@ -500,7 +500,14 @@ dashboard_kwargs={
     "target_history": target_history, "target_filters": target_filters,
     "commercial_indicators": load_status.get("indicadores", {}),
     "flow_events": flow_events,
-    "view_filters": {"uf": uf, "clusters": cidade_pivot},
+    "view_filters": {
+        "uf": uf, "clusters": cidade_pivot,
+        "seller_scope": seller_scope if access["role"] == "seller" else None,
+        "released_order_filters": {
+            "sellers": [seller_scope] if access["role"] == "seller" else vend,
+            "client": selected_client, "client_text": ct, "product_text": pt, "groups": grupo,
+        },
+    },
 }
 # O Streamlit pode recarregar app.py antes dos módulos importados. Durante essa
 # janela curta, só envia os argumentos novos se a função já os reconhecer.

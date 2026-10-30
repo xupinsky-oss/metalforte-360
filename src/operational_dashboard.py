@@ -39,7 +39,7 @@ from src.commercial_intelligence import (
 
 
 PANEL_HELP = {
-    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. As referências usam o mesmo intervalo deslocado.",
+    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. A conciliação de pedidos usa liberações pela Data Liberação, faturamento identificado pelo número do pedido até a data final e saldo pendente igual a liberado menos faturado.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
@@ -885,7 +885,113 @@ def _compact_bar(view, dimension, title, limit=10):
     return _polish_chart(chart, height=max(330, 31 * len(ranked) + 100), x_title="Faturamento (R$)", y_title="")
 
 
-def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table):
+def _released_orders_view(history, flow_events, start_date, end_date, brl, show_table, can_export=False, view_filters=None):
+    """Reconcile orders released in the selected window to invoices for those orders."""
+    st.markdown("### Pedidos liberados × faturados")
+    st.caption(
+        "Considera pedidos cuja data de liberação cai no período selecionado. "
+        "O faturamento é conciliado pelo número do pedido, desde a liberação até a data final; "
+        "a diferença é o saldo ainda pendente dessa carteira."
+    )
+    required_flow = {"Origem", "Pedido", "Data Liberação", "Valor", "Peso"}
+    required_sales = {"Pedido", "Data", "Faturamento", "Peso"}
+    if flow_events is None or flow_events.empty or not required_flow.issubset(flow_events.columns):
+        st.info("A base de pedidos liberados ainda não está disponível nesta carga.")
+        return
+    if history is None or not required_sales.issubset(history.columns):
+        st.info("A base faturada não contém pedido, data, faturamento e peso para conciliar as liberações.")
+        return
+
+    released = flow_events.loc[flow_events["Origem"].astype(str).eq("Pedido liberado")].copy()
+    filters = (view_filters or {}).get("released_order_filters", {})
+    seller_scope = (view_filters or {}).get("seller_scope")
+    if seller_scope and "Vendedor" in released:
+        released = released[released["Vendedor"].astype(str).eq(str(seller_scope))]
+    for column, values in (("Vendedor", filters.get("sellers")), ("Grupo Produto", filters.get("groups"))):
+        if values and column in released:
+            released = released[released[column].astype(str).isin([str(value) for value in values])]
+    client = filters.get("client")
+    if client and "Cliente" in released:
+        released = released[released["Cliente"].astype(str).eq(str(client))]
+    client_text = filters.get("client_text")
+    if client_text and "Cliente" in released:
+        released = released[released["Cliente"].fillna("").astype(str).str.contains(str(client_text), case=False, na=False)]
+    product_text = filters.get("product_text")
+    if product_text and "Produto" in released:
+        released = released[released["Produto"].fillna("").astype(str).str.contains(str(product_text), case=False, na=False)]
+    released["Data Liberação"] = pd.to_datetime(released["Data Liberação"], errors="coerce")
+    released = released[
+        released["Data Liberação"].between(pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))
+    ].copy()
+    released["_pedido_key"] = released["Pedido"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+    released = released[released["_pedido_key"].notna() & released["_pedido_key"].ne("")]
+    if released.empty:
+        st.info("Nenhum pedido foi liberado dentro do período selecionado.")
+        return
+
+    group_columns = ["_pedido_key"]
+    order_rows = released.groupby(group_columns, as_index=False, dropna=False).agg(
+        Cliente=("Cliente", "first") if "Cliente" in released else ("_pedido_key", "first"),
+        Vendedor=("Vendedor", "first") if "Vendedor" in released else ("_pedido_key", "first"),
+        **{"Data Liberação": ("Data Liberação", "min"), "Liberado (R$)": ("Valor", "sum"), "Liberado (kg)": ("Peso", "sum")},
+    )
+
+    billed = history.copy()
+    billed["Data"] = pd.to_datetime(billed["Data"], errors="coerce")
+    billed["_pedido_key"] = billed["Pedido"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+    billed = billed[billed["_pedido_key"].isin(order_rows["_pedido_key"]) & billed["Data"].notna() & (billed["Data"] <= pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))]
+    billed = billed.merge(order_rows[["_pedido_key", "Data Liberação"]], on="_pedido_key", how="inner", validate="many_to_one")
+    billed = billed[billed["Data"] >= billed["Data Liberação"]]
+    billed_rows = billed.groupby("_pedido_key", as_index=False).agg(
+        **{"Faturado (R$)": ("Faturamento", "sum"), "Faturado (kg)": ("Peso", "sum")}
+    )
+    detail = order_rows.merge(billed_rows, on="_pedido_key", how="left", validate="one_to_one")
+    for column in ("Faturado (R$)", "Faturado (kg)"):
+        detail[column] = pd.to_numeric(detail[column], errors="coerce").fillna(0)
+    for column in ("Liberado (R$)", "Liberado (kg)"):
+        detail[column] = pd.to_numeric(detail[column], errors="coerce").fillna(0)
+    detail["Pendente (R$)"] = detail["Liberado (R$)"] - detail["Faturado (R$)"]
+    detail["Pendente (kg)"] = detail["Liberado (kg)"] - detail["Faturado (kg)"]
+
+    unmatched = int(detail["_pedido_key"].isin(billed_rows["_pedido_key"]).eq(False).sum())
+    released_total = float(detail["Liberado (R$)"].sum())
+    billed_total = float(detail["Faturado (R$)"].sum())
+    pending_total = released_total - billed_total
+    released_weight = float(detail["Liberado (kg)"].sum())
+    billed_weight = float(detail["Faturado (kg)"].sum())
+    pending_weight = released_weight - billed_weight
+    kpis = st.columns(4)
+    kpis[0].metric("Pedidos liberados", f"{len(detail):,}".replace(",", "."))
+    kpis[1].metric("Valor liberado", brl(released_total))
+    kpis[2].metric("Faturado nesses pedidos", brl(billed_total))
+    kpis[3].metric("Pendente de faturar", brl(pending_total))
+    weight_cols = st.columns(3)
+    weight_cols[0].metric("Peso liberado", f"{released_weight:,.0f} kg".replace(",", "."))
+    weight_cols[1].metric("Peso faturado", f"{billed_weight:,.0f} kg".replace(",", "."))
+    weight_cols[2].metric("Peso pendente", f"{pending_weight:,.0f} kg".replace(",", "."))
+    if unmatched:
+        st.caption(f"{unmatched:,} pedido(s) ainda sem nota faturada conciliada até {pd.Timestamp(end_date).strftime('%d/%m/%Y')}.".replace(",", "."))
+    if pending_total < 0 or pending_weight < 0:
+        st.warning("Há pedido(s) em que o faturamento conciliado supera o valor ou o peso liberado. O saldo negativo foi mantido para sinalizar divergência a revisar.")
+
+    dimension_options = [column for column in ("Vendedor", "Cliente") if column in detail]
+    if dimension_options:
+        dimension = st.selectbox("Detalhar carteira por", dimension_options, key="released_orders_dimension")
+        summary = detail.groupby(dimension, as_index=False, dropna=False).agg(**{
+            "Pedidos": ("_pedido_key", "nunique"), "Liberado (R$)": ("Liberado (R$)", "sum"),
+            "Faturado (R$)": ("Faturado (R$)", "sum"), "Pendente (R$)": ("Pendente (R$)", "sum"),
+            "Liberado (kg)": ("Liberado (kg)", "sum"), "Faturado (kg)": ("Faturado (kg)", "sum"),
+            "Pendente (kg)": ("Pendente (kg)", "sum"),
+        }).sort_values("Pendente (R$)", ascending=False)
+        show_table(summary, height=400, width="stretch", hide_index=True)
+    with st.expander("Conferir conciliação por pedido"):
+        display = detail.rename(columns={"_pedido_key": "Pedido"}).sort_values("Pendente (R$)", ascending=False)
+        show_table(display[[column for column in ("Pedido", "Cliente", "Vendedor", "Data Liberação", "Liberado (R$)", "Faturado (R$)", "Pendente (R$)", "Liberado (kg)", "Faturado (kg)", "Pendente (kg)") if column in display]], height=480, width="stretch", hide_index=True)
+        if can_export:
+            st.download_button("Exportar conciliação de pedidos", display.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "pedidos_liberados_x_faturados.csv", "text/csv", width="stretch")
+
+
+def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None):
     st.subheader("Command Center", help=PANEL_HELP["overview"])
     st.caption(
         f"Visão central do METALFORTE 360 • {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
@@ -915,6 +1021,8 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             ("Ano ant.", _metric_value(key, prior_year[key], brl, brl2, pct), yoy, points),
         ]))
     _metric_cards(cards)
+
+    _released_orders_view(history, flow_events, start_date, end_date, brl, show_table, can_export, view_filters)
 
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
@@ -3038,7 +3146,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     permission = dict(pages)[selected]
     can_export = "export_data" in permissions
     if permission == "view_overview":
-        _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table)
+        _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events, can_export, view_filters)
     elif permission == "view_clients":
         _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_products":
