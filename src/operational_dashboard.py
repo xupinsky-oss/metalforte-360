@@ -39,7 +39,7 @@ from src.commercial_intelligence import (
 
 
 PANEL_HELP = {
-    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. A conciliação de pedidos usa liberações pela Data Liberação, faturamento identificado pelo número do pedido até a data final e saldo pendente igual a liberado menos faturado.",
+    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. A conciliação compara pedidos liberados pela Data Liberação com notas emitidas até a data final, usando pedido, cliente e produto. Diferenças podem refletir pendência ou bases de valor distintas e devem ser conferidas nas linhas sem correspondência.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
@@ -885,13 +885,19 @@ def _compact_bar(view, dimension, title, limit=10):
     return _polish_chart(chart, height=max(330, 31 * len(ranked) + 100), x_title="Faturamento (R$)", y_title="")
 
 
+def _reconciliation_key(value):
+    """Normalize labels for conservative customer/product reconciliation."""
+    text = unicodedata.normalize("NFKD", "" if pd.isna(value) else str(value))
+    text = "".join(character for character in text if not unicodedata.combining(character)).upper()
+    return " ".join(text.split())
+
+
 def _released_orders_view(history, flow_events, start_date, end_date, brl, show_table, can_export=False, view_filters=None):
-    """Reconcile orders released in the selected window to invoices for those orders."""
+    """Reconcile released order lines with billing at order + customer + product grain."""
     st.markdown("### Pedidos liberados × faturados")
     st.caption(
-        "Considera pedidos cuja data de liberação cai no período selecionado. "
-        "O faturamento é conciliado pelo número do pedido, desde a liberação até a data final; "
-        "a diferença é o saldo ainda pendente dessa carteira."
+        "Considera liberações no período e notas emitidas até a data final. O cruzamento usa pedido, cliente e produto; "
+        "faturamento de outro cliente ou item do mesmo pedido não é atribuído à linha. Descrições são normalizadas por acentos e espaços."
     )
     required_flow = {"Origem", "Pedido", "Data Liberação", "Valor", "Peso"}
     required_sales = {"Pedido", "Data", "Faturamento", "Peso"}
@@ -903,6 +909,9 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
         return
 
     released = flow_events.loc[flow_events["Origem"].astype(str).eq("Pedido liberado")].copy()
+    for column in ("Cliente", "Produto", "Vendedor", "Grupo Produto", "Cod Cliente", "Produto Codigo"):
+        if column not in released:
+            released[column] = pd.NA
     filters = (view_filters or {}).get("released_order_filters", {})
     seller_scope = (view_filters or {}).get("seller_scope")
     if seller_scope and "Vendedor" in released:
@@ -929,31 +938,67 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
         st.info("Nenhum pedido foi liberado dentro do período selecionado.")
         return
 
-    group_columns = ["_pedido_key"]
-    order_rows = released.groupby(group_columns, as_index=False, dropna=False).agg(
-        Cliente=("Cliente", "first") if "Cliente" in released else ("_pedido_key", "first"),
-        Vendedor=("Vendedor", "first") if "Vendedor" in released else ("_pedido_key", "first"),
-        **{"Data Liberação": ("Data Liberação", "min"), "Liberado (R$)": ("Valor", "sum"), "Liberado (kg)": ("Peso", "sum")},
-    )
-
+    released["_cliente_nome_key"] = released.get("Cliente", pd.Series(index=released.index, dtype="object")).map(_reconciliation_key)
+    released["_produto_nome_key"] = released.get("Produto", pd.Series(index=released.index, dtype="object")).map(_reconciliation_key)
     billed = history.copy()
+    for column in ("Cliente", "Produto", "Cod Cliente", "Produto Codigo"):
+        if column not in billed:
+            billed[column] = pd.NA
     billed["Data"] = pd.to_datetime(billed["Data"], errors="coerce")
     billed["_pedido_key"] = billed["Pedido"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
-    billed = billed[billed["_pedido_key"].isin(order_rows["_pedido_key"]) & billed["Data"].notna() & (billed["Data"] <= pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))]
-    billed = billed.merge(order_rows[["_pedido_key", "Data Liberação"]], on="_pedido_key", how="inner", validate="many_to_one")
+    billed = billed[billed["_pedido_key"].isin(released["_pedido_key"]) & billed["Data"].notna() & (billed["Data"] <= pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(nanoseconds=1))]
+    billed["_cliente_nome_key"] = billed.get("Cliente", pd.Series(index=billed.index, dtype="object")).map(_reconciliation_key)
+    billed["_produto_nome_key"] = billed.get("Produto", pd.Series(index=billed.index, dtype="object")).map(_reconciliation_key)
+    for source, candidate, name_key, code_key in (
+        (released, billed, "_cliente_nome_key", "Cod Cliente"),
+        (released, billed, "_produto_nome_key", "Produto Codigo"),
+    ):
+        if code_key in source and code_key in candidate:
+            source_codes = source[code_key].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+            candidate_codes = candidate[code_key].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+            if source_codes.notna().all() and source_codes.ne("").all() and candidate_codes.notna().all() and candidate_codes.ne("").all():
+                source[name_key] = source_codes
+                candidate[name_key] = candidate_codes
+    released["_cliente_key"] = released["_cliente_nome_key"]
+    released["_produto_key"] = released["_produto_nome_key"]
+    billed["_cliente_key"] = billed["_cliente_nome_key"]
+    billed["_produto_key"] = billed["_produto_nome_key"]
+    released["_chave_completa"] = released["_cliente_key"].ne("") & released["_produto_key"].ne("")
+    group_columns = ["_pedido_key", "_cliente_key", "_produto_key"]
+    aggregations = {
+        "Cliente": ("Cliente", "first"), "Produto": ("Produto", "first"),
+        "Vendedor": ("Vendedor", "first"), "Data Liberação": ("Data Liberação", "min"),
+        "Liberado (R$)": ("Valor", "sum"), "Liberado (kg)": ("Peso", "sum"),
+        "_chave_completa": ("_chave_completa", "all"),
+    }
+    if "Grupo Produto" in released:
+        aggregations["Grupo Produto"] = ("Grupo Produto", "first")
+    if "Cod Cliente" in released:
+        aggregations["Cod Cliente"] = ("Cod Cliente", "first")
+    if "Produto Codigo" in released:
+        aggregations["Produto Codigo"] = ("Produto Codigo", "first")
+    order_rows = released.groupby(group_columns, as_index=False, dropna=False).agg(**aggregations)
+    billed_candidates = billed[billed["_pedido_key"].isin(order_rows["_pedido_key"])].copy()
+    billed = billed[billed["_pedido_key"].isin(order_rows["_pedido_key"]) & billed["_cliente_key"].ne("") & billed["_produto_key"].ne("")]
+    billed = billed.merge(order_rows[group_columns + ["Data Liberação", "_chave_completa"]], on=group_columns, how="inner", validate="many_to_one")
+    billed = billed[billed["_chave_completa"]]
     billed = billed[billed["Data"] >= billed["Data Liberação"]]
-    billed_rows = billed.groupby("_pedido_key", as_index=False).agg(
+    matched_invoice_keys = billed[group_columns].drop_duplicates()
+    billed_unmatched = billed_candidates.merge(matched_invoice_keys.assign(_matched=True), on=group_columns, how="left")
+    billed_unmatched = billed_unmatched[billed_unmatched["_matched"].isna()]
+    billed_rows = billed.groupby(group_columns, as_index=False).agg(
         **{"Faturado (R$)": ("Faturamento", "sum"), "Faturado (kg)": ("Peso", "sum")}
     )
-    detail = order_rows.merge(billed_rows, on="_pedido_key", how="left", validate="one_to_one")
+    detail = order_rows.merge(billed_rows, on=group_columns, how="left", validate="one_to_one")
     for column in ("Faturado (R$)", "Faturado (kg)"):
         detail[column] = pd.to_numeric(detail[column], errors="coerce").fillna(0)
     for column in ("Liberado (R$)", "Liberado (kg)"):
         detail[column] = pd.to_numeric(detail[column], errors="coerce").fillna(0)
+    detail["Situação da conciliação"] = np.where(~detail["_chave_completa"], "Sem cliente/produto", np.where(detail["Faturado (R$)"].eq(0) & detail["Faturado (kg)"].eq(0), "Sem faturamento vinculado", "Conciliado por cliente e produto"))
     detail["Pendente (R$)"] = detail["Liberado (R$)"] - detail["Faturado (R$)"]
     detail["Pendente (kg)"] = detail["Liberado (kg)"] - detail["Faturado (kg)"]
 
-    unmatched = int(detail["_pedido_key"].isin(billed_rows["_pedido_key"]).eq(False).sum())
+    unmatched = int(detail["Situação da conciliação"].ne("Conciliado por cliente e produto").sum())
     released_total = float(detail["Liberado (R$)"].sum())
     billed_total = float(detail["Faturado (R$)"].sum())
     pending_total = released_total - billed_total
@@ -961,7 +1006,7 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
     billed_weight = float(detail["Faturado (kg)"].sum())
     pending_weight = released_weight - billed_weight
     kpis = st.columns(4)
-    kpis[0].metric("Pedidos liberados", f"{len(detail):,}".replace(",", "."))
+    kpis[0].metric("Linhas pedido × cliente × produto", f"{len(detail):,}".replace(",", "."))
     kpis[1].metric("Valor liberado", brl(released_total))
     kpis[2].metric("Faturado nesses pedidos", brl(billed_total))
     kpis[3].metric("Pendente de faturar", brl(pending_total))
@@ -970,23 +1015,28 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
     weight_cols[1].metric("Peso faturado", f"{billed_weight:,.0f} kg".replace(",", "."))
     weight_cols[2].metric("Peso pendente", f"{pending_weight:,.0f} kg".replace(",", "."))
     if unmatched:
-        st.caption(f"{unmatched:,} pedido(s) ainda sem nota faturada conciliada até {pd.Timestamp(end_date).strftime('%d/%m/%Y')}.".replace(",", "."))
+        st.caption(f"{unmatched:,} linha(s) sem faturamento correspondente por cliente e produto até {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. Confira descrições e atualize a base de fluxo para enriquecer as chaves.".replace(",", "."))
+        with st.expander("Ver linhas ainda sem correspondência"):
+            pending_check = detail[detail["Situação da conciliação"].ne("Conciliado por cliente e produto")].copy()
+            show_table(pending_check[[column for column in ("_pedido_key", "Cod Cliente", "Cliente", "Produto Codigo", "Produto", "Liberado (R$)", "Faturado (R$)", "Pendente (R$)", "Liberado (kg)", "Faturado (kg)", "Pendente (kg)", "Situação da conciliação") if column in pending_check]], height=360, width="stretch", hide_index=True)
+    if not billed_unmatched.empty:
+        st.warning(f"Há {len(billed_unmatched):,} linha(s) faturada(s) desses pedidos que não cruzaram por cliente e produto: {brl(float(pd.to_numeric(billed_unmatched['Faturamento'], errors='coerce').fillna(0).sum()))} e {float(pd.to_numeric(billed_unmatched['Peso'], errors='coerce').fillna(0).sum()):,.0f} kg. Esse valor fica fora do faturado conciliado; não é abatido da pendência até a chave ser conferida.".replace(",", "."))
+        with st.expander("Ver faturamentos sem correspondência por cliente/produto"):
+            show_table(billed_unmatched[[column for column in ("Pedido", "Cliente", "Produto Codigo", "Produto", "Data", "Faturamento", "Peso") if column in billed_unmatched]], height=340, width="stretch", hide_index=True)
     if pending_total < 0 or pending_weight < 0:
         st.warning("Há pedido(s) em que o faturamento conciliado supera o valor ou o peso liberado. O saldo negativo foi mantido para sinalizar divergência a revisar.")
 
-    dimension_options = [column for column in ("Vendedor", "Cliente") if column in detail]
-    if dimension_options:
-        dimension = st.selectbox("Detalhar carteira por", dimension_options, key="released_orders_dimension")
-        summary = detail.groupby(dimension, as_index=False, dropna=False).agg(**{
+    st.markdown("#### Cruzamento por cliente e produto")
+    summary = detail.groupby(["Cliente", "Produto"], as_index=False, dropna=False).agg(**{
             "Pedidos": ("_pedido_key", "nunique"), "Liberado (R$)": ("Liberado (R$)", "sum"),
             "Faturado (R$)": ("Faturado (R$)", "sum"), "Pendente (R$)": ("Pendente (R$)", "sum"),
             "Liberado (kg)": ("Liberado (kg)", "sum"), "Faturado (kg)": ("Faturado (kg)", "sum"),
             "Pendente (kg)": ("Pendente (kg)", "sum"),
         }).sort_values("Pendente (R$)", ascending=False)
-        show_table(summary, height=400, width="stretch", hide_index=True)
-    with st.expander("Conferir conciliação por pedido"):
+    show_table(summary, height=460, width="stretch", hide_index=True)
+    with st.expander("Conferir conciliação por pedido, cliente e produto"):
         display = detail.rename(columns={"_pedido_key": "Pedido"}).sort_values("Pendente (R$)", ascending=False)
-        show_table(display[[column for column in ("Pedido", "Cliente", "Vendedor", "Data Liberação", "Liberado (R$)", "Faturado (R$)", "Pendente (R$)", "Liberado (kg)", "Faturado (kg)", "Pendente (kg)") if column in display]], height=480, width="stretch", hide_index=True)
+        show_table(display[[column for column in ("Pedido", "Cod Cliente", "Cliente", "Produto Codigo", "Produto", "Grupo Produto", "Vendedor", "Data Liberação", "Situação da conciliação", "Liberado (R$)", "Faturado (R$)", "Pendente (R$)", "Liberado (kg)", "Faturado (kg)", "Pendente (kg)") if column in display]], height=480, width="stretch", hide_index=True)
         if can_export:
             st.download_button("Exportar conciliação de pedidos", display.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "pedidos_liberados_x_faturados.csv", "text/csv", width="stretch")
 

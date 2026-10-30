@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.4 — conciliação por cliente e produto
+
+- faturamento conciliado por pedido + cliente + produto (usa códigos quando ambas as bases os disponibilizam; caso contrário, descrições normalizadas);
+- detalhamento cruzado cliente × produto, com liberado, faturado e diferença em R$ e kg;
+- linhas sem chave ou sem faturamento vinculado ficam disponíveis para revisão, evitando atribuir o faturamento total do pedido ao primeiro cliente.
+
 ## v2.27.3 — conciliação de pedidos liberados
 
 - Command Center concilia pedidos liberados no período pela Data Liberação com faturamento por número do pedido até a data final selecionada;
