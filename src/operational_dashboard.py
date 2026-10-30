@@ -1292,6 +1292,20 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
             if frame.empty:
                 st.success("Nenhuma ocorrência relevante encontrada neste recorte.")
             else:
+                with st.popover("Contato do cliente"):
+                    clients=sorted(frame["Cliente"].dropna().astype(str).unique().tolist())
+                    selected_contact=st.selectbox(
+                        "Cliente da oportunidade",clients,key=f"insight_contact_client_{insight_key}",
+                    )
+                    contact=frame.loc[frame["Cliente"].astype(str).eq(selected_contact)].iloc[0]
+                    def _contact_value(column):
+                        value=contact.get(column)
+                        if value is None or pd.isna(value) or not str(value).strip() or str(value).strip().lower()=="nan":
+                            return "Não disponível na base atual"
+                        return str(value).strip()
+                    st.write(f"**Código do cliente:** {_contact_value('Cod Cliente')}")
+                    st.write(f"**Telefone:** {_contact_value('Telefone')}")
+                    st.write(f"**E-mail:** {_contact_value('E-mail')}")
                 visible = [column for column in columns if column in frame]
                 show_table(frame[visible], height=560, width="stretch", hide_index=True)
                 if can_export:

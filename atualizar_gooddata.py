@@ -19,7 +19,7 @@ PRODUCT_MATRIX=ROOT/'resources'/'produtos_classificacao.csv.gz'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
 DASHBOARD=os.getenv('TOTVS_DASHBOARD','11078478')
 BASE_URL=os.getenv('TOTVS_BASE_URL','https://analytics.totvs.com.br')
-FINAL_COLUMNS=['Data','Data Pedido','Mes','Ano','Fonte Data','Filial','Vendedor','Cod Cliente','Cliente','UF','Município','Geo Fonte','Segmento Cliente','Tipologia Cliente','Curva Cliente','Pedido','NF','Produto Codigo','Produto','Fonte Classificação Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.','Espessura','CFOP','TES','Faturamento','Peso','Preço Real Kg','Benchmark Grupo','Desvio Benchmark %','Custo','Impostos','PIS','COFINS','ICMS','Margem','Margem %']
+FINAL_COLUMNS=['Data','Data Pedido','Mes','Ano','Fonte Data','Filial','Vendedor','Cod Cliente','Cliente','Telefone','E-mail','UF','Município','Geo Fonte','Segmento Cliente','Tipologia Cliente','Curva Cliente','Pedido','NF','Produto Codigo','Produto','Fonte Classificação Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.','Espessura','CFOP','TES','Faturamento','Peso','Preço Real Kg','Benchmark Grupo','Desvio Benchmark %','Custo','Impostos','PIS','COFINS','ICMS','Margem','Margem %']
 
 for p in (RAW,BACKUP,LOGS): p.mkdir(parents=True,exist_ok=True)
 logging.basicConfig(filename=LOGS/'atualizacao_gooddata.log',level=logging.INFO,format='%(asctime)s | %(levelname)s | %(message)s',encoding='utf-8')
@@ -231,10 +231,21 @@ def consolidate(downloaded,product_matrix=None):
     prod=downloaded['produto_classificacao'].copy(); prod.columns=['Produto Codigo','Produto Cadastro','Espessura','Grupo Produto','Tipo Produto','Peso Comercial','Peso Total']
     geo=downloaded['cliente_geo'].copy(); geo.columns=['Cod Cliente','Cliente Geo','UF','Município','Faturamento Geo']
     classification=downloaded['cliente_classificacao'].copy()
+    original_classification_columns=list(classification.columns)
+    contact_fields={}
+    for index,raw_name in enumerate(original_classification_columns):
+        normalized=''.join(char for char in unicodedata.normalize('NFKD',str(raw_name)).lower() if not unicodedata.combining(char))
+        normalized=''.join(char for char in normalized if char.isalnum())
+        if ('email' in normalized or 'mail' in normalized or 'correioeletronico' in normalized):
+            contact_fields.setdefault('E-mail',classification.iloc[:,index])
+        elif any(term in normalized for term in ('telefone','fone','celular','whatsapp','phone','mobile')):
+            contact_fields.setdefault('Telefone',classification.iloc[:,index])
     expected_classification=['Cod Cliente','Loja Cliente','Cliente Classificação','CPF/CNPJ','Segmento Cliente','Tipologia Cliente','Vendedor Classificação','Vlr Venda Classificação','Faturamento Classificação','Qtd NF Classificação','Frequência','Última Compra Classificação','Recência','Margem Classificação %','Nota Margem','Soma Notas']
     if classification.shape[1] < 7:
         raise ValueError(f'Relatório de classificação de clientes incompleto: {classification.shape[1]} colunas')
     classification.columns=expected_classification[:classification.shape[1]] if classification.shape[1]<=len(expected_classification) else expected_classification+[f'Classificação Extra {i}' for i in range(classification.shape[1]-len(expected_classification))]
+    for field,values in contact_fields.items():
+        classification[field]=values.map(lambda value: '' if pd.isna(value) else str(int(value)) if isinstance(value,float) and value.is_integer() else str(value).strip())
     bench=downloaded['preco_benchmark'].copy(); bench.columns=['Mes Benchmark','Grupo Produto','Benchmark Grupo']
 
     for d in (fat,cli,mar):
@@ -251,7 +262,8 @@ def consolidate(downloaded,product_matrix=None):
     classification=classification.dropna(subset=['Cod Cliente']).drop_duplicates('Cod Cliente',keep='last')
     x=x.merge(prod[['Produto Codigo','Grupo Produto','Tipo Produto','Espessura']],on='Produto Codigo',how='left')
     x=x.merge(geo[['Cod Cliente','UF','Município']],on='Cod Cliente',how='left')
-    x=x.merge(classification[['Cod Cliente','Segmento Cliente','Tipologia Cliente']],on='Cod Cliente',how='left')
+    client_columns=['Cod Cliente','Segmento Cliente','Tipologia Cliente']+[column for column in ('Telefone','E-mail') if column in classification]
+    x=x.merge(classification[client_columns],on='Cod Cliente',how='left')
     geo_names=geo.assign(_cliente=geo['Cliente Geo'].astype(str).str.strip().str.upper())
     geo_names=geo_names[~geo_names['_cliente'].duplicated(keep=False)].set_index('_cliente')
     name_key=x['Cliente'].astype(str).str.strip().str.upper()
@@ -277,6 +289,9 @@ def consolidate(downloaded,product_matrix=None):
     x['Benchmark Grupo']=x['Benchmark Grupo'].fillna(0); x['Desvio Benchmark %']=(x['Preço Real Kg']/x['Benchmark Grupo'].replace(0,pd.NA)-1).fillna(0)
     for c in ['Custo','Impostos','PIS','COFINS','ICMS']: x[c]=x[c].fillna(0)
     x['UF']=x['UF'].fillna('Não mapeado'); x['Município']=x['Município'].fillna('Não mapeado'); x['Geo Fonte']=x['UF'].map(lambda v:'Código cliente' if v!='Não mapeado' else 'Não mapeado')
+    for column in ('Telefone','E-mail'):
+        if column not in x: x[column]=''
+        x[column]=x[column].fillna('').astype(str).str.strip()
     x['Segmento Cliente']=x['Segmento Cliente'].fillna('Não classificado').astype(str).str.strip().replace('', 'Não classificado')
     x['Tipologia Cliente']=x['Tipologia Cliente'].fillna('Não classificado').astype(str).str.strip().replace('', 'Não classificado')
     for column in ['Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.']:

@@ -246,10 +246,11 @@ def actionable_insights(current, history, start_date, end_date):
         return {"reactivation": empty, "declines": empty, "seasonality": empty, "mix": empty}
 
     context_source = history[history["Data"] <= pd.Timestamp(end_date)].sort_values("Data")
-    context = context_source.groupby("Cliente", dropna=False).agg(
-        Vendedor=("Vendedor", "last"), UF=("UF", "last"),
-        Última_compra=("Data", "max"),
-    ).reset_index()
+    context_columns=[column for column in (
+        "Vendedor", "UF", "Data", "Cod Cliente", "Telefone", "E-mail",
+    ) if column in context_source]
+    context = context_source.groupby("Cliente", dropna=False)[context_columns].last().reset_index()
+    context=context.rename(columns={"Data":"Última_compra"})
     clients = clients.merge(context, on="Cliente", how="left")
     clients["Dias sem comprar"] = (
         pd.Timestamp(end_date).normalize() - clients["Última_compra"].dt.normalize()
