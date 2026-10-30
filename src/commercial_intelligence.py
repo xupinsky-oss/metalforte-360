@@ -128,6 +128,128 @@ def entity_comparison(current, reference, dimension):
     return result.sort_values("Faturamento atual", ascending=False)
 
 
+def customer_three_month_trend(history, end_date):
+    """Compara faturamento por cliente nos últimos 3 meses com os 3 anteriores.
+
+    As janelas são intervalos móveis inclusivos ancorados na data final, não
+    meses-calendário completos. Isso permite analisar períodos parciais sem
+    trazer dias posteriores à seleção.
+    """
+    columns = [
+        "Cliente", "Faturamento últimos 3m", "Faturamento 3m anteriores",
+        "Variação faturamento 3m %", "Tendência 3m",
+    ]
+    if history.empty or not {"Data", "Cliente", "Faturamento"}.issubset(history.columns):
+        return pd.DataFrame(columns=columns)
+
+    end = pd.Timestamp(end_date).normalize()
+    recent_start = end - pd.DateOffset(months=3) + pd.Timedelta(days=1)
+    window_days = (end - recent_start).days + 1
+    prior_end = recent_start - pd.Timedelta(days=1)
+    prior_start = prior_end - pd.Timedelta(days=window_days - 1)
+    source = history[["Data", "Cliente", "Faturamento"]].copy()
+    source["Data"] = pd.to_datetime(source["Data"], errors="coerce")
+    source["Faturamento"] = pd.to_numeric(source["Faturamento"], errors="coerce").fillna(0)
+    source = source[source["Data"].notna() & source["Data"].lt(end + pd.Timedelta(days=1))].copy()
+    if source.empty:
+        return pd.DataFrame(columns=columns)
+
+    universe = source[["Cliente"]].dropna().drop_duplicates()
+    recent = source[source["Data"].between(recent_start, end + pd.Timedelta(days=1), inclusive="left")]
+    prior = source[source["Data"].between(prior_start, prior_end + pd.Timedelta(days=1), inclusive="left")]
+    recent = recent.groupby("Cliente", dropna=False)["Faturamento"].sum().rename("Faturamento últimos 3m")
+    prior = prior.groupby("Cliente", dropna=False)["Faturamento"].sum().rename("Faturamento 3m anteriores")
+    result = universe.merge(recent, on="Cliente", how="left").merge(prior, on="Cliente", how="left")
+    for column in columns[1:3]:
+        result[column] = pd.to_numeric(result[column], errors="coerce").fillna(0.0)
+    baseline = result["Faturamento 3m anteriores"]
+    latest = result["Faturamento últimos 3m"]
+    result["Variação faturamento 3m %"] = (latest - baseline).div(baseline.where(baseline.gt(0)))
+    result["Tendência 3m"] = np.select(
+        [
+            baseline.gt(0) & latest.le(0),
+            baseline.gt(0) & result["Variação faturamento 3m %"].le(-0.20),
+            baseline.gt(0) & result["Variação faturamento 3m %"].ge(0.20),
+            baseline.gt(0),
+            baseline.le(0) & latest.gt(0),
+        ],
+        ["Parou recentemente", "Queda 3m", "Alta 3m", "Estável 3m", "Entrada recente"],
+        default="Sem faturamento recente",
+    )
+    return result[columns]
+
+
+def customer_direction_classification(annual_change, recent_change, recent_trend):
+    """Combina a leitura anual com o momentum recente sem ocultar divergências."""
+    annual = pd.to_numeric(annual_change, errors="coerce")
+    recent = pd.to_numeric(recent_change, errors="coerce")
+    trend = pd.Series(recent_trend, index=annual.index).fillna("").astype(str)
+    annual_down = annual.le(-0.20)
+    annual_up = annual.ge(0.20)
+    recent_down = recent.le(-0.20) | trend.eq("Parou recentemente")
+    recent_up = recent.ge(0.20) | trend.eq("Entrada recente")
+    annual_missing = annual.isna()
+    recent_missing = trend.eq("Sem faturamento recente")
+    return pd.Series(
+        np.select(
+            [
+                annual_down & recent_down,
+                annual_down & recent_up,
+                annual_down & recent_missing,
+                annual_down & ~recent_down & ~recent_up & ~annual_missing,
+                annual_up & recent_down,
+                annual_up & recent_up,
+                annual_up & recent_missing,
+                recent_down & annual_missing,
+                recent_up & annual_missing,
+                recent_missing & annual_missing,
+                recent_down,
+                recent_up,
+            ],
+            [
+                "Queda persistente", "Recuperação recente", "Queda anual · sem faturamento recente",
+                "Queda anual · recente estável", "Alerta de reversão", "Crescimento consistente",
+                "Alerta: sem faturamento recente", "Queda recente · sem base anual",
+                "Entrada recente · sem base anual", "Sem leitura recente", "Queda recente",
+                "Aceleração recente",
+            ],
+            default="Estável / sem alerta",
+        ),
+        index=annual.index,
+    )
+
+
+def customer_directional_signals(history, start_date, end_date):
+    """Une a variação anual do período selecionado ao momentum móvel de 3 meses."""
+    columns = [
+        "Cliente", "Variação faturamento ano %", "Faturamento últimos 3m",
+        "Faturamento 3m anteriores", "Variação faturamento 3m %", "Tendência 3m",
+        "Classificação comercial",
+    ]
+    if history.empty or not {"Data", "Cliente", "Faturamento"}.issubset(history.columns):
+        return pd.DataFrame(columns=columns)
+    source = history.copy()
+    source["Data"] = pd.to_datetime(source["Data"], errors="coerce")
+    current = source[source["Data"].between(
+        pd.Timestamp(start_date), pd.Timestamp(end_date) + pd.Timedelta(days=1), inclusive="left"
+    )]
+    previous_year, _, _ = reference_period(source, start_date, end_date, "year")
+    annual = entity_comparison(current, previous_year, "Cliente")
+    annual = annual[["Cliente", "Variação faturamento %"]].rename(
+        columns={"Variação faturamento %": "Variação faturamento ano %"}
+    ) if not annual.empty else pd.DataFrame(columns=columns[:2])
+    recent = customer_three_month_trend(source, end_date)
+    result = annual.merge(recent, on="Cliente", how="outer")
+    if result.empty:
+        return pd.DataFrame(columns=columns)
+    result["Classificação comercial"] = customer_direction_classification(
+        result["Variação faturamento ano %"],
+        result["Variação faturamento 3m %"],
+        result["Tendência 3m"],
+    )
+    return result[columns]
+
+
 def customer_portfolio(current, history, start_date, end_date, reference_mode="year"):
     reference, _, _ = reference_period(history, start_date, end_date, reference_mode)
     history_until = history[history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1)]
@@ -252,6 +374,8 @@ def actionable_insights(current, history, start_date, end_date):
     context = context_source.groupby("Cliente", dropna=False)[context_columns].last().reset_index()
     context=context.rename(columns={"Data":"Última_compra"})
     clients = clients.merge(context, on="Cliente", how="left")
+    signals = customer_directional_signals(history, start_date, end_date)
+    clients = clients.merge(signals, on="Cliente", how="left")
     clients["Dias sem comprar"] = (
         pd.Timestamp(end_date).normalize() - clients["Última_compra"].dt.normalize()
     ).dt.days.clip(lower=0)
@@ -277,6 +401,11 @@ def actionable_insights(current, history, start_date, end_date):
     seasonality = cadence[cadence["Janela vencida"]].copy() if not cadence.empty else cadence
     if not seasonality.empty:
         seasonality = seasonality.merge(context[["Cliente", "Vendedor", "UF"]], on="Cliente", how="left")
+        seasonality = seasonality.merge(
+            signals[["Cliente", "Faturamento últimos 3m", "Faturamento 3m anteriores",
+                     "Variação faturamento 3m %", "Tendência 3m", "Classificação comercial"]],
+            on="Cliente", how="left",
+        )
         value = history[
             (history["Data"] >= pd.Timestamp(end_date) - pd.DateOffset(months=12))
             & (history["Data"] <= pd.Timestamp(end_date))

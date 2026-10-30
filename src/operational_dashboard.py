@@ -30,6 +30,7 @@ from src.commercial_intelligence import (
     actionable_insights,
     commercial_metrics,
     customer_portfolio,
+    customer_directional_signals,
     entity_comparison,
     product_curve,
     purchase_seasonality,
@@ -40,10 +41,10 @@ from src.commercial_intelligence import (
 PANEL_HELP = {
     "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo. As referências usam o mesmo intervalo deslocado.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
-    "clients": "Consolida compras por cliente no período selecionado. Histórico, última compra e janela de recompra usam a série disponível até a data final; a sazonalidade considera os últimos 12 meses. A matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
+    "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
     "stock": "Cruza a fotografia atual do estoque com as vendas do período móvel escolhido. A curva ABC usa a participação acumulada em KG ou faturamento: A até 80%, B de 80% a 95% e C no restante. Dias de estoque é o saldo disponível dividido pela venda média diária; ABC e cobertura são classificações independentes.",
-    "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
+    "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior e acrescentam a tendência dos 3 meses recentes frente aos 3 meses anteriores; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
     "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
@@ -59,10 +60,10 @@ PANEL_HELP = {
 
 
 INSIGHT_HELP = {
-    "reactivation": "Clientes que compraram no mesmo período do ano anterior e ainda não faturaram no período atual. O potencial é a diferença positiva entre faturamento de referência e atual.",
-    "declines": "Clientes ativos nos dois períodos cuja queda de faturamento é de 20% ou mais. O potencial é a parcela necessária para recuperar o nível do ano anterior.",
-    "seasonality": "Clientes cuja última compra ultrapassou 125% da cadência mediana entre compras. A cadência exige ao menos duas datas de compra e mínimo de 7 dias.",
-    "mix": "Clientes ativos cujo número de produtos distintos ficou abaixo do mesmo período do ano anterior. Produtos a recuperar é a diferença entre o mix de referência e o atual.",
+    "reactivation": "Clientes que compraram no mesmo período do ano anterior e ainda não faturaram no período atual. O potencial é a diferença positiva entre faturamento de referência e atual. A tendência recente mostra os últimos 3 meses contra uma janela anterior de igual duração.",
+    "declines": "Clientes ativos nos dois períodos cuja queda anual de faturamento é de 20% ou mais. A classificação combina esse sinal com a variação dos últimos 3 meses: queda persistente, recuperação recente, estável ou alerta de reversão. O potencial é a parcela necessária para recuperar o nível do ano anterior.",
+    "seasonality": "Clientes cuja última compra ultrapassou 125% da cadência mediana entre compras. A cadência exige ao menos duas datas de compra e mínimo de 7 dias. A tendência 3m acrescenta o ritmo de faturamento recente.",
+    "mix": "Clientes ativos cujo número de produtos distintos ficou abaixo do mesmo período do ano anterior. Produtos a recuperar é a diferença entre o mix de referência e o atual. A classificação também mostra o ritmo de faturamento recente.",
 }
 
 
@@ -1044,6 +1045,7 @@ def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
 
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de clientes", help=PANEL_HELP["clients"])
+    st.caption("A classificação comercial combina a variação do período contra o mesmo intervalo do ano anterior com o ritmo dos últimos 3 meses frente aos 3 meses anteriores. Quedas e altas de 20% ou mais recebem alertas; divergências ficam explícitas como recuperação ou reversão.")
     available = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
     c1, c2 = st.columns([1.7, 1])
     selected = c1.selectbox("Cliente", ["Todos os clientes"] + available, key="client_page_scope")
@@ -1151,6 +1153,17 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
     st.markdown("### Carteira e movimentação")
     portfolio = customer_portfolio(current, client_history, start_date, end_date, mode)
+    directional = customer_directional_signals(client_history, start_date, end_date)
+    if not portfolio.empty and not directional.empty:
+        portfolio = portfolio.merge(directional, on="Cliente", how="left")
+        if selected != "Todos os clientes":
+            signal = portfolio.iloc[0]
+            recent_change = signal.get("Variação faturamento 3m %")
+            recent_text = pct(recent_change) if pd.notna(recent_change) else "sem base anterior"
+            st.info(
+                f"Classificação comercial: **{signal.get('Classificação comercial', 'Sem leitura')}** · "
+                f"tendência 3m: **{signal.get('Tendência 3m', 'Sem leitura')}** ({recent_text} vs. os 3 meses anteriores)."
+            )
     if not portfolio.empty and not rfmv_all.empty:
         rfmv_columns = [
             "Cliente", "Classe RFMV", "Nota RFMV", "Código RFMV", "Nota R", "Nota F",
@@ -1164,6 +1177,8 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             "Última compra", "Dias sem comprar",
             "Faturamento atual", "Faturamento referência", "Variação faturamento %",
             "KG atual", "Margem % atual", "Preço médio atual", "Mix atual", "Situação",
+            "Variação faturamento ano %", "Faturamento últimos 3m", "Faturamento 3m anteriores",
+            "Variação faturamento 3m %", "Tendência 3m", "Classificação comercial",
         ] if column in portfolio]
         show_table(portfolio[columns], height=560, width="stretch", hide_index=True)
     else:
@@ -1267,7 +1282,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
 
 def _insights_view(data, history, start_date, end_date, brl, show_table, can_export):
     st.subheader("Insights e oportunidades", help=PANEL_HELP["insights"])
-    st.caption("Filas de ação calculadas com o mesmo período do ano anterior e a janela de compra dos últimos 12 meses.")
+    st.caption("A classificação combina o período contra o ano anterior com a variação do faturamento nos últimos 3 meses contra os 3 meses imediatamente anteriores. As janelas de 3 meses são móveis e terminam na data final selecionada.")
     insights = actionable_insights(data, history, start_date, end_date)
     reactivation = insights["reactivation"]
     declines = insights["declines"]
@@ -1281,10 +1296,10 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
 
     tabs = st.tabs(["Reativação", "Possíveis quedas", "Sazonalidade", "Recuperação de mix"])
     selections = [
-        ("reactivation", reactivation, ["Cliente", "Vendedor", "UF", "Última_compra", "Dias sem comprar", "Faturamento referência", "Potencial R$", "Ação"]),
-        ("declines", declines, ["Cliente", "Vendedor", "UF", "Faturamento atual", "Faturamento referência", "Variação faturamento %", "Margem % atual", "Δ Margem p.p.", "Potencial R$", "Ação"]),
-        ("seasonality", seasonality, ["Cliente", "Vendedor", "UF", "Última compra", "Dias sem comprar", "Cadência mediana (dias)", "Faturamento 12m", "Ação"]),
-        ("mix", mix, ["Cliente", "Vendedor", "Faturamento atual", "Mix atual", "Mix referência", "Produtos a recuperar", "Potencial R$", "Ação"]),
+        ("reactivation", reactivation, ["Cliente", "Vendedor", "UF", "Última_compra", "Dias sem comprar", "Faturamento últimos 3m", "Faturamento 3m anteriores", "Tendência 3m", "Classificação comercial", "Faturamento referência", "Potencial R$", "Ação"]),
+        ("declines", declines, ["Cliente", "Vendedor", "UF", "Faturamento atual", "Faturamento referência", "Variação faturamento %", "Faturamento últimos 3m", "Faturamento 3m anteriores", "Tendência 3m", "Variação faturamento 3m %", "Classificação comercial", "Margem % atual", "Δ Margem p.p.", "Potencial R$", "Ação"]),
+        ("seasonality", seasonality, ["Cliente", "Vendedor", "UF", "Última compra", "Dias sem comprar", "Cadência mediana (dias)", "Faturamento últimos 3m", "Tendência 3m", "Classificação comercial", "Faturamento 12m", "Ação"]),
+        ("mix", mix, ["Cliente", "Vendedor", "Faturamento atual", "Mix atual", "Mix referência", "Faturamento últimos 3m", "Tendência 3m", "Classificação comercial", "Produtos a recuperar", "Potencial R$", "Ação"]),
     ]
     for tab, (insight_key, frame, columns) in zip(tabs, selections):
         with tab:
@@ -1311,6 +1326,196 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
                 if can_export:
                     file_name = f"insights_{insight_key}.csv"
                     st.download_button("Exportar lista", frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_insights_{insight_key}")
+
+
+def _commercial_direction_view(data, history, start_date, end_date, brl, pct, show_table, can_export):
+    st.subheader("Direcionador comercial", help="Acompanha resultados faturados por frente: BDR para reativação, SDR para novos clientes, Inside Sales para carteira empresarial e Balcão para consumidor final.")
+    st.caption("O período e os filtros da barra lateral valem para todas as filas. As frentes representam tipos de atendimento, não etapas consecutivas da mesma venda.")
+    threshold = st.selectbox(
+        "Considerar cliente inativo após", [120, 180, 365], index=1,
+        format_func=lambda value: f"{value} dias sem compra", key="direction_inactivity_days",
+    )
+    health_summary, portfolio = portfolio_health(history, end_date, inactivity_days=threshold)
+    if portfolio.empty:
+        st.info("Não há histórico faturado suficiente para montar as carteiras comerciais neste recorte.")
+        return
+
+    def customer_key(frame):
+        names=frame.get("Cliente",pd.Series("",index=frame.index)).fillna("").astype(str).str.strip().str.casefold()
+        if "Cod Cliente" in frame:
+            codes=frame["Cod Cliente"].astype("string").fillna("").str.strip()
+            valid=codes.ne("") & codes.str.casefold().ne("nan") & codes.str.casefold().ne("<na>")
+            return pd.Series(np.where(valid,"cod:"+codes.astype(str),"nome:"+names),index=frame.index)
+        return "nome:"+names
+
+    portfolio=portfolio.copy()
+    portfolio["_chave_cliente"]=customer_key(portfolio)
+    current=data.copy()
+    if current.empty:
+        current=pd.DataFrame(columns=["Data","Cliente","Faturamento","Peso","Margem"])
+    current["_chave_cliente"]=customer_key(current)
+    for column in ("Faturamento","Peso","Margem"):
+        if column not in current:
+            current[column]=0.0
+        current[column]=pd.to_numeric(current.get(column,0),errors="coerce").fillna(0)
+    if current.empty:
+        current_metrics=pd.DataFrame(columns=["_chave_cliente","Faturamento período","KG período","Margem período","Pedidos período"])
+    else:
+        aggregation={
+            "Faturamento período":("Faturamento","sum"),
+            "KG período":("Peso","sum"),
+            "Margem período":("Margem","sum"),
+        }
+        order_column="NF" if "NF" in current else "Pedido" if "Pedido" in current else None
+        if order_column:
+            aggregation["Pedidos período"]=(order_column,"nunique")
+        current_metrics=current.groupby("_chave_cliente",dropna=False).agg(**aggregation).reset_index()
+    portfolio=portfolio.merge(current_metrics,on="_chave_cliente",how="left")
+    for column in ("Faturamento período","KG período","Margem período","Pedidos período"):
+        if column not in portfolio:
+            portfolio[column]=0.0
+        portfolio[column]=pd.to_numeric(portfolio[column],errors="coerce").fillna(0.0)
+    portfolio["Comprou no período"]=portfolio["Faturamento período"].gt(0)
+    if "Tipologia Cliente" in history:
+        context=history.copy()
+        context["Data"]=pd.to_datetime(context["Data"],errors="coerce")
+        context=context[context["Data"].le(pd.Timestamp(end_date))].copy()
+        context["_chave_cliente"]=customer_key(context)
+        latest=context.sort_values("Data").groupby("_chave_cliente",dropna=False).tail(1)
+        typology=latest[["_chave_cliente","Tipologia Cliente"]].drop_duplicates("_chave_cliente",keep="last")
+        portfolio=portfolio.merge(typology,on="_chave_cliente",how="left",suffixes=("","_hist"))
+    else:
+        portfolio["Tipologia Cliente"]=pd.NA
+    directional=customer_directional_signals(history,start_date,end_date)
+    if not directional.empty:
+        portfolio=portfolio.merge(directional,on="Cliente",how="left")
+    typology=portfolio.get("Tipologia Cliente",pd.Series("",index=portfolio.index)).fillna("").astype(str).str.casefold()
+    is_consumer=typology.str.contains("consumidor|balc[aã]o",regex=True,na=False)
+    period_start=pd.Timestamp(start_date).normalize()
+    period_end=pd.Timestamp(end_date).normalize()
+    portfolio["Primeira compra"]=pd.to_datetime(portfolio["Primeira compra"],errors="coerce")
+    new_clients=portfolio[
+        portfolio["Primeira compra"].between(period_start,period_end,inclusive="both")
+        & portfolio["Comprou no período"] & ~is_consumer
+    ].copy()
+    consumer_current=current[
+        current.get("Tipologia Cliente",pd.Series("",index=current.index)).fillna("").astype(str).str.casefold().str.contains("consumidor|balc[aã]o",regex=True,na=False)
+    ].copy() if "Tipologia Cliente" in current else current.iloc[0:0].copy()
+
+    portfolio["Última compra"]=pd.to_datetime(portfolio["Última compra"],errors="coerce")
+    inactive_now=portfolio[portfolio["Status"].eq("Inativo") & ~is_consumer].copy()
+    warm_now=portfolio[portfolio["Status"].eq("Em risco") & ~is_consumer].copy()
+    existing=portfolio[
+        portfolio["Primeira compra"].lt(period_start) & ~is_consumer
+    ].copy()
+
+    history_positive=history.copy()
+    history_positive["Data"]=pd.to_datetime(history_positive["Data"],errors="coerce")
+    history_positive["Faturamento"]=pd.to_numeric(history_positive["Faturamento"],errors="coerce").fillna(0)
+    prior=history_positive[
+        history_positive["Data"].lt(period_start) & history_positive["Faturamento"].gt(0)
+    ].copy()
+    if not prior.empty:
+        prior["_chave_cliente"]=customer_key(prior)
+        prior_last=prior.groupby("_chave_cliente",dropna=False)["Data"].max()
+        reactivated_keys=set(
+            prior_last[(period_start-prior_last.dt.normalize()).dt.days.ge(threshold)].index.astype(str)
+        ) & set(portfolio.loc[portfolio["Comprou no período"],"_chave_cliente"].astype(str))
+        reactivated=portfolio[portfolio["_chave_cliente"].astype(str).isin(reactivated_keys) & ~is_consumer].copy()
+    else:
+        reactivated=portfolio.iloc[0:0].copy()
+
+    try:
+        decline_queue=actionable_insights(data,history,start_date,end_date)["declines"]
+    except (KeyError,TypeError,ValueError):
+        decline_queue=pd.DataFrame()
+    inside_active=int(existing["Comprou no período"].sum())
+    inside_revenue=float(existing.loc[existing["Comprou no período"],"Faturamento período"].sum())
+    bdr_cards=st.columns(4)
+    bdr_cards[0].metric("BDR · inativos",f"{len(inactive_now):,}".replace(",","."),help="Clientes sem compra há mais do que o limite selecionado, no fim do período.")
+    bdr_cards[1].metric("BDR · reaquecimento",f"{len(warm_now):,}".replace(",","."),help="Clientes entre 91 dias e o limite de inatividade.")
+    bdr_cards[2].metric("SDR · novos clientes",f"{len(new_clients):,}".replace(",","."),help="Primeira compra faturada dentro do período selecionado.")
+    bdr_cards[3].metric("Inside Sales · cobertura",f"{inside_active:,} / {len(existing):,}".replace(",","."),help="Clientes da carteira histórica que faturaram no período / carteira empresarial histórica.")
+    st.caption(
+        f"BDR reativados no período: {len(reactivated):,}. "
+        f"Inside Sales faturado: {brl(inside_revenue)}. "
+        f"SDR faturado: {brl(float(new_clients['Faturamento período'].sum()))}. "
+        f"Balcão faturado: {brl(float(consumer_current['Faturamento'].sum()))}."
+    )
+    if "Tipologia Cliente" not in history:
+        st.warning("A classificação Tipologia Cliente não está na base; as filas de consumidor final do Balcão não podem ser separadas com segurança.")
+    st.caption("A base registra faturamento e cadastro, mas não atividades de prospecção. SDR conta novos clientes com primeira venda faturada; Inside Sales usa a última carteira associada ao vendedor no histórico. A classificação comercial combina a comparação anual com a tendência móvel dos últimos 3 meses versus os 3 anteriores.")
+
+    tabs=st.tabs(["Visão do fluxo","BDR","SDR","Inside Sales","Balcão","Queda potencial"])
+    with tabs[0]:
+        lanes=st.columns(4)
+        lane_values=[
+            ("01 · BDR","Reativação",f"{len(inactive_now):,}".replace(",","."),f"{len(reactivated):,} reativados no período"),
+            ("02 · SDR","Novos clientes",f"{len(new_clients):,}".replace(",","."),brl(float(new_clients["Faturamento período"].sum()))),
+            ("03 · Inside Sales","Carteira",f"{inside_active:,} / {len(existing):,}".replace(",","."),brl(inside_revenue)),
+            ("04 · Balcão","Consumidor final",f"{consumer_current['Cliente'].nunique() if 'Cliente' in consumer_current else 0:,}".replace(",","."),brl(float(consumer_current["Faturamento"].sum()))),
+        ]
+        for lane,(code,title,value,detail) in zip(lanes,lane_values):
+            with lane.container(border=True):
+                st.caption(code)
+                st.markdown(f"**{title}**")
+                st.markdown(f"### {value}")
+                st.caption(detail)
+        decline_potential=float(pd.to_numeric(decline_queue.get("Potencial R$",pd.Series(dtype=float)),errors="coerce").fillna(0).sum())
+        st.metric("Clientes com queda potencial",f"{len(decline_queue):,}".replace(",","."),brl(decline_potential),help="Clientes com faturamento pelo menos 20% abaixo do mesmo intervalo do ano anterior; potencial é a diferença nominal, não uma previsão.")
+        st.caption("As quatro frentes são carteiras de atuação paralelas. As métricas são realizadas e faturadas no intervalo selecionado; não representam conversão entre etapas.")
+    with tabs[1]:
+        bdr_tabs=st.tabs(["Inativos","Reaquecer","Reativados"])
+        bdr_columns=["Cod Cliente","Cliente","Vendedor","UF","Município","Última compra","Dias sem comprar","Faturamento últimos 3m","Faturamento 3m anteriores","Tendência 3m","Classificação comercial","Variação faturamento 3m %","Faturamento 12m","Margem % 12m","Pedidos 12m"]
+        with bdr_tabs[0]:
+            st.caption(f"Fila atual · sem compra há mais de {threshold} dias. Potencial histórico é referência dos últimos 12 meses, não previsão.")
+            visible=[column for column in bdr_columns if column in inactive_now]
+            if inactive_now.empty: st.success("Nenhum cliente inativo neste recorte.")
+            else:
+                show_table(inactive_now[visible],height=520,width="stretch",hide_index=True)
+                if can_export: st.download_button("Exportar fila BDR",inactive_now[visible].to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"bdr_clientes_inativos.csv","text/csv",key="export_direction_bdr_inactive")
+        with bdr_tabs[1]:
+            st.caption("Clientes sem compra há mais de 90 dias e até o limite de inatividade.")
+            visible=[column for column in bdr_columns if column in warm_now]
+            if warm_now.empty: st.success("Nenhum cliente para aquecer neste recorte.")
+            else: show_table(warm_now[visible],height=520,width="stretch",hide_index=True)
+        with bdr_tabs[2]:
+            st.caption(f"Clientes inativos antes do início do período (≥{threshold} dias) que voltaram a faturar no período.")
+            visible=[column for column in ["Cod Cliente","Cliente","Vendedor","UF","Faturamento período","KG período","Margem período","Pedidos período"] if column in reactivated]
+            if reactivated.empty: st.info("Nenhuma reativação identificada no período.")
+            else: show_table(reactivated[visible],height=520,width="stretch",hide_index=True)
+    with tabs[2]:
+        st.caption("Novos clientes são aqueles cuja primeira compra faturada no histórico ocorreu dentro do intervalo selecionado.")
+        visible=[column for column in ["Cod Cliente","Cliente","Vendedor","UF","Primeira compra","Faturamento últimos 3m","Faturamento 3m anteriores","Tendência 3m","Classificação comercial","Variação faturamento 3m %","Faturamento período","KG período","Margem período","Pedidos período"] if column in new_clients]
+        if new_clients.empty: st.info("Nenhum novo cliente faturado no período.")
+        else: show_table(new_clients[visible],height=520,width="stretch",hide_index=True)
+    with tabs[3]:
+        st.caption("Carteira existente antes do período; atribuição pelo vendedor da compra mais recente no histórico.")
+        status=st.segmented_control("Situação no período",["Todos","Compraram","Sem compra"],default="Todos",key="direction_inside_status")
+        inside_view=existing if status=="Todos" else existing[existing["Comprou no período"].eq(status=="Compraram")]
+        inside_columns=["Cod Cliente","Cliente","Vendedor","UF","Município","Status","Última compra","Dias sem comprar","Variação faturamento ano %","Faturamento últimos 3m","Faturamento 3m anteriores","Tendência 3m","Classificação comercial","Variação faturamento 3m %","Faturamento período","KG período","Margem período","Pedidos período"]
+        visible=[column for column in inside_columns if column in inside_view]
+        if inside_view.empty: st.info("Nenhum cliente de carteira neste recorte.")
+        else: show_table(inside_view[visible],height=520,width="stretch",hide_index=True)
+    with tabs[4]:
+        st.caption("Vendas do período classificadas como consumidor final ou Balcão pela Tipologia Cliente.")
+        if consumer_current.empty:
+            st.info("Não há faturamento de consumidor final identificado. Confira o campo Tipologia Cliente na classificação da base.")
+        else:
+            aggregations={"Faturamento":("Faturamento","sum"),"KG":("Peso","sum")}
+            if "Margem" in consumer_current: aggregations["Margem"]=("Margem","sum")
+            if "NF" in consumer_current: aggregations["Pedidos"]=("NF","nunique")
+            columns=[column for column in ("Cod Cliente","Cliente","Vendedor","UF") if column in consumer_current]
+            if columns:
+                counter_view=consumer_current.groupby(columns,dropna=False).agg(**aggregations).reset_index().sort_values("Faturamento",ascending=False)
+                show_table(counter_view,height=520,width="stretch",hide_index=True)
+    with tabs[5]:
+        st.caption("Clientes com queda de faturamento de pelo menos 20% contra o mesmo intervalo do ano anterior.")
+        visible=[column for column in ["Cliente","Vendedor","UF","Faturamento atual","Faturamento referência","Variação faturamento %","Potencial R$","Ação"] if column in decline_queue]
+        if decline_queue.empty: st.success("Nenhuma queda potencial identificada neste recorte.")
+        else: show_table(decline_queue[visible],height=520,width="stretch",hide_index=True)
+        if can_export and not decline_queue.empty:
+            st.download_button("Exportar quedas",decline_queue[visible].to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"direcionador_quedas.csv","text/csv",key="export_direction_declines")
 
 
 def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
@@ -2808,6 +3013,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Mapa mensal", "view_heatmap"))
     if "view_insights" in permissions:
         pages.append(("Insights", "view_insights"))
+        pages.append(("Direcionador comercial", "view_commercial_direction"))
     if "view_pivot" in permissions:
         pages.append(("Tabela dinâmica", "view_pivot"))
     if "view_yoy" in permissions:
@@ -2849,6 +3055,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
+    elif permission == "view_commercial_direction":
+        _commercial_direction_view(data, history, start_date, end_date, brl, pct, show_table, can_export)
     elif permission == "view_pivot":
         _pivot(data, show_table, can_export)
     elif permission == "view_unified":
