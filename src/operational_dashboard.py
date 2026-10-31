@@ -39,7 +39,7 @@ from src.commercial_intelligence import (
 
 
 PANEL_HELP = {
-    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; positivados são clientes com faturamento líquido positivo.",
+    "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; clientes ativos têm faturamento líquido positivo no período, novos clientes tiveram a primeira compra observada no período e inativos compraram antes, mas não faturaram no período. A identificação usa o código do cliente quando disponível e, caso contrário, o nome.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
@@ -97,7 +97,61 @@ def _positive_clients(data):
     """Clientes com faturamento líquido positivo no período."""
     if data.empty:
         return 0
-    return int((data.groupby("Cliente", dropna=False)["Faturamento"].sum() > 0).sum())
+    source = data.copy()
+    source["_customer_key"] = _customer_key(source)
+    source["_revenue"] = pd.to_numeric(source["Faturamento"], errors="coerce").fillna(0)
+    source = source.dropna(subset=["_customer_key"])
+    return int((source.groupby("_customer_key")["_revenue"].sum() > 0).sum())
+
+
+def _customer_key(frame):
+    """Usa o código de cliente e recorre ao nome quando o código não existe."""
+    if "Cod Cliente" in frame.columns:
+        code = frame["Cod Cliente"].astype("string").str.strip()
+        code = code.mask(code.str.casefold().isin(["", "nan", "none", "<na>"]))
+    else:
+        code = pd.Series(pd.NA, index=frame.index, dtype="string")
+    if "Cliente" in frame.columns:
+        name = frame["Cliente"].astype("string").str.strip().str.upper()
+        name = name.mask(name.str.casefold().isin(["", "nan", "none", "<na>"]))
+    else:
+        name = pd.Series(pd.NA, index=frame.index, dtype="string")
+    return code.map(lambda value: f"C:{value}" if pd.notna(value) else pd.NA).fillna(
+        name.map(lambda value: f"N:{value}" if pd.notna(value) else pd.NA)
+    )
+
+
+def _customer_period_counts(history, start_date, end_date):
+    """Conta novos, ativos e inativos a partir das compras faturadas disponíveis."""
+    empty = {"new": 0, "active": 0, "inactive": 0}
+    required = {"Data", "Faturamento"}
+    if history is None or history.empty or not required.issubset(history.columns):
+        return empty
+    source = history.copy()
+    source["_customer_key"] = _customer_key(source)
+    source["_date"] = pd.to_datetime(source["Data"], errors="coerce")
+    source["_revenue"] = pd.to_numeric(source["Faturamento"], errors="coerce").fillna(0)
+    end = pd.Timestamp(end_date).normalize()
+    start = pd.Timestamp(start_date).normalize()
+    source = source.dropna(subset=["_customer_key", "_date"])
+    source = source[(source["_date"] < end + pd.Timedelta(days=1)) & (source["_revenue"] != 0)]
+    if source.empty:
+        return empty
+
+    in_period = source[(source["_date"] >= start) & (source["_date"] < end + pd.Timedelta(days=1))]
+    period_revenue = in_period.groupby("_customer_key")["_revenue"].sum()
+    active = set(period_revenue[period_revenue > 0].index)
+
+    prior_purchases = source[(source["_date"] < start) & (source["_revenue"] > 0)]
+    prior_customers = set(prior_purchases["_customer_key"].unique())
+
+    positive_sales = source[source["_revenue"] > 0]
+    first_purchase = positive_sales.groupby("_customer_key")["_date"].min()
+    new = {
+        customer for customer in active
+        if customer in first_purchase.index and start <= first_purchase.loc[customer].normalize() <= end
+    }
+    return {"new": len(new), "active": len(active), "inactive": len(prior_customers - active)}
 
 
 def _period_metrics(data):
@@ -1070,6 +1124,28 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             ("Mês ant.", _metric_value(key, prior_month[key], brl, brl2, pct), mom, points),
             ("Ano ant.", _metric_value(key, prior_year[key], brl, brl2, pct), yoy, points),
         ]))
+    customer_counts = _customer_period_counts(history, start_date, end_date)
+    customer_month = _customer_period_counts(
+        history, pd.Timestamp(start_date) - pd.DateOffset(months=1),
+        pd.Timestamp(end_date) - pd.DateOffset(months=1),
+    )
+    customer_year = _customer_period_counts(
+        history, pd.Timestamp(start_date) - pd.DateOffset(years=1),
+        pd.Timestamp(end_date) - pd.DateOffset(years=1),
+    )
+    for key, label in (
+        ("new", "Novos clientes"),
+        ("active", "Clientes ativos"),
+        ("inactive", "Clientes inativos"),
+    ):
+        value = customer_counts[key]
+        month_value = customer_month[key]
+        year_value = customer_year[key]
+        cards_for_clients = (
+            ("Mês ant.", f"{month_value:,}".replace(",", "."), _relative(value, month_value), False),
+            ("Ano ant.", f"{year_value:,}".replace(",", "."), _relative(value, year_value), False),
+        )
+        cards.append((label, f"{value:,}".replace(",", "."), list(cards_for_clients)))
     _metric_cards(cards)
 
     st.markdown("### Tendência mensal")

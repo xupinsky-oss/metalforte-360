@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.27.7 — clientes novos, ativos e inativos no Command Center
+
+- adicionados cartões para novos clientes, clientes ativos e clientes inativos;
+- a primeira compra observada na base define novo; faturamento líquido positivo define ativo; compra anterior sem faturamento no período define inativo;
+- os cartões comparam os totais ao mesmo intervalo deslocado em um mês e um ano;
+- cliente identificado pelo código quando disponível, com fallback para nome.
+
 ## v2.27.6 — ocultar valores de pedidos não conciliados
 
 - removido do Command Center o cruzamento de pedidos liberados com faturamento;
