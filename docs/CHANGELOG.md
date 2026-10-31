@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.27.9 — fechamento analítico e exportação
+
+- criada a página **Fechamento e exportação**, disponível a usuários com permissão de consulta ao Command Center e exportação de relatórios;
+- adicionados fechamento mensal e resumo YTD, com comparação ao mês anterior, mesmo mês do ano anterior e YTD anterior;
+- incluídas visões por vendedor, grupo de cliente configurável e grupo de produto;
+- adicionados seletores de competência, agrupamento de clientes e quantidade de linhas;
+- disponibilizadas saídas em PDF e PowerPoint, respeitando os filtros globais ativos;
+- dependências de geração de arquivos instaladas pelo ambiente da aplicação; nenhum dado ou segredo é enviado a serviços externos.
+
 ## v2.27.8 — acompanhamento mensal de clientes
 
 - removido o cartão redundante **Clientes ativos**; a contagem permanece em **Clientes positivados**;

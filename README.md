@@ -1,12 +1,14 @@
 # METALFORTE 360 v2.27
 
-## Painel comercial — v2.27.8
+## Painel comercial — v2.27.9
 
 O Command Center resume o desempenho faturado no período e compara o resultado com o mês e o ano anteriores. A aba Metas compara o faturamento realizado com as metas cadastradas para vendedor e grupo de produto.
 
 Os cartões e a seção de conciliação de pedidos liberados foram removidos do painel porque os números não estavam reconciliados. Os indicadores de faturamento realizado, KG, margem e preço médio permanecem disponíveis.
 
 O Command Center mostra novos clientes (primeira compra observada no período) e clientes inativos (compraram antes do período, mas não faturaram nele), com comparação ao mês e ao ano anteriores. Clientes ativos e positivados são a mesma métrica: aparece uma única vez como **Clientes positivados**. A tendência mensal permite acompanhar positivados, novos e inativos.
+
+A página **Fechamento e exportação** gera relatórios PDF e PowerPoint por competência, com fechamento mensal e YTD, comparações com o mês anterior e com o mesmo intervalo do ano anterior, e tabelas por vendedor, grupo de cliente e grupo de produto. É possível escolher a dimensão de grupo de cliente e o número de linhas; os filtros globais do painel são aplicados ao relatório.
 
 ## Estoque atual e giro — v2.27
 

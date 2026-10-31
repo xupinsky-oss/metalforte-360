@@ -36,10 +36,12 @@ from src.commercial_intelligence import (
     purchase_seasonality,
     reference_period,
 )
+from src.monthly_report import build_report_data, make_pdf, make_pptx
 
 
 PANEL_HELP = {
     "overview": "Consolida o período e os filtros ativos. Faturamento é a soma líquida; preço médio é faturamento dividido por KG; margem % é margem dividida por faturamento; clientes ativos têm faturamento líquido positivo no período, novos clientes tiveram a primeira compra observada no período e inativos compraram antes, mas não faturaram no período. A identificação usa o código do cliente quando disponível e, caso contrário, o nome.",
+    "monthly_export": "Relatório gerado com os filtros globais ativos. O fechamento compara o mês com o mês anterior e com o mesmo intervalo do ano anterior; o YTD compara o acumulado de janeiro até a data disponível com o mesmo intervalo do ano anterior. As tabelas trazem os principais vendedores, grupos de clientes e grupos de produto, com faturamento, variação, kg, margem, preço médio e clientes positivados.",
     "daily": "Agrupa os movimentos pela data de faturamento. A comparação usa o último dia disponível anterior. A projeção mensal usa o faturamento acumulado dividido pelos dias corridos do mês e aplica essa média aos dias restantes.",
     "clients": "Consolida compras por cliente no período selecionado. Além da comparação anual, a classificação comercial combina o faturamento dos últimos 3 meses com os 3 meses imediatamente anteriores. Histórico, última compra e janela de recompra usam a série disponível até a data final; a matriz RFMV pontua relacionamento, frequência, faturamento e volume de 1 a 5.",
     "products": "Agrupa faturamento, KG, margem e preço médio por produto ou categoria. A Curva ABC é calculada pela participação acumulada no faturamento: A até 70%, B até 90% e C no restante.",
@@ -3220,12 +3222,106 @@ def _stock_view(stock, sales, brl, show_chart, show_table, can_export):
         st.download_button("Exportar análise de estoque", table.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "estoque_giro_produtos.csv", "text/csv", width="stretch")
 
 
+def _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_export):
+    st.subheader("Fechamento analítico", help=PANEL_HELP["monthly_export"])
+    st.caption("Escolha a competência, o nível de detalhe e o agrupamento da carteira. O mês é apurado até a última data com faturamento disponível.")
+    if history is None or history.empty or "Data" not in history:
+        st.info("Não há histórico disponível para montar o relatório.")
+        return
+    report_source = history.copy()
+    report_source["Data"] = pd.to_datetime(report_source["Data"], errors="coerce")
+    report_source = report_source.dropna(subset=["Data"])
+    report_source = report_source[report_source["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1)]
+    cutoff_month = pd.Timestamp(end_date).to_period("M").start_time
+    available_months = sorted(report_source.loc[report_source["Data"].dt.to_period("M").dt.start_time.le(cutoff_month), "Data"].dt.to_period("M").dt.start_time.unique())
+    if not available_months:
+        st.info("Não há meses disponíveis até a data final selecionada.")
+        return
+    month_options = [pd.Timestamp(value) for value in available_months]
+    month_names = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+    customer_dims = [column for column in ("Grupo Cliente", "Grupo de Cliente", "Segmento Cliente", "Tipologia Cliente") if column in report_source.columns]
+    if not customer_dims:
+        customer_dims = ["Segmento Cliente"]
+    controls = st.columns([1.2, 1.3, 1])
+    selected_month = controls[0].selectbox(
+        "Competência", month_options, index=len(month_options)-1,
+        format_func=lambda value: f"{month_names[value.month - 1]}/{value.year}", key="monthly_report_month",
+    )
+    customer_dimension = controls[1].selectbox("Agrupar clientes por", customer_dims, key="monthly_report_customer_dimension")
+    top_n = controls[2].selectbox("Linhas por visão", [10, 15, 20, 30], index=1, key="monthly_report_top_n")
+    report = build_report_data(report_source, selected_month, top_n=top_n, customer_dimension=customer_dimension)
+    month_values, month_reference = report["totals"]["month"], report["totals"]["prior_month"]
+    ytd_values, ytd_reference = report["totals"]["ytd"], report["totals"]["prior_ytd"]
+    st.caption(f"Fechamento {report['month']:%m/%Y} até {report['end']:%d/%m/%Y} • YTD de 01/01/{report['month'].year} até {report['end']:%d/%m/%Y} • filtros globais aplicados")
+
+    summary_tabs = st.tabs(["Fechamento mensal", "YTD", "Vendedor", "Grupo de cliente", "Grupo de produto"])
+    with summary_tabs[0]:
+        cards = [
+            ("Faturamento", brl(month_values["revenue"]), "revenue"),
+            ("KG faturado", f"{month_values['weight']:,.0f} kg".replace(",", "."), "weight"),
+            ("Preço médio/kg", brl2(month_values["price"]), "price"),
+            ("Margem %", pct(month_values["margin_pct"]), "margin"),
+            ("Clientes positivados", f"{month_values['clients']:,}".replace(",", "."), "clients"),
+        ]
+        cols = st.columns(len(cards))
+        for col, (label, value, key) in zip(cols, cards):
+            reference_key = {"revenue": "revenue", "weight": "weight", "price": "price", "margin": "margin_pct", "clients": "clients"}[key]
+            current_value = month_values[reference_key]
+            previous_value = month_reference[reference_key]
+            delta = (current_value / previous_value - 1) * 100 if previous_value else None
+            col.metric(label, value, f"{delta:+.1f}% vs mês ant.".replace(".", ",") if delta is not None else "sem base anterior")
+        annual = report["totals"]["prior_year"]
+        annual_delta = (month_values["revenue"] / annual["revenue"] - 1) * 100 if annual["revenue"] else None
+        st.caption(f"Comparação anual: {brl(annual['revenue'])} no mesmo mês do ano anterior • variação {f'{annual_delta:+.1f}%'.replace('.', ',') if annual_delta is not None else 'sem base anterior'}")
+    with summary_tabs[1]:
+        cards = [
+            ("Faturamento YTD", brl(ytd_values["revenue"]), "revenue"),
+            ("KG faturado YTD", f"{ytd_values['weight']:,.0f} kg".replace(",", "."), "weight"),
+            ("Preço médio/kg", brl2(ytd_values["price"]), "price"),
+            ("Margem %", pct(ytd_values["margin_pct"]), "margin_pct"),
+            ("Clientes positivados", f"{ytd_values['clients']:,}".replace(",", "."), "clients"),
+        ]
+        cols = st.columns(len(cards))
+        for col, (label, value, key) in zip(cols, cards):
+            current_value, previous_value = ytd_values[key], ytd_reference[key]
+            delta = (current_value / previous_value - 1) * 100 if previous_value else None
+            col.metric(label, value, f"{delta:+.1f}% vs YTD ant.".replace(".", ",") if delta is not None else "sem base anterior")
+        st.caption(f"Referência: 01/01/{report['month'].year - 1} a {report['end'] - pd.DateOffset(years=1):%d/%m/%Y}.")
+    dimension_keys = [("Vendedor", "Vendedor"), ("Grupo de cliente", "Grupo de cliente"), ("Grupo de produto", "Grupo de produto")]
+    for index, (tab_label, table_key) in enumerate(dimension_keys, start=2):
+        with summary_tabs[index]:
+            month_frame = report["tables"][("month", table_key)]
+            ytd_frame = report["tables"][("ytd", table_key)]
+            st.markdown("**Fechamento do mês**")
+            if month_frame.empty:
+                st.info("Sem registros para este recorte.")
+            else:
+                show_table(month_frame, height=360, width="stretch", hide_index=True)
+            st.markdown("**Acumulado YTD**")
+            if ytd_frame.empty:
+                st.info("Sem registros para este recorte.")
+            else:
+                show_table(ytd_frame, height=360, width="stretch", hide_index=True)
+
+    if not can_export:
+        st.info("Seu perfil pode consultar as visões. A permissão de exportação é necessária para baixar PDF ou PowerPoint.")
+        return
+    pdf_bytes = make_pdf(report)
+    pptx_bytes = make_pptx(report)
+    file_stem = f"metalforte_fechamento_{report['month']:%Y_%m}"
+    exports = st.columns(2)
+    exports[0].download_button("Baixar relatório PDF", pdf_bytes, f"{file_stem}.pdf", "application/pdf", width="stretch", key="download_monthly_report_pdf")
+    exports[1].download_button("Baixar apresentação PowerPoint", pptx_bytes, f"{file_stem}.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", width="stretch", key="download_monthly_report_pptx")
+
+
 def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None, stock=None, inventory_history=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
     if "view_overview" in permissions:
         pages.append(("Command Center", "view_overview"))
+        if "export_data" in permissions:
+            pages.append(("Fechamento e exportação", "export_reports"))
     if "view_clients" in permissions:
         pages.append(("Clientes", "view_clients"))
     if "view_products" in permissions:
@@ -3272,7 +3368,9 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         selected = labels[0]
     permission = dict(pages)[selected]
     can_export = "export_data" in permissions
-    if permission == "view_overview":
+    if permission == "export_reports":
+        _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_export)
+    elif permission == "view_overview":
         _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events, can_export, view_filters)
     elif permission == "view_clients":
         _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
