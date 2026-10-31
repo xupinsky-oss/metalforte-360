@@ -40,3 +40,7 @@ Verifique a publicação no bucket privado, a função `command-center` e a sess
 ## Revogação de emergência
 
 Revogue ou rotacione `GITHUB_DISPATCH_TOKEN`, remova o usuário da allowlist e desabilite a função `etl-control`. A carga agendada pode continuar independente do botão da central.
+
+### Carga agendada de hora em hora
+
+O workflow `.github/workflows/atualizar-base.yml` agenda a carga para o minuto 37 de cada hora, em UTC (horário de Brasília: minuto 37, normalmente UTC−3). O GitHub Actions pode atrasar ou descartar execuções agendadas sob alta carga. Confirme a cadência em **Actions → Atualizar base comercial**, verificando a coluna de horários e o evento `schedule`; sucessos espaçados por várias horas indicam atraso/perda no agendador, não uma falha de credenciais no ETL.

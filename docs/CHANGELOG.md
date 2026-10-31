@@ -1,5 +1,11 @@
 # Changelog
 
+## Agendamento ETL — 31/10/2026
+
+- confirmado que o GitHub Actions estava configurado para executar de hora em hora, mas as execuções recentes estavam atrasadas ou ausentes;
+- deslocado o disparo de :13 para :37 (UTC), reduzindo a exposição ao pico no começo da hora;
+- a agenda do GitHub é de melhor esforço: execuções podem atrasar ou ser descartadas em períodos de alta carga.
+
 ## v2.27.9 — fechamento analítico e exportação
 
 - criada a página **Fechamento e exportação**, disponível a usuários com permissão de consulta ao Command Center e exportação de relatórios;

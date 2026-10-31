@@ -32,7 +32,7 @@ on:
         required: true
         type: string
   schedule:
-    - cron: "13 * * * *"
+    - cron: "37 * * * *"
     
 concurrency:
   group: atualizar-base-metalforte
