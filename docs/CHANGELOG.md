@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.8 — acompanhamento mensal de clientes
+
+- removido o cartão redundante **Clientes ativos**; a contagem permanece em **Clientes positivados**;
+- adicionadas as séries mensais de novos clientes e clientes inativos ao seletor e à tabela do Command Center;
+- positivação mensal usa a mesma identificação de cliente por código, com fallback para nome, dos cartões do painel.
+
 ## v2.27.7 — clientes novos, ativos e inativos no Command Center
 
 - adicionados cartões para novos clientes, clientes ativos e clientes inativos;

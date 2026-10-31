@@ -316,7 +316,7 @@ def _inject_kpi_styles():
     """, unsafe_allow_html=True)
 
 
-def _monthly_summary(data):
+def _monthly_summary(data, history=None, end_date=None):
     if data.empty:
         return pd.DataFrame()
     source = data.dropna(subset=["Data"]).copy()
@@ -324,10 +324,19 @@ def _monthly_summary(data):
     totals = source.groupby("Mês", as_index=False).agg(
         Faturamento=("Faturamento", "sum"), Peso=("Peso", "sum"), Margem=("Margem", "sum")
     )
-    clients = source.groupby(["Mês", "Cliente"], dropna=False)["Faturamento"].sum().gt(0).groupby(level=0).sum()
+    clients = pd.Series({month: _positive_clients(group) for month, group in source.groupby("Mês")})
     totals["Preço médio/kg"] = totals["Faturamento"] / totals["Peso"].replace(0, pd.NA)
     totals["Margem %"] = totals["Margem"] / totals["Faturamento"].replace(0, pd.NA)
     totals["Clientes positivados"] = totals["Mês"].map(clients).fillna(0).astype(int)
+    if history is not None:
+        customer_counts = {}
+        end_limit = pd.Timestamp(end_date) if end_date is not None else pd.to_datetime(history["Data"], errors="coerce").max()
+        for month in totals["Mês"]:
+            month_end = min(month + pd.offsets.MonthEnd(0), end_limit)
+            counts = _customer_period_counts(history, month, month_end)
+            customer_counts[month] = counts
+        totals["Novos clientes"] = totals["Mês"].map(lambda month: customer_counts[month]["new"]).astype(int)
+        totals["Clientes inativos"] = totals["Mês"].map(lambda month: customer_counts[month]["inactive"]).astype(int)
     totals["Mês referência"] = totals["Mês"].dt.strftime("%m/%Y")
     return totals.sort_values("Mês")
 
@@ -1135,7 +1144,6 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     )
     for key, label in (
         ("new", "Novos clientes"),
-        ("active", "Clientes ativos"),
         ("inactive", "Clientes inativos"),
     ):
         value = customer_counts[key]
@@ -1150,12 +1158,16 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
 
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
-    monthly = _monthly_summary(history[(history["Data"] >= monthly_start) & (history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1))])
+    monthly = _monthly_summary(
+        history[(history["Data"] >= monthly_start) & (history["Data"] < pd.Timestamp(end_date) + pd.Timedelta(days=1))],
+        history,
+        end_date,
+    )
     if monthly.empty:
         st.info("Sem dados mensais para o período.")
     else:
         selected = st.segmented_control(
-            "Indicador", ["Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados"],
+            "Indicador", ["Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados", "Novos clientes", "Clientes inativos"],
             default="Faturamento", key="executive_trend_metric",
         )
         chart = px.line(monthly, x="Mês", y=selected, markers=True, title=f"{selected} nos últimos 12 meses")
@@ -1171,7 +1183,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         show_chart(chart)
         with st.expander("Conferir valores mensais"):
             show_table(
-                monthly[["Mês referência", "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados"]]
+                monthly[["Mês referência", "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados", "Novos clientes", "Clientes inativos"]]
                 .iloc[::-1], height=390, width="stretch", hide_index=True,
             )
 
