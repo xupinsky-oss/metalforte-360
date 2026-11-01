@@ -1,9 +1,17 @@
 # Changelog
 
+## v2.27.10 — exportação com marca e recuperação da carga horária
+
+- atualizado o PDF e o PowerPoint de fechamento com logo e cores da METALFORTE;
+- incluídos gráficos comparativos de faturamento, peso e clientes positivados para mês e YTD;
+- consultas complementares de indicadores vazios não bloqueiam mais a atualização da base; a meta em valor segue obrigatória;
+- adicionadas duas janelas agendadas por hora, com intervalo mínimo de 55 minutos após carga bem-sucedida para evitar duplicidade e permitir nova tentativa após falha;
+- mantida a limitação do agendamento GitHub como serviço de melhor esforço.
+
 ## Agendamento ETL — 31/10/2026
 
 - confirmado que o GitHub Actions estava configurado para executar de hora em hora, mas as execuções recentes estavam atrasadas ou ausentes;
-- deslocado o disparo de :13 para :37 (UTC), reduzindo a exposição ao pico no começo da hora;
+- deslocado inicialmente o disparo de :13 para :37 (UTC); a revisão v2.27.10 substitui essa configuração por duas janelas e controle para evitar duplicidade;
 - a agenda do GitHub é de melhor esforço: execuções podem atrasar ou ser descartadas em períodos de alta carga.
 
 ## v2.27.9 — fechamento analítico e exportação

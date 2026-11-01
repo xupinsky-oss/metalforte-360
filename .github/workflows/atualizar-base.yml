@@ -32,14 +32,55 @@ on:
         required: true
         type: string
   schedule:
-    - cron: "37 * * * *"
+    # Duas oportunidades por hora: uma execução atrasada pode ser recuperada
+    # na segunda janela. O bloqueio abaixo mantém no máximo uma carga/hora.
+    - cron: "17 * * * *"
+    - cron: "47 * * * *"
     
 concurrency:
   group: atualizar-base-metalforte
   cancel-in-progress: false
 
 jobs:
+  agenda:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      executar: ${{ steps.intervalo.outputs.executar }}
+    steps:
+      - name: Evitar carga duplicada e recuperar falhas
+        id: intervalo
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          CURRENT_RUN: ${{ github.run_id }}
+        run: |
+          response=$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/workflows/atualizar-base.yml/runs?status=completed&per_page=20" || true)
+          last_success=$(printf '%s' "$response" | jq -r --arg current "$CURRENT_RUN" '[.workflow_runs[]? | select((.id|tostring) != $current and .conclusion == "success") | .updated_at] | sort | last // empty' 2>/dev/null || true)
+          now_epoch=$(date -u +%s)
+          last_epoch=0
+          if [ -n "$last_success" ]; then
+            last_epoch=$(date -u -d "$last_success" +%s 2>/dev/null || echo 0)
+          fi
+          age_seconds=$((now_epoch - last_epoch))
+          if [ "$last_epoch" -gt 0 ] && [ "$age_seconds" -lt 3300 ]; then
+            echo "executar=false" >> "$GITHUB_OUTPUT"
+            echo "Carga bem-sucedida há ${age_seconds}s; esta janela será ignorada."
+          else
+            echo "executar=true" >> "$GITHUB_OUTPUT"
+            echo "Última carga bem-sucedida ausente ou com pelo menos 55 minutos; iniciar atualização."
+          fi
+
   atualizar:
+    needs: [agenda]
+    if: always() && (github.event_name != 'schedule' || needs.agenda.outputs.executar == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:

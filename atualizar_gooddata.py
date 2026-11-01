@@ -355,13 +355,30 @@ def main():
         downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
     indicators={}
     indicator_frames={}
+    # Indicadores de carteira/pedidos são complementares à base transacional.
+    # Uma resposta vazia do GoodData para um desses cartões não pode bloquear a
+    # publicação das notas fiscais; apenas meta_valor é necessária à montagem
+    # do histórico de metas. Métricas indisponíveis ficam ausentes na fotografia
+    # desta carga, em vez de manter valores antigos como se fossem atuais.
+    required_indicators={'meta_valor'}
     for name,report_id in INDICATOR_REPORTS.items():
         logging.info('Baixando indicador %s (%s)',name,report_id)
-        content=con.raw_report(report_id,offset_from=0,offset_to=0)
-        frame=parse_raw(content,allow_single_column=True)
+        try:
+            content=con.raw_report(report_id,offset_from=0,offset_to=0)
+            frame=parse_raw(content,allow_single_column=True)
+            value=round(extract_indicator(frame),4)
+        except Exception as exc:
+            message=f"Indicador GoodData indisponível: {name} (relatório {report_id}; {type(exc).__name__})."
+            if name in required_indicators:
+                logging.error(message)
+                print(f"ERRO: {message}")
+                raise ValueError(message) from exc
+            logging.warning(message)
+            print(f"AVISO: {message} A carga da base comercial continuará.")
+            continue
         indicator_frames[name]=frame
-        indicators[name]=round(extract_indicator(frame),4)
-        logging.info('%s: %s',name,indicators[name])
+        indicators[name]=value
+        logging.info('%s: %s',name,value)
     for name,report_id in FUNNEL_INDICATOR_REPORTS.items():
         logging.info('Baixando etapa do funil %s (%s)',name,report_id)
         try:

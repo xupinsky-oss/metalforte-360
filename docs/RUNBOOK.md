@@ -43,4 +43,6 @@ Revogue ou rotacione `GITHUB_DISPATCH_TOKEN`, remova o usuário da allowlist e d
 
 ### Carga agendada de hora em hora
 
-O workflow `.github/workflows/atualizar-base.yml` agenda a carga para o minuto 37 de cada hora, em UTC (horário de Brasília: minuto 37, normalmente UTC−3). O GitHub Actions pode atrasar ou descartar execuções agendadas sob alta carga. Confirme a cadência em **Actions → Atualizar base comercial**, verificando a coluna de horários e o evento `schedule`; sucessos espaçados por várias horas indicam atraso/perda no agendador, não uma falha de credenciais no ETL.
+O workflow `.github/workflows/atualizar-base.yml` cria duas oportunidades por hora, nos minutos 17 e 47 UTC. Antes da coleta, consulta a última execução bem-sucedida e ignora a janela se uma carga terminou há menos de 55 minutos. Assim, uma janela perdida ou uma falha pode ser recuperada na seguinte sem repetir cargas que já deram certo.
+
+O GitHub Actions continua sendo um agendador de melhor esforço e pode atrasar ou descartar eventos. Em **Actions → Atualizar base comercial**, confirme o evento `schedule`, o início e o resultado. Se o intervalo entre execuções bem-sucedidas superar uma hora, o atraso é do agendador externo; se houver falha da coleta, consulte o nome sanitizado do indicador ou relatório no log. A meta em valor é obrigatória para atualizar as metas; indicadores complementares vazios são omitidos e não bloqueiam a atualização das vendas.
