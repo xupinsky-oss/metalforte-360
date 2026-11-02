@@ -11,6 +11,7 @@ DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.c
 DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
 DEFAULT_FLOW = Path(__file__).resolve().parents[1] / "data" / "metalforte_fluxo.csv.gz"
 DEFAULT_STOCK = Path(__file__).resolve().parents[1] / "data" / "metalforte_estoque.csv.gz"
+DEFAULT_PEDIDOS_REALIZADO = Path(__file__).resolve().parents[1] / "data" / "metalforte_pedidos_realizado.csv.gz"
 CITY_CLUSTERS = Path(__file__).resolve().parents[1] / "resources" / "cidades_pivot.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
 
@@ -122,6 +123,25 @@ def load_stock(path=None):
         return prepare_stock(result)
     except Exception:
         return pd.DataFrame()
+
+
+def load_pedidos_realizado(path=None):
+    """Carrega a série separada de pedidos liberados e faturamento realizado."""
+    path=Path(path) if path else DEFAULT_PEDIDOS_REALIZADO
+    try:
+        if path.exists(): source=path
+        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_ORDERS_ACTUAL_PATH", "bases/metalforte_pedidos_realizado.csv.gz")))
+        else: return pd.DataFrame()
+        result=pd.read_csv(source,low_memory=False,compression="gzip")
+    except Exception:
+        return pd.DataFrame()
+    if "Competência" in result:
+        result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
+    for column in ("Pedidos (R$)","Pedidos (kg)","Faturado (R$)","Faturado (kg)"):
+        if column in result: result[column]=pd.to_numeric(result[column],errors="coerce").fillna(0)
+    for column in ("Cod Cliente","Produto Codigo","Cod Vendedor"):
+        if column in result: result[column]=result[column].fillna("").astype(str).str.replace(r"\.0$","",regex=True).str.strip()
+    return result
 
 def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, cidade_pivot=None, vendedor=None, canal=None, tipologia=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df

@@ -10,11 +10,13 @@ from src.data import load_data,load_targets,apply_filters
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
     # quando app.py pode reiniciar antes de src/data.py ser recarregado.
-    from src.data import load_flow, load_stock
+    from src.data import load_flow, load_stock, load_pedidos_realizado
 except ImportError:
     def load_flow():
         return pd.DataFrame()
     def load_stock():
+        return pd.DataFrame()
+    def load_pedidos_realizado():
         return pd.DataFrame()
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
@@ -41,6 +43,8 @@ def get_targets(): return load_targets()
 def get_flow(): return load_flow()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_stock(): return load_stock()
+@st.cache_data(ttl=300,show_spinner=False)
+def get_pedidos_realizado(): return load_pedidos_realizado()
 @st.cache_data(ttl=300,show_spinner=False)
 def get_load_status():
     try: return download_status()
@@ -307,6 +311,7 @@ df=get_data()
 targets=get_targets()
 flow_events=get_flow()
 stock=get_stock()
+order_actual=get_pedidos_realizado()
 if access["role"] == "seller":
     seller_scope = access.get("seller_scope", "")
     if not seller_scope:
@@ -500,9 +505,16 @@ dashboard_kwargs={
     "target_history": target_history, "target_filters": target_filters,
     "commercial_indicators": load_status.get("indicadores", {}),
     "flow_events": flow_events,
+    "order_actual": order_actual,
     "view_filters": {
         "uf": uf, "clusters": cidade_pivot,
         "seller_scope": seller_scope if access["role"] == "seller" else None,
+        "order_actual_filters": {
+            "sellers": [seller_scope] if access["role"] == "seller" else vend,
+            "groups": grupo, "segments": canal, "tipologies": tipologia,
+            "uf": uf, "municipalities": city, "clusters": cidade_pivot,
+            "client": selected_client, "client_text": ct, "product_text": pt,
+        },
         "released_order_filters": {
             "sellers": [seller_scope] if access["role"] == "seller" else vend,
             "client": selected_client, "client_text": ct, "product_text": pt, "groups": grupo,
@@ -516,6 +528,8 @@ if "stock" in dashboard_parameters:
     dashboard_kwargs["stock"]=stock
 if "inventory_history" in dashboard_parameters:
     dashboard_kwargs["inventory_history"]=inventory_history
+if "order_actual" not in dashboard_parameters:
+    dashboard_kwargs.pop("order_actual",None)
 
 render_operational_dashboard(
     f, monitor_scope, start_date, end_date, last_load,

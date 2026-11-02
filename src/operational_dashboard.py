@@ -1106,6 +1106,86 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
             st.download_button("Exportar conciliação de pedidos", display.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "pedidos_liberados_x_faturados.csv", "text/csv", width="stretch")
 
 
+def _orders_actual_view(frame, start_date, end_date, brl, show_chart, show_table, can_export=False, view_filters=None):
+    """Compara as medidas agregadas do Rel. GRANULAR sem cruzar grãos diferentes."""
+    st.subheader("Pedidos liberados × faturamento realizado", help="Fonte: relatório TOTVS GRANULAR - Pedido x Realizado. As quatro medidas oficiais são mantidas separadas e comparadas no grão mês, cliente, produto e vendedor.")
+    st.caption("Pedido liberado (C9) comparado ao faturado (D2, líquido das devoluções) por competência de emissão. A diferença é um saldo agregado para análise; não representa conciliação pedido a pedido. Como a fonte é mensal, os meses inicial e final são considerados como competências completas.")
+    if frame is None or frame.empty:
+        st.info("A nova fonte ainda não foi publicada. Ela será disponibilizada após uma carga do TOTVS concluir com sucesso.")
+        return
+    required={"Competência","Pedidos (R$)","Pedidos (kg)","Faturado (R$)","Faturado (kg)"}
+    if not required.issubset(frame.columns):
+        st.warning("A estrutura publicada para Pedido x Realizado está incompleta. A próxima carga deverá atualizar a fonte.")
+        return
+    view=frame.copy()
+    view["Competência"]=pd.to_datetime(view["Competência"],errors="coerce")
+    available_start=view["Competência"].min()
+    available_end=view["Competência"].max()
+    if pd.notna(available_start) and pd.notna(available_end):
+        st.caption(f"Competências disponíveis nesta extração: {available_start:%m/%Y} a {available_end:%m/%Y}.")
+    first_month=pd.Timestamp(start_date).to_period("M").start_time
+    last_month=pd.Timestamp(end_date).to_period("M").start_time
+    view=view[view["Competência"].between(first_month,last_month)].copy()
+    filters=(view_filters or {}).get("order_actual_filters",{})
+    for column,key in (("Vendedor","sellers"),("Grupo Produto","groups"),("Segmento Cliente","segments"),("Tipologia Cliente","tipologies"),("UF","uf"),("Município","municipalities"),("Cluster PIVOT","clusters")):
+        values=filters.get(key)
+        if values and column in view:
+            view=view[view[column].astype(str).isin([str(value) for value in values])]
+    client=filters.get("client")
+    if client and "Cliente" in view:
+        view=view[view["Cliente"].astype(str).eq(str(client))]
+    for key,column in (("client_text","Cliente"),("product_text","Produto")):
+        term=filters.get(key)
+        if term and column in view:
+            view=view[view[column].fillna("").astype(str).str.contains(str(term),case=False,na=False)]
+    if view.empty:
+        st.info("Não há registros dessa fonte no período ou com os filtros selecionados.")
+        return
+    measures=("Pedidos (R$)","Pedidos (kg)","Faturado (R$)","Faturado (kg)")
+    view[list(measures)]=view[list(measures)].apply(pd.to_numeric,errors="coerce").fillna(0)
+    totals=view[list(measures)].sum()
+    pending_value=float(totals["Pedidos (R$)"]-totals["Faturado (R$)"])
+    pending_weight=float(totals["Pedidos (kg)"]-totals["Faturado (kg)"])
+    value_cols=st.columns(3)
+    value_cols[0].metric("Pedidos liberados",brl(float(totals["Pedidos (R$)"])))
+    value_cols[1].metric("Faturado líquido",brl(float(totals["Faturado (R$)"])))
+    value_cols[2].metric("Diferença agregada",brl(pending_value))
+    weight_cols=st.columns(3)
+    weight_cols[0].metric("Pedidos liberados",f"{_quantity(float(totals['Pedidos (kg)']))} kg")
+    weight_cols[1].metric("Faturado realizado",f"{_quantity(float(totals['Faturado (kg)']))} kg")
+    weight_cols[2].metric("Diferença agregada",f"{_quantity(pending_weight)} kg")
+    dimension_labels={"Cliente":"Cliente","Vendedor":"Vendedor","Produto":"Produto","Grupo Produto":"Grupo Produto"}
+    available=[name for name,column in dimension_labels.items() if column in view]
+    if not available:
+        st.warning("A fonte não possui as dimensões necessárias para detalhar o cruzamento.")
+        return
+    controls=st.columns([1,1,2])
+    dimension=controls[0].selectbox("Cruzar por",available,key="orders_actual_dimension")
+    measure=controls[1].selectbox("Medida",["Faturamento (R$)","Peso (kg)"],key="orders_actual_measure")
+    top_n=controls[2].selectbox("Entidades no gráfico",[10,20,50,"Todas"],index=1,key="orders_actual_top_n")
+    order_col="Pedidos (R$)" if measure=="Faturamento (R$)" else "Pedidos (kg)"
+    billed_col="Faturado (R$)" if measure=="Faturamento (R$)" else "Faturado (kg)"
+    summary=view.groupby(dimension,dropna=False).agg(**{
+        "Pedidos liberados":(order_col,"sum"),"Faturado realizado":(billed_col,"sum"),
+    }).reset_index()
+    summary["Diferença (pedido - faturado)"]=summary["Pedidos liberados"]-summary["Faturado realizado"]
+    summary=summary.sort_values("Pedidos liberados",ascending=False)
+    chart_rows=summary if top_n=="Todas" else summary.head(int(top_n))
+    melted=chart_rows.melt(id_vars=dimension,value_vars=["Pedidos liberados","Faturado realizado"],var_name="Medida",value_name="Valor")
+    chart=px.bar(melted,x=dimension,y="Valor",color="Medida",barmode="group",title=f"Pedido × realizado por {dimension.lower()}",color_discrete_map={"Pedidos liberados":"#2F8FD8","Faturado realizado":"#F36A2D"})
+    if measure=="Faturamento (R$)":
+        chart.update_yaxes(tickprefix="R$ ",tickformat=",.2f")
+    else:
+        chart.update_yaxes(ticksuffix=" kg",tickformat=",.0f")
+    show_chart(_polish_chart(chart,height=max(370,min(620,260+len(chart_rows)*18)),x_title=dimension,y_title=measure),key="orders_actual_chart")
+    st.markdown(f"#### Comparação por {dimension.lower()}")
+    show_table(summary,height=500,width="stretch",hide_index=True)
+    if pending_value<0 or pending_weight<0:
+        st.caption("Diferença negativa mantida: faturado pode superar pedidos no mês por devoluções, corte temporal ou diferença de competência; valide o detalhe na origem TOTVS.")
+    if can_export:
+        st.download_button("Exportar pedido × faturado",summary.to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"pedidos_x_faturado.csv","text/csv",width="stretch")
+
+
 def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None):
     st.subheader("Command Center", help=PANEL_HELP["overview"])
     st.caption(
@@ -3314,12 +3394,13 @@ def _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_expo
     exports[1].download_button("Baixar apresentação PowerPoint", pptx_bytes, f"{file_stem}.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", width="stretch", key="download_monthly_report_pptx")
 
 
-def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, view_filters=None, stock=None, inventory_history=None):
+def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, show_chart, show_table, *, permissions, current_user, targets=None, target_history=None, target_filters=None, commercial_indicators=None, flow_events=None, order_actual=None, view_filters=None, stock=None, inventory_history=None):
     """Exibe somente as páginas explicitamente liberadas ao usuário."""
     _inject_kpi_styles()
     pages = []
     if "view_overview" in permissions:
         pages.append(("Command Center", "view_overview"))
+        pages.append(("Pedidos × faturado", "view_order_actual"))
         if "export_data" in permissions:
             pages.append(("Fechamento e exportação", "export_reports"))
     if "view_clients" in permissions:
@@ -3372,6 +3453,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_export)
     elif permission == "view_overview":
         _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events, can_export, view_filters)
+    elif permission == "view_order_actual":
+        _orders_actual_view(order_actual, start_date, end_date, brl, show_chart, show_table, can_export, view_filters)
     elif permission == "view_clients":
         _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_products":

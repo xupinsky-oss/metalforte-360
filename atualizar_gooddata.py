@@ -2,7 +2,7 @@ import io,json,logging,os,shutil,sys,unicodedata,zipfile
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS
+from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS,PEDIDOS_REALIZADO_REPORT
 from src.inventory import prepare_stock
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
@@ -14,6 +14,7 @@ DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
 ACTIVE_TARGETS=DATA/'metalforte_metas.csv.gz'; ACTIVE_FLOW=DATA/'metalforte_fluxo.csv.gz'
 ACTIVE_STOCK=DATA/'metalforte_estoque.csv.gz'
+ACTIVE_PEDIDOS_REALIZADO=DATA/'metalforte_pedidos_realizado.csv.gz'
 INDICATORS=DATA/'indicadores_comerciais.json'
 PRODUCT_MATRIX=ROOT/'resources'/'produtos_classificacao.csv.gz'
 WORKSPACE=os.getenv('TOTVS_WORKSPACE','sltez8zoyskp9vazf6jomo5askrbntnl')
@@ -40,6 +41,71 @@ def parse_raw(content,allow_single_column=False):
                 if frame.shape[1]>1 or (allow_single_column and frame.shape[1]==1): return frame
             except Exception: pass
     raise ValueError('Formato RAW não reconhecido.')
+
+def normalize_order_actual(frame):
+    """Normaliza as quatro medidas oficiais no grão mês × cliente × produto × vendedor."""
+    if frame is None or frame.empty:
+        raise ValueError('Relatório Pedido x Realizado sem linhas.')
+    columns={_flow_name(column):column for column in frame.columns}
+
+    def find(*needles):
+        for needle in needles:
+            key=_flow_name(needle)
+            matches=[original for normalized,original in columns.items() if key in normalized]
+            if matches:
+                return matches[0]
+        return None
+
+    date_col=find('Month/Year (Data Emissão Geral)','Data Emissão Geral','Month and Year')
+    client_col=find('Cod_Cliente','Cod Cliente')
+    product_col=find('Cod_Produto','Cod Produto')
+    seller_code_col=find('Cod_Vendedor','Cod Vendedor')
+    seller_name_col=find('Nome Vendedor','Vendedor')
+    order_value_col=find('C9_Total de Pedidos Liberados','Total de Pedidos Liberados')
+    order_weight_col=find('C9_Peso de Pedidos Liberados','Peso de Pedidos Liberados')
+    billed_value_col=find('D2_Total Faturado - Devolução de Vendas','D2_Total Faturado','Total Faturado - Devolução de Vendas')
+    billed_weight_col=find('D2_Peso de Vendas Realizada','Peso de Vendas Realizada')
+    required={
+        'mês':date_col,'código do cliente':client_col,'código do produto':product_col,
+        'código/nome do vendedor':seller_code_col or seller_name_col,
+        'pedidos R$ (23)':order_value_col,'pedidos KG (24)':order_weight_col,
+        'faturado R$ (03)':billed_value_col,'faturado KG (41)':billed_weight_col,
+    }
+    missing=[label for label,column in required.items() if column is None]
+    if missing:
+        raise ValueError(f'Relatório Pedido x Realizado sem campos: {missing}. Colunas recebidas: {list(frame.columns)}')
+
+    raw_month=frame[date_col].astype('string').str.strip()
+    competence=pd.to_datetime(raw_month,format='%m/%Y',errors='coerce')
+    competence=competence.fillna(pd.to_datetime(raw_month,format='%Y-%m',errors='coerce'))
+    competence=competence.fillna(pd.to_datetime(raw_month,dayfirst=True,errors='coerce'))
+    result=pd.DataFrame({
+        'Competência':competence.dt.to_period('M').dt.start_time,
+        'Cod Cliente':_key(frame[client_col]),
+        'Produto Codigo':_key(frame[product_col]),
+        'Cod Vendedor':_key(frame[seller_code_col]) if seller_code_col else pd.NA,
+        'Vendedor':frame[seller_name_col].astype('string').str.strip() if seller_name_col else frame[seller_code_col].astype('string').str.strip(),
+        'Pedidos (R$)':frame[order_value_col].map(_parse_indicator_value),
+        'Pedidos (kg)':frame[order_weight_col].map(_parse_indicator_value),
+        'Faturado (R$)':frame[billed_value_col].map(_parse_indicator_value),
+        'Faturado (kg)':frame[billed_weight_col].map(_parse_indicator_value),
+    })
+    invalid={'','sum','rollup','total','<na>','nan','none'}
+    for key in ('Cod Cliente','Produto Codigo'):
+        result[key]=result[key].astype('string').str.strip()
+    result['Vendedor']=result['Vendedor'].fillna('').astype('string').str.strip()
+    result=result[result['Competência'].notna()]
+    result=result[~result['Cod Cliente'].fillna('').str.casefold().isin(invalid)]
+    result=result[~result['Produto Codigo'].fillna('').str.casefold().isin(invalid)]
+    result=result[~result['Vendedor'].fillna('').str.casefold().isin(invalid)]
+    if result.empty:
+        raise ValueError('Relatório Pedido x Realizado não trouxe linhas analíticas válidas.')
+    measures=['Pedidos (R$)','Pedidos (kg)','Faturado (R$)','Faturado (kg)']
+    result[measures]=result[measures].apply(pd.to_numeric,errors='coerce').fillna(0)
+    keys=['Competência','Cod Cliente','Produto Codigo','Cod Vendedor','Vendedor']
+    result=result.groupby(keys,as_index=False,dropna=False)[measures].sum()
+    result=result.sort_values(keys,kind='stable').reset_index(drop=True)
+    return result
 
 def _key(series):
     return pd.to_numeric(series,errors='coerce').astype('Int64').astype('string')
@@ -360,6 +426,15 @@ def main():
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame=parse_raw(content); frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
         downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
+    order_actual_raw=None
+    try:
+        logging.info('Baixando Pedido x Realizado (%s)',PEDIDOS_REALIZADO_REPORT)
+        content=con.raw_report(PEDIDOS_REALIZADO_REPORT,offset_from=-23,offset_to=0)
+        (RAW/f'pedidos_realizado_{stamp}.raw').write_bytes(content)
+        order_actual_raw=normalize_order_actual(parse_raw(content))
+        logging.info('Pedido x Realizado normalizado: %s linhas, competência %s a %s',len(order_actual_raw),order_actual_raw['Competência'].min(),order_actual_raw['Competência'].max())
+    except Exception as exc:
+        logging.warning('Pedido x Realizado indisponível; mantendo arquivo publicado anterior: %s',type(exc).__name__,exc_info=True)
     indicators={}
     indicator_frames={}
     # Indicadores e metas são complementares à base transacional. Uma resposta
@@ -462,6 +537,21 @@ def main():
         frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
         stock_frames[name]=frame
     main_df=consolidate(downloaded)
+    order_actual=order_actual_raw
+    if order_actual is not None and not order_actual.empty:
+        # Os nomes e classificações são enriquecidos pela chave do cadastro sem
+        # alterar o grão original do relatório nem multiplicar suas medidas.
+        if 'Cod Cliente' in main_df:
+            client_columns=['Cod Cliente']+[column for column in ('Cliente','Segmento Cliente','Tipologia Cliente','UF','Município','Cluster PIVOT') if column in main_df]
+            client_dim=main_df[client_columns].dropna(subset=['Cod Cliente']).drop_duplicates('Cod Cliente',keep='last')
+            order_actual=order_actual.merge(client_dim,on='Cod Cliente',how='left',validate='many_to_one')
+        if 'Produto Codigo' in main_df:
+            product_columns=['Produto Codigo']+[column for column in ('Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.') if column in main_df]
+            product_dim=main_df[product_columns].dropna(subset=['Produto Codigo']).drop_duplicates('Produto Codigo',keep='last')
+            order_actual=order_actual.merge(product_dim,on='Produto Codigo',how='left',validate='many_to_one')
+        for column in ('Cliente','Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.','Segmento Cliente','Tipologia Cliente','UF','Município','Cluster PIVOT'):
+            if column in order_actual:
+                order_actual[column]=order_actual[column].fillna('Não mapeado').astype(str)
     current_targets=collect_target_periods(
         con,
         detail_frames.get('meta_kg_vendedor_grupo',pd.DataFrame()),
@@ -520,6 +610,17 @@ def main():
     except Exception as exc:
         logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
         flow_tmp.unlink(missing_ok=True)
+    orders_cloud_updated=False
+    if order_actual is not None and not order_actual.empty:
+        orders_tmp=DATA/'metalforte_pedidos_realizado.novo.csv.gz'
+        orders_actual_path=os.getenv('SUPABASE_ORDERS_ACTUAL_PATH','bases/metalforte_pedidos_realizado.csv.gz')
+        order_actual.to_csv(orders_tmp,index=False,compression='gzip')
+        try:
+            orders_cloud_updated=upload_file(orders_tmp,object_path=orders_actual_path)
+            orders_tmp.replace(ACTIVE_PEDIDOS_REALIZADO)
+        except Exception as exc:
+            logging.warning('Publicação da tabela Pedido x Realizado indisponível; mantendo a versão anterior: %s',type(exc).__name__,exc_info=True)
+            orders_tmp.unlink(missing_ok=True)
     indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()},**LOSS_DETAIL_REPORTS,'pedidos_liberados_detalhe':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_valor':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_peso':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe']}
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
@@ -527,7 +628,7 @@ def main():
     current_snapshot=target_df[target_df['Competência']==current_competence] if not target_df.empty else pd.DataFrame(columns=TARGET_COLUMNS)
     meta_start=str(target_df['Competência'].min().date()) if not target_df.empty else None
     meta_end=str(target_df['Competência'].max().date()) if not target_df.empty else None
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':meta_start,'meta_cobertura_fim':meta_end,'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'pedido_realizado_publicado':orders_cloud_updated,'linhas_pedido_realizado':len(order_actual) if order_actual is not None else 0,'pedido_realizado_competencia_inicio':str(order_actual['Competência'].min().date()) if order_actual is not None and not order_actual.empty else None,'pedido_realizado_competencia_fim':str(order_actual['Competência'].max().date()) if order_actual is not None and not order_actual.empty else None,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':meta_start,'meta_cobertura_fim':meta_end,'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 
