@@ -10,10 +10,8 @@ from src.data import load_data,load_targets,apply_filters
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
     # quando app.py pode reiniciar antes de src/data.py ser recarregado.
-    from src.data import load_flow, load_stock, load_pedidos_realizado
+    from src.data import load_stock, load_pedidos_realizado
 except ImportError:
-    def load_flow():
-        return pd.DataFrame()
     def load_stock():
         return pd.DataFrame()
     def load_pedidos_realizado():
@@ -35,17 +33,15 @@ def brl2(v): return f"R$ {_ptbr_number(v, 2)}"
 def integer(v): return _ptbr_number(v, 0)
 def pct(v): return f"{v*100:.2f}%".replace(".",",")
 def pp(v): return f"{v:+.2f}".replace(".",",")+" p.p."
-@st.cache_data(ttl=300,show_spinner="Carregando Metalforte 360...")
-def get_data(): return load_data()
-@st.cache_data(ttl=300,show_spinner=False)
-def get_targets(): return load_targets()
-@st.cache_data(ttl=300,show_spinner=False)
-def get_flow(): return load_flow()
-@st.cache_data(ttl=300,show_spinner=False)
-def get_stock(): return load_stock()
-@st.cache_data(ttl=300,show_spinner=False)
-def get_pedidos_realizado(): return load_pedidos_realizado()
-@st.cache_data(ttl=300,show_spinner=False)
+@st.cache_data(ttl=7200,show_spinner="Carregando Metalforte 360...")
+def get_data(load_version): return load_data()
+@st.cache_data(ttl=7200,show_spinner=False)
+def get_targets(load_version): return load_targets()
+@st.cache_data(ttl=7200,show_spinner=False)
+def get_stock(load_version): return load_stock()
+@st.cache_data(ttl=7200,show_spinner=False)
+def get_pedidos_realizado(load_version): return load_pedidos_realizado()
+@st.cache_data(ttl=60,show_spinner=False)
 def get_load_status():
     try: return download_status()
     except Exception: return {}
@@ -315,11 +311,9 @@ def yoy_comparison(current,previous,dimension):
     return result[columns].sort_values('Δ Faturamento',ascending=False)
 
 access=require_login()
-df=get_data()
-targets=get_targets()
-flow_events=get_flow()
-stock=get_stock()
-order_actual=get_pedidos_realizado()
+load_status=get_load_status()
+load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")
+df=get_data(load_version)
 if access["role"] == "seller":
     seller_scope = access.get("seller_scope", "")
     if not seller_scope:
@@ -329,7 +323,7 @@ if access["role"] == "seller":
     if df.empty:
         st.error("A carteira associada ao usuário não foi encontrada na base atual. Procure um administrador.")
         st.stop()
-load_status=get_load_status(); base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
+base_min=df["Data"].min().date(); base_max=df["Data"].max().date(); last_update=base_max.strftime("%d/%m/%Y")
 load_timestamp=pd.to_datetime(load_status.get('atualizado_em'),errors='coerce')
 if pd.notna(load_timestamp):
     if load_timestamp.tzinfo is None: load_timestamp=load_timestamp.tz_localize('UTC')
@@ -416,7 +410,12 @@ with st.sidebar:
     st.header("Filtros")
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Última carga: {last_load}</span>',unsafe_allow_html=True)
     if st.button("Atualizar visualização", width="stretch"):
-        st.cache_data.clear(); st.rerun()
+        get_load_status.clear()
+        get_data.clear()
+        get_targets.clear()
+        get_stock.clear()
+        get_pedidos_realizado.clear()
+        st.rerun()
     with st.container(key="period_filter"):
         st.subheader("Período")
         with st.form("period_form",border=False):
@@ -489,14 +488,14 @@ if chart_filter:
 monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
 if chart_filter:
     monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
-target_history=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
-if chart_filter:
-    target_history=_filter_chart_dimension(target_history,*chart_filter)
-# Estoque e corporativo; filtros de produto permanecem validos, mas cliente e
-# vendedor nao recortam fisicamente o saldo compartilhado da companhia.
-inventory_history=apply_filters(df,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,produto_text=pt)
-if chart_filter:
-    inventory_history=_filter_chart_dimension(inventory_history,*chart_filter)
+def target_history_loader():
+    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+    return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
+
+def inventory_history_loader():
+    # Estoque é corporativo; filtros de cliente e vendedor não recortam o saldo.
+    result=apply_filters(df,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,produto_text=pt)
+    return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
     "groups": grupo,
@@ -509,11 +508,14 @@ if f.empty:
     st.warning("Nenhum registro encontrado com os filtros atuais. Ajuste os filtros para continuar a análise.")
 
 dashboard_kwargs={
-    "permissions": access["permissions"], "current_user": access["user"], "targets": targets,
-    "target_history": target_history, "target_filters": target_filters,
+    "permissions": access["permissions"], "current_user": access["user"], "targets": lambda: get_targets(load_version),
+    "target_history": target_history_loader, "target_filters": target_filters,
     "commercial_indicators": load_status.get("indicadores", {}),
-    "flow_events": flow_events,
-    "order_actual": order_actual,
+    # Pedidos, metas e estoque são carregados apenas ao abrir suas páginas.
+    # A base de eventos do funil continua sendo publicada para o HTML, mas não
+    # é baixada pelo Streamlit enquanto nenhuma página visível a utiliza.
+    "flow_events": None,
+    "order_actual": lambda: get_pedidos_realizado(load_version),
     "view_filters": {
         "uf": uf, "clusters": cidade_pivot,
         "seller_scope": seller_scope if access["role"] == "seller" else None,
@@ -533,9 +535,9 @@ dashboard_kwargs={
 # janela curta, só envia os argumentos novos se a função já os reconhecer.
 dashboard_parameters=inspect.signature(render_operational_dashboard).parameters
 if "stock" in dashboard_parameters:
-    dashboard_kwargs["stock"]=stock
+    dashboard_kwargs["stock"]=lambda: get_stock(load_version)
 if "inventory_history" in dashboard_parameters:
-    dashboard_kwargs["inventory_history"]=inventory_history
+    dashboard_kwargs["inventory_history"]=inventory_history_loader
 if "order_actual" not in dashboard_parameters:
     dashboard_kwargs.pop("order_actual",None)
 

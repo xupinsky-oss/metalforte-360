@@ -21,7 +21,6 @@ INDICATOR_REPORTS={
 }
 DETAIL_REPORTS={
     "meta_kg_vendedor_grupo":"11081881",
-    "carteira_clientes":"51540859",
 }
 # Etapas oficiais do painel "Pedidos & Orçamentos". Os itens de operação
 # foram publicados em kg; por isso não são convertidos artificialmente em R$.
@@ -77,7 +76,7 @@ FUNNEL_DATE_REPORTS={
 
 class TotvsGoodDataConnector:
     def __init__(self,base_url,workspace,dashboard,cookie=None):
-        self.base_url=base_url.rstrip('/'); self.workspace=workspace; self.dashboard=dashboard; self.session=requests.Session(); self.session.headers.update({"Accept":"application/json","X-GDC-Accept":"application/json"});
+        self.base_url=base_url.rstrip('/'); self.workspace=workspace; self.dashboard=dashboard; self.session=requests.Session(); self._last_token_refresh=0.0; self.session.headers.update({"Accept":"application/json","X-GDC-Accept":"application/json"});
         if cookie: self.session.headers.update({"Cookie":cookie})
     def login(self,login,password):
         payload={"postUserLogin":{"login":login,"password":password,"remember":1,"verify_level":2}}
@@ -89,14 +88,26 @@ class TotvsGoodDataConnector:
         r=self.session.get(f"{self.base_url}/gdc/account/token",timeout=30); r.raise_for_status()
         for header in ("x-gdc-authsst","x-gdc-authtt"):
             if r.headers.get(header): self.session.headers[header]=r.headers[header]
+        self._last_token_refresh=time.monotonic()
         return True
     def raw_report(self,report_id,date_filter_obj=2142,offset_from=-55,offset_to=0,fixed_filters=None):
         fixed_filters=FIXED_FILTERS if fixed_filters is None else fixed_filters; obj=lambda x:f"/gdc/md/{self.workspace}/obj/{x}"
         filters=[*([{"uri":obj(date_filter_obj),"constraint":{"type":"floating","from":str(offset_from),"to":str(offset_to)}}] if date_filter_obj else []),*[{"uri":obj(x)} for x in fixed_filters]]
         payload={"report_req":{"report":obj(report_id),"context":{"filters":filters,"dashboard":obj(self.dashboard),"report":obj(report_id)}}}
-        self.renew_token(); r=self.session.post(f"{self.base_url}/gdc/app/projects/{self.workspace}/execute/raw",json=payload,timeout=60); r.raise_for_status(); uri=r.json()["uri"]
+        # login() já renova a sessão. Consultar /token antes de cada relatório
+        # adicionava uma chamada de rede por fonte sem benefício. Renova somente
+        # após 10 minutos ou se GoodData rejeitar a autenticação.
+        if time.monotonic()-self._last_token_refresh>600: self.renew_token()
+        execute_url=f"{self.base_url}/gdc/app/projects/{self.workspace}/execute/raw"
+        r=self.session.post(execute_url,json=payload,timeout=60)
+        if r.status_code in (401,403):
+            self.renew_token(); r=self.session.post(execute_url,json=payload,timeout=60)
+        r.raise_for_status(); uri=r.json()["uri"]
         for _ in range(180):
-            rr=self.session.get(self.base_url+uri if uri.startswith('/') else uri,timeout=60)
+            result_url=self.base_url+uri if uri.startswith('/') else uri
+            rr=self.session.get(result_url,timeout=60)
+            if rr.status_code in (401,403):
+                self.renew_token(); rr=self.session.get(result_url,timeout=60)
             if rr.status_code==202: time.sleep(1.2); continue
             rr.raise_for_status(); ct=rr.headers.get('content-type','')
             if 'application/json' in ct:
