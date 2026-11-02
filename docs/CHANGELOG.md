@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.27.13 — ordem dos indicadores do Command Center
+
+- reorganizados os cartões: Faturamento, KG faturado, Margem %, Preço médio/kg, Clientes positivados, Novos clientes e Clientes inativos.
+
 ## v2.27.12 — metas indisponíveis não bloqueiam a atualização
 
 - respostas vazias ou inválidas de metas mensais de KG/R$ deixam de interromper a carga transacional;

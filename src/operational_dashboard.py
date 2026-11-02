@@ -1118,10 +1118,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
 
     definitions = [
         ("Faturamento", brl(current["revenue"]), "revenue", False),
-        ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
-        ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
-        ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
         ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
+        ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
+        ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
+        ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
     ]
     cards = []
     for label, value, key, points in definitions:
