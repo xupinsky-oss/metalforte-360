@@ -23,6 +23,14 @@
 - A normalização muda somente os rótulos das dimensões; não remove nem agrega linhas da base realizada. Relatórios que agrupam por cidade ou vendedor passam a reunir as grafias equivalentes.
 - A aplicação do rótulo ao histórico publicado ocorre na leitura do painel; a próxima execução do ETL também publicará os nomes já padronizados.
 
+## Atualização do painel — v2.27.24
+
+- A competência de metas é escolhida em um seletor simples de mês.
+- A página de atividade mensal aparece como **Batalha Naval**.
+- As entidades da Batalha Naval são ordenadas do maior para o menor faturamento total na janela exibida, qualquer que seja a medida visual selecionada.
+- O Direcionador comercial permite classificar inatividade a partir de 90 dias sem compra.
+- O Command Center usa o relatório GRANULAR publicado de Pedido × Realizado para mostrar pedidos liberados no cartão e na tendência mensal, respeitando os filtros dimensionais e as competências mensais da fonte.
+
 ## Classificação de produtos
 
 - A matriz versionada `resources/produtos_classificacao.csv.gz` deriva da planilha **Produtos Ecommerce - SQL (1).xlsx**.
