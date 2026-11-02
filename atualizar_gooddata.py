@@ -164,7 +164,16 @@ def _parse_percentage(value):
 def _released_detail(frame):
     """Normaliza o Rel.029 no grão pedido × item, fonte oficial dos liberados."""
     if frame is None or frame.empty:
-        raise ValueError("Rel.029 não retornou linhas de pedidos liberados.")
+        # Pedidos liberados são uma fonte complementar. Períodos sem linhas
+        # devem gerar uma tabela vazia e não bloquear a publicação das vendas.
+        return pd.DataFrame(columns=[
+            'Origem','Modalidade','Vendedor','Cod Cliente','Cliente','Grupo Produto',
+            'Produto Codigo','Produto','Pedido','Item','OP','Data Orçamento','Data Pedido',
+            'Data Liberação','Data Emissão OP','Data Confirmação OP','Data OS',
+            'Data Montagem Carga','Data Emissão NF','Data Saída','Hora Saída',
+            'Data Desejo Cliente','Data Previsão Entrega','Data Produção','Peso','Valor',
+            'Projeção Custo','Projeção Imposto','Projeção Margem','Margem %'
+        ])
     required = {
         "pedido": _flow_column(frame, "Nº Pedido", "N Pedido", "Pedido"),
         "item": _flow_column(frame, "Item"),
@@ -206,11 +215,10 @@ def build_flow_timeline(frames):
     columns=['Origem','Modalidade','Vendedor','Cod Cliente','Cliente','Grupo Produto','Produto Codigo','Produto','Pedido','Item','OP','Data Orçamento','Data Pedido','Data Liberação','Data Emissão OP','Data Confirmação OP','Data OS','Data Montagem Carga','Data Emissão NF','Data Saída','Hora Saída','Data Desejo Cliente','Data Previsão Entrega','Data Produção','Peso','Valor','Projeção Custo','Projeção Imposto','Projeção Margem','Margem %']
     rows=[]
     released=frames.get('pedidos_liberados_detalhe')
-    if released is None:
-        raise ValueError('Rel.029 não foi carregado; publicação do fluxo interrompida.')
-    # Rel.029 é a fonte única das linhas e valores liberados. Não somar as
-    # antigas extrações CIF/FOB junto com ela: duplicaria pedido, cliente e item.
-    rows.append(_released_detail(released))
+    if released is not None and not released.empty:
+        # Rel.029 é a fonte única das linhas e valores liberados. Não somar as
+        # antigas extrações CIF/FOB junto com ela: duplicaria pedido, cliente e item.
+        rows.append(_released_detail(released))
     quote=frames.get('orcamentos_abertos_detalhe')
     if quote is not None and not quote.empty:
         rows.append(pd.DataFrame({'Origem':'Orçamento em aberto','Modalidade':pd.NA,'Vendedor':_flow_series(quote,'Nome Vendedor','Vendedor'),'Cod Cliente':_flow_series(quote,'Cod Cliente','Código Cliente','Codigo Cliente','Cód. Cliente','Cod. Cliente'),'Cliente':_flow_series(quote,'Nome Cliente','Cliente'),'Grupo Produto':_flow_series(quote,'Grupo Prod.','Grupo Produto'),'Produto Codigo':_flow_series(quote,'Produto Codigo','Código Produto','Codigo Produto','Cód. Produto','Cod. Produto'),'Produto':_flow_series(quote,'Produto','Descrição Produto'),'Pedido':_flow_series(quote,'Pedido'),'Item':pd.NA,'OP':pd.NA,'Data Orçamento':_flow_series(quote,'Emissão','Emissao',date=True),'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':pd.NaT,'Data Confirmação OP':pd.NaT,'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':pd.NaT,'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(quote,'Peso'),'Valor':_flow_series(quote,'Total'),'Projeção Custo':_flow_series(quote,'Projeção Custo','Projecao Custo'),'Projeção Imposto':_flow_series(quote,'Projeção Imposto','Projecao Imposto'),'Projeção Margem':_flow_series(quote,'Projeção Margem','Projecao Margem'),'Margem %':_flow_series(quote,'Margem %','%')}))
@@ -406,15 +414,24 @@ def main():
         except Exception as exc:
             logging.warning('Perdas por motivo indisponíveis %s: %s', name, type(exc).__name__)
     flow_frames={}
+    released_indicator_rows=pd.DataFrame(columns=['Valor','Peso'])
     for name,report_id in FUNNEL_DATE_REPORTS.items():
         if name == 'pedidos_liberados_detalhe':
             logging.info('Baixando fonte oficial de pedidos liberados Rel.029 (%s)', report_id)
-            flow_frames[name]=parse_raw(con.raw_report(report_id,offset_from=-90,offset_to=0))
-            _released_detail(flow_frames[name])
-            released_indicator_frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0))
-            released_indicator_rows=_released_detail(released_indicator_frame)
-            if released_indicator_rows.empty:
-                raise ValueError('Rel.029 não retornou linhas para o período do indicador.')
+            try:
+                released_frame=parse_raw(con.raw_report(report_id,offset_from=-90,offset_to=0))
+                normalized_released=_released_detail(released_frame)
+                flow_frames[name]=released_frame if not normalized_released.empty else pd.DataFrame()
+                if normalized_released.empty:
+                    logging.warning('Rel.029 sem linhas liberadas na janela; a base de faturamento continuará sendo publicada.')
+                released_indicator_frame=parse_raw(con.raw_report(report_id,offset_from=0,offset_to=0))
+                released_indicator_rows=_released_detail(released_indicator_frame)
+                if released_indicator_rows.empty:
+                    logging.warning('Rel.029 sem linhas no período atual; métricas de pedidos liberados ficarão indisponíveis nesta carga.')
+            except Exception as exc:
+                flow_frames[name]=pd.DataFrame()
+                released_indicator_rows=pd.DataFrame(columns=['Valor','Peso'])
+                logging.warning('Rel.029 indisponível (%s); a base comercial continuará sem métricas de pedidos liberados.',type(exc).__name__)
             continue
         try:
             logging.info('Baixando eventos de data %s (%s)',name,report_id)
@@ -482,19 +499,22 @@ def main():
     stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
     stock_tmp.replace(ACTIVE_STOCK)
     flow=build_flow_timeline(flow_frames)
-    # Os cartões de pedidos liberados e a abertura por cliente/produto usam
-    # exatamente a mesma fonte e o período corrente padrão do Rel.029.
-    indicators['pedidos_liberados_valor']=round(float(released_indicator_rows['Valor'].fillna(0).sum()),4)
-    indicators['pedidos_liberados_peso']=round(float(released_indicator_rows['Peso'].fillna(0).sum()),4)
+    # As métricas de pedidos liberados são publicadas apenas quando o Rel.029
+    # trouxe linhas para o período; ausência de linhas não deve parecer zero.
+    if not released_indicator_rows.empty:
+        indicators['pedidos_liberados_valor']=round(float(released_indicator_rows['Valor'].fillna(0).sum()),4)
+        indicators['pedidos_liberados_peso']=round(float(released_indicator_rows['Peso'].fillna(0).sum()),4)
+    else:
+        indicators.pop('pedidos_liberados_valor',None)
+        indicators.pop('pedidos_liberados_peso',None)
     flow_cloud_updated=False
-    if not flow.empty:
-        flow_tmp=DATA/'metalforte_fluxo.novo.csv.gz'; flow.to_csv(flow_tmp,index=False,compression='gzip')
-        try:
-            flow_cloud_updated=upload_file(flow_tmp,object_path=os.getenv('SUPABASE_FLOW_PATH','bases/metalforte_fluxo.csv.gz'))
-            flow_tmp.replace(ACTIVE_FLOW)
-        except Exception as exc:
-            logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
-            flow_tmp.unlink(missing_ok=True)
+    flow_tmp=DATA/'metalforte_fluxo.novo.csv.gz'; flow.to_csv(flow_tmp,index=False,compression='gzip')
+    try:
+        flow_cloud_updated=upload_file(flow_tmp,object_path=os.getenv('SUPABASE_FLOW_PATH','bases/metalforte_fluxo.csv.gz'))
+        flow_tmp.replace(ACTIVE_FLOW)
+    except Exception as exc:
+        logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
+        flow_tmp.unlink(missing_ok=True)
     indicator_sources={**INDICATOR_REPORTS,**FUNNEL_INDICATOR_REPORTS,**{name: report_id for name,(report_id,_hint) in FUNNEL_DETAIL_REPORTS.items()},**LOSS_DETAIL_REPORTS,'pedidos_liberados_detalhe':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_valor':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe'],'pedidos_liberados_peso':FUNNEL_DATE_REPORTS['pedidos_liberados_detalhe']}
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))

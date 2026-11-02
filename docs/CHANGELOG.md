@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.11 — tolerância à ausência do Rel.029
+
+- uma resposta vazia ou indisponível do relatório complementar de pedidos liberados não interrompe a atualização da base comercial;
+- métricas de pedidos liberados ficam indisponíveis quando o relatório não retorna linhas, sem publicar zero como se fosse um resultado real;
+- a fotografia de eventos é substituída pela resposta atual, inclusive quando vazia, para evitar manter eventos antigos como se fossem atuais.
+
 ## v2.27.10 — exportação com marca e recuperação da carga horária
 
 - atualizado o PDF e o PowerPoint de fechamento com logo e cores da METALFORTE;
