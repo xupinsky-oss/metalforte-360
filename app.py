@@ -7,6 +7,7 @@ import json
 import inspect
 from pathlib import Path
 from src.data import load_data,load_targets,apply_filters
+from src.dimensions import normalize_seller
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
     # quando app.py pode reiniciar antes de src/data.py ser recarregado.
@@ -315,7 +316,7 @@ load_status=get_load_status()
 load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")
 df=get_data(load_version)
 if access["role"] == "seller":
-    seller_scope = access.get("seller_scope", "")
+    seller_scope = normalize_seller(access.get("seller_scope", ""))
     if not seller_scope:
         st.error("Seu perfil de vendedor ainda não possui uma carteira associada. Procure um administrador.")
         st.stop()

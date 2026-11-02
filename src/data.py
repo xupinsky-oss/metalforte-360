@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 from src.cloud_storage import download_bytes, is_configured
+from src.dimensions import normalize_dimensions
 from src.product_groups import normalize_product_group
 
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
@@ -74,6 +75,7 @@ def load_data(path=None):
         if c in df: df[c]=pd.to_numeric(df[c],errors="coerce")
     for c in ["UF","Município","Grupo Produto","Subgrupo Produto","Tipo Produto","ESPEC.","Sub Espec.","Fonte Classificação Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
+    df=normalize_dimensions(df)
     if "Grupo Produto" in df:
         df["Grupo Produto"]=df["Grupo Produto"].map(normalize_product_group)
     # Regra comercial METALFORTE: "Canal" é o segmento de clientes.
@@ -95,6 +97,7 @@ def load_targets(path=None):
     except Exception:
         return pd.DataFrame()
     if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
+    result=normalize_dimensions(result)
     if "Grupo Produto" in result: result["Grupo Produto"]=result["Grupo Produto"].map(normalize_product_group)
     for column in ("Meta KG","Meta R$"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
@@ -115,6 +118,7 @@ def load_flow(path=None):
     for column in result.columns:
         if str(column).startswith("Data "):
             result[column]=pd.to_datetime(result[column],errors="coerce")
+    result=normalize_dimensions(result)
     for column in ("Peso","Valor","Projeção Custo","Projeção Imposto","Projeção Margem","Margem %"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
@@ -154,7 +158,7 @@ def load_pedidos_realizado(path=None):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce").fillna(0)
     for column in ("Cod Cliente","Produto Codigo","Cod Vendedor"):
         if column in result: result[column]=result[column].fillna("").astype(str).str.replace(r"\.0$","",regex=True).str.strip()
-    return result
+    return normalize_dimensions(result)
 
 def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, cidade_pivot=None, vendedor=None, canal=None, tipologia=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df

@@ -8,6 +8,7 @@ import unicodedata
 
 import pandas as pd
 
+from src.dimensions import normalize_dimensions
 from src.product_groups import normalize_product_group
 
 
@@ -55,6 +56,7 @@ def consolidate_targets(meta_kg, meta_value, competence=None):
         "Grupo Produto": meta_kg[group].map(normalize_product_group),
         "Meta KG": _number(meta_kg[monthly]),
     }).dropna(subset=["Vendedor", "Grupo Produto", "Meta KG"])
+    detail = normalize_dimensions(detail)
     detail = detail[(detail["Vendedor"] != "") & (detail["Grupo Produto"] != "")]
     detail = detail.groupby(["Vendedor", "Grupo Produto"], as_index=False)["Meta KG"].sum()
     multiplier = float(os.getenv("TOTVS_TARGET_KG_MULTIPLIER", "1000"))
@@ -78,10 +80,12 @@ def consolidate_targets(meta_kg, meta_value, competence=None):
 def merge_target_history(existing, current):
     """Substitui as competências consultadas e preserva as demais competências."""
     current = current.copy()
+    current = normalize_dimensions(current)
     current["Grupo Produto"] = current["Grupo Produto"].map(normalize_product_group)
     if existing is None or existing.empty:
         return current
     old = existing.copy()
+    old = normalize_dimensions(old)
     old["Competência"] = pd.to_datetime(old["Competência"], errors="coerce").dt.to_period("M").dt.start_time
     old["Grupo Produto"] = old["Grupo Produto"].map(normalize_product_group)
     keys = current[["Competência"]].drop_duplicates()["Competência"]
@@ -99,6 +103,7 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     if targets is None or targets.empty:
         return pd.DataFrame(columns=TARGET_COLUMNS)
     scoped = targets.copy()
+    scoped = normalize_dimensions(scoped)
     scoped["Grupo Produto"] = scoped["Grupo Produto"].map(normalize_product_group)
     scoped["Competência"] = pd.to_datetime(scoped["Competência"], errors="coerce").dt.to_period("M").dt.start_time
     first = pd.Timestamp(start_date).to_period("M").start_time
