@@ -6,7 +6,7 @@ from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REP
 from src.inventory import prepare_stock
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
-from src.targets import consolidate_targets,merge_target_history
+from src.targets import TARGET_COLUMNS,consolidate_targets,merge_target_history
 from src.product_groups import normalize_product_group
 
 ROOT=Path(__file__).resolve().parent
@@ -266,11 +266,10 @@ def collect_target_periods(con,current_detail,current_value):
             periods.append(period)
             logging.info('Meta %s: %s linhas',competence.strftime('%Y-%m'),len(period))
         except Exception as exc:
-            if offset==0:
-                raise
             logging.warning('Meta %s indisponível (%s): %s',competence.strftime('%Y-%m'),type(exc).__name__,str(exc))
     if not periods:
-        raise ValueError('Nenhuma competência válida de meta foi retornada pelo GoodData.')
+        logging.warning('Nenhuma competência de meta disponível; preservando histórico anterior e seguindo com a base comercial.')
+        return pd.DataFrame(columns=TARGET_COLUMNS)
     return pd.concat(periods,ignore_index=True)
 
 def consolidate(downloaded,product_matrix=None):
@@ -363,12 +362,10 @@ def main():
         downloaded[name]=frame; logging.info('%s: %s linhas, %s colunas',name,len(frame),len(frame.columns))
     indicators={}
     indicator_frames={}
-    # Indicadores de carteira/pedidos são complementares à base transacional.
-    # Uma resposta vazia do GoodData para um desses cartões não pode bloquear a
-    # publicação das notas fiscais; apenas meta_valor é necessária à montagem
-    # do histórico de metas. Métricas indisponíveis ficam ausentes na fotografia
-    # desta carga, em vez de manter valores antigos como se fossem atuais.
-    required_indicators={'meta_valor'}
+    # Indicadores e metas são complementares à base transacional. Uma resposta
+    # vazia do GoodData não deve bloquear a publicação das notas fiscais.
+    # Métricas indisponíveis ficam ausentes na fotografia desta carga.
+    required_indicators=set()
     for name,report_id in INDICATOR_REPORTS.items():
         logging.info('Baixando indicador %s (%s)',name,report_id)
         try:
@@ -465,7 +462,11 @@ def main():
         frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
         stock_frames[name]=frame
     main_df=consolidate(downloaded)
-    current_targets=collect_target_periods(con,detail_frames['meta_kg_vendedor_grupo'],indicator_frames['meta_valor'])
+    current_targets=collect_target_periods(
+        con,
+        detail_frames.get('meta_kg_vendedor_grupo',pd.DataFrame()),
+        indicator_frames.get('meta_valor',pd.DataFrame()),
+    )
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
@@ -488,10 +489,14 @@ def main():
     tmp=DATA/'metalforte_base.nova.csv.gz'; main_df.to_csv(tmp,index=False,compression='gzip')
     cloud_updated=upload_file(tmp)
     tmp.replace(ACTIVE)
-    target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
-    target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
-    target_cloud_updated=upload_file(target_tmp,object_path=target_path)
-    target_tmp.replace(ACTIVE_TARGETS)
+    target_cloud_updated=False
+    if not target_df.empty:
+        target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
+        target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
+        target_cloud_updated=upload_file(target_tmp,object_path=target_path)
+        target_tmp.replace(ACTIVE_TARGETS)
+    else:
+        logging.warning('Sem metas válidas locais ou no GoodData; nenhum arquivo de metas será sobrescrito.')
     stock_df=stock_frames['estoque_atual']
     stock_tmp=DATA/'metalforte_estoque.novo.csv.gz'
     stock_df.to_csv(stock_tmp,index=False,compression='gzip')
@@ -519,8 +524,10 @@ def main():
     INDICATORS.write_text(json.dumps({'atualizado_em':datetime.now().astimezone().isoformat(),'fontes':indicator_sources,'valores':indicators},ensure_ascii=False),encoding='utf-8')
     logging.info('Base ativa substituída: %s linhas',len(main_df))
     current_competence=pd.Timestamp.today().to_period('M').start_time
-    current_snapshot=current_targets[current_targets['Competência']==current_competence]
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':str(current_targets['Competência'].min().date()),'meta_cobertura_fim':str(current_targets['Competência'].max().date()),'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    current_snapshot=target_df[target_df['Competência']==current_competence] if not target_df.empty else pd.DataFrame(columns=TARGET_COLUMNS)
+    meta_start=str(target_df['Competência'].min().date()) if not target_df.empty else None
+    meta_end=str(target_df['Competência'].max().date()) if not target_df.empty else None
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':meta_start,'meta_cobertura_fim':meta_end,'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 

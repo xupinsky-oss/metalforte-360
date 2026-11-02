@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.12 — metas indisponíveis não bloqueiam a atualização
+
+- respostas vazias ou inválidas de metas mensais de KG/R$ deixam de interromper a carga transacional;
+- quando não houver metas novas, os arquivos existentes são preservados e nenhum arquivo vazio sobrescreve a publicação anterior;
+- o status da carga registra a cobertura de metas preservada, sem atribuir valores atuais inexistentes.
+
 ## v2.27.11 — tolerância à ausência do Rel.029
 
 - uma resposta vazia ou indisponível do relatório complementar de pedidos liberados não interrompe a atualização da base comercial;
