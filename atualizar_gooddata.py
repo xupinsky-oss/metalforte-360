@@ -308,16 +308,28 @@ def build_flow_timeline(frames):
         result=result[~is_production | (op_key.notna() & ~op_key.str.casefold().isin(['','sum','rollup']))]
     return result.reindex(columns=columns)
 
-def collect_target_periods(con,current_detail,current_value):
-    """Lê metas mensais anteriores e futuras sem misturar competências."""
+def collect_target_periods(con,current_detail,current_value,existing_targets=None):
+    """Atualiza metas correntes/futuras e consulta apenas competências históricas ausentes."""
     offset_from=int(os.getenv('TOTVS_TARGET_OFFSET_FROM','-12'))
     offset_to=int(os.getenv('TOTVS_TARGET_OFFSET_TO','12'))
     if offset_from>offset_to or offset_from < -24 or offset_to > 24:
         raise ValueError('Intervalo de competências da meta inválido; use limites entre -24 e 24 meses.')
     base_competence=pd.Timestamp.today().to_period('M').start_time
+    existing_competences=set()
+    if isinstance(existing_targets,pd.DataFrame) and not existing_targets.empty and 'Competência' in existing_targets:
+        existing_competences=set(
+            pd.to_datetime(existing_targets['Competência'],errors='coerce')
+            .dropna().dt.to_period('M').dt.start_time
+        )
     periods=[]
     for offset in range(offset_from,offset_to+1):
         competence=base_competence+pd.DateOffset(months=offset)
+        # Competências passadas já publicadas são históricas: não precisam ser
+        # consultadas novamente a cada execução horária. Competência corrente e
+        # futuras continuam sendo renovadas para capturar ajustes de orçamento.
+        if offset<0 and competence in existing_competences:
+            logging.info('Meta %s preservada do histórico publicado',competence.strftime('%Y-%m'))
+            continue
         try:
             if offset==0:
                 detail,value=current_detail,current_value
@@ -519,23 +531,29 @@ def main():
     for name,report_id in DETAIL_REPORTS.items():
         logging.info('Baixando detalhamento %s (%s)',name,report_id)
         try:
-            content=con.raw_report(report_id,offset_from=-36 if name=='carteira_clientes' else 0,offset_to=0)
-        except Exception:
-            if name=='carteira_clientes':
-                logging.warning('Fonte complementar de carteira indisponível; a base consolidada será usada.',exc_info=True)
-                continue
-            raise
+            content=con.raw_report(report_id,offset_from=0,offset_to=0)
+        except Exception as exc:
+            # Meta é complementar à base transacional. Uma falha da fonte não
+            # deve impedir a atualização de vendas; o histórico anterior será
+            # mantido e a competência indisponível ficará registrada no log.
+            logging.warning('Detalhamento complementar indisponível %s (%s); preservando histórico anterior.',name,type(exc).__name__,exc_info=True)
+            continue
         frame=parse_raw(content); detail_frames[name]=frame
         (RAW/f'{name}_{stamp}.raw').write_bytes(content)
         frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
     stock_frames={}
     for name,report_id in STOCK_REPORTS.items():
         logging.info('Baixando fotografia de estoque %s (%s)',name,report_id)
-        content=con.raw_report(report_id,date_filter_obj=None,fixed_filters=[])
-        (RAW/f'{name}_{stamp}.raw').write_bytes(content)
-        frame=prepare_stock(parse_raw(content))
-        frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
-        stock_frames[name]=frame
+        try:
+            content=con.raw_report(report_id,date_filter_obj=None,fixed_filters=[])
+            (RAW/f'{name}_{stamp}.raw').write_bytes(content)
+            frame=prepare_stock(parse_raw(content))
+            frame.to_csv(RAW/f'{name}_atual.csv.gz',index=False,compression='gzip')
+            stock_frames[name]=frame
+        except Exception as exc:
+            # Estoque é uma fotografia independente. Se falhar, atualizamos as
+            # vendas normalmente e mantemos a última fotografia publicada.
+            logging.warning('Fotografia de estoque indisponível (%s); preservando a base anterior.',type(exc).__name__,exc_info=True)
     main_df=consolidate(downloaded)
     order_actual=order_actual_raw
     if order_actual is not None and not order_actual.empty:
@@ -552,17 +570,18 @@ def main():
         for column in ('Cliente','Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.','Segmento Cliente','Tipologia Cliente','UF','Município','Cluster PIVOT'):
             if column in order_actual:
                 order_actual[column]=order_actual[column].fillna('Não mapeado').astype(str)
-    current_targets=collect_target_periods(
-        con,
-        detail_frames.get('meta_kg_vendedor_grupo',pd.DataFrame()),
-        indicator_frames.get('meta_valor',pd.DataFrame()),
-    )
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
         elif is_configured(): previous_targets=pd.read_csv(io.BytesIO(download_bytes(object_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz'))),compression='gzip',low_memory=False)
     except Exception as exc:
         logging.warning('Histórico anterior de metas indisponível: %s',type(exc).__name__)
+    current_targets=collect_target_periods(
+        con,
+        detail_frames.get('meta_kg_vendedor_grupo',pd.DataFrame()),
+        indicator_frames.get('meta_valor',pd.DataFrame()),
+        existing_targets=previous_targets,
+    )
     target_df=merge_target_history(previous_targets,current_targets)
     if len(main_df)<300000: raise ValueError(f'Base consolidada abaixo do mínimo de segurança: {len(main_df):,} linhas')
     if main_df['Data'].notna().mean()<.99: raise ValueError('Cobertura de datas abaixo de 99%.')
@@ -583,16 +602,28 @@ def main():
     if not target_df.empty:
         target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
         target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
-        target_cloud_updated=upload_file(target_tmp,object_path=target_path)
-        target_tmp.replace(ACTIVE_TARGETS)
+        try:
+            target_cloud_updated=upload_file(target_tmp,object_path=target_path)
+            if target_cloud_updated or not is_configured(): target_tmp.replace(ACTIVE_TARGETS)
+            else: target_tmp.unlink(missing_ok=True)
+        except Exception as exc:
+            logging.warning('Publicação de metas indisponível; mantendo a última base válida: %s',type(exc).__name__,exc_info=True)
+            target_tmp.unlink(missing_ok=True)
     else:
         logging.warning('Sem metas válidas locais ou no GoodData; nenhum arquivo de metas será sobrescrito.')
-    stock_df=stock_frames['estoque_atual']
-    stock_tmp=DATA/'metalforte_estoque.novo.csv.gz'
-    stock_df.to_csv(stock_tmp,index=False,compression='gzip')
-    stock_path=os.getenv('SUPABASE_STOCK_PATH','bases/metalforte_estoque.csv.gz')
-    stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
-    stock_tmp.replace(ACTIVE_STOCK)
+    stock_df=stock_frames.get('estoque_atual')
+    stock_cloud_updated=False
+    if stock_df is not None:
+        stock_tmp=DATA/'metalforte_estoque.novo.csv.gz'
+        stock_df.to_csv(stock_tmp,index=False,compression='gzip')
+        stock_path=os.getenv('SUPABASE_STOCK_PATH','bases/metalforte_estoque.csv.gz')
+        try:
+            stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
+            if stock_cloud_updated or not is_configured(): stock_tmp.replace(ACTIVE_STOCK)
+            else: stock_tmp.unlink(missing_ok=True)
+        except Exception as exc:
+            logging.warning('Publicação de estoque indisponível; mantendo a última base válida: %s',type(exc).__name__,exc_info=True)
+            stock_tmp.unlink(missing_ok=True)
     flow=build_flow_timeline(flow_frames)
     # As métricas de pedidos liberados são publicadas apenas quando o Rel.029
     # trouxe linhas para o período; ausência de linhas não deve parecer zero.
@@ -628,7 +659,7 @@ def main():
     current_snapshot=target_df[target_df['Competência']==current_competence] if not target_df.empty else pd.DataFrame(columns=TARGET_COLUMNS)
     meta_start=str(target_df['Competência'].min().date()) if not target_df.empty else None
     meta_end=str(target_df['Competência'].max().date()) if not target_df.empty else None
-    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'linhas_estoque':len(stock_df),'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'pedido_realizado_publicado':orders_cloud_updated,'linhas_pedido_realizado':len(order_actual) if order_actual is not None else 0,'pedido_realizado_competencia_inicio':str(order_actual['Competência'].min().date()) if order_actual is not None and not order_actual.empty else None,'pedido_realizado_competencia_fim':str(order_actual['Competência'].max().date()) if order_actual is not None and not order_actual.empty else None,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':meta_start,'meta_cobertura_fim':meta_end,'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
+    result={'status':'ok','atualizado_em':datetime.now().astimezone().isoformat(),'raws':{k:len(v) for k,v in downloaded.items()},'indicadores':indicators,'base_substituida':True,'nuvem_atualizada':cloud_updated,'metas_publicadas':target_cloud_updated,'estoque_publicado':stock_cloud_updated,'estoque_atualizado_nesta_carga':stock_df is not None and (stock_cloud_updated or not is_configured()),'linhas_estoque':len(stock_df) if stock_df is not None else None,'eventos_funil_publicados':flow_cloud_updated,'linhas_eventos_funil':len(flow),'pedido_realizado_publicado':orders_cloud_updated,'linhas_pedido_realizado':len(order_actual) if order_actual is not None else 0,'pedido_realizado_competencia_inicio':str(order_actual['Competência'].min().date()) if order_actual is not None and not order_actual.empty else None,'pedido_realizado_competencia_fim':str(order_actual['Competência'].max().date()) if order_actual is not None and not order_actual.empty else None,'linhas':len(main_df),'ultima_data':str(main_df['Data'].max().date()),'faturamento':round(final_total,2),'meta_competencia':str(current_competence.date()),'meta_linhas':len(current_snapshot),'meta_kg':round(float(current_snapshot['Meta KG'].sum()),2),'meta_valor':round(float(current_snapshot['Meta R$'].sum()),2),'meta_cobertura_inicio':meta_start,'meta_cobertura_fim':meta_end,'cobertura_classificacao_clientes':round(classification_coverage,6),'cobertura_matriz_produtos':round(product_matrix_coverage,6),'cobertura_espec_produtos':round(product_spec_coverage,6),'segmentos_clientes':int(main_df.loc[main_df['Segmento Cliente']!='Não classificado','Segmento Cliente'].nunique()),'tipologias_clientes':int(main_df.loc[main_df['Tipologia Cliente']!='Não classificado','Tipologia Cliente'].nunique())}
     upload_status(result)
     print(json.dumps(result,ensure_ascii=False))
 

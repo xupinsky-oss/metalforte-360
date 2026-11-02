@@ -52,11 +52,16 @@ def enrich_city_clusters(frame):
     return result.drop(columns="_municipio_key")
 
 def load_data(path=None):
+    path_override=path is not None
     path=Path(path) if path else DEFAULT_DATA
-    if path.exists():
+    # Em produção, o objeto privado publicado pelo ETL é a fonte de verdade.
+    # Arquivos locais servem apenas ao desenvolvimento sem Supabase configurado.
+    if path_override and path.exists():
         source=path; compression="infer"
     elif is_configured():
         source=io.BytesIO(download_bytes()); compression="gzip"
+    elif path.exists():
+        source=path; compression="infer"
     else:
         raise FileNotFoundError("Base não encontrada. Configure o Supabase ou disponibilize data/metalforte_base.csv.gz.")
     df=pd.read_csv(source,low_memory=False,compression=compression)
@@ -79,10 +84,12 @@ def load_data(path=None):
     return enrich_city_clusters(df)
 
 def load_targets(path=None):
+    path_override=path is not None
     path=Path(path) if path else DEFAULT_TARGETS
     try:
-        if path.exists(): source=path
+        if path_override and path.exists(): source=path
         elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_TARGET_PATH", "bases/metalforte_metas.csv.gz")))
+        elif path.exists(): source=path
         else: return pd.DataFrame()
         result=pd.read_csv(source,low_memory=False,compression="gzip")
     except Exception:
@@ -95,10 +102,12 @@ def load_targets(path=None):
 
 def load_flow(path=None):
     """Carrega a trilha privada do funil e preserva cada data do processo."""
+    path_override=path is not None
     path=Path(path) if path else DEFAULT_FLOW
     try:
-        if path.exists(): source=path
+        if path_override and path.exists(): source=path
         elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_FLOW_PATH", "bases/metalforte_fluxo.csv.gz")))
+        elif path.exists(): source=path
         else: return pd.DataFrame()
         result=pd.read_csv(source,low_memory=False,compression="gzip")
     except Exception:
@@ -113,11 +122,13 @@ def load_flow(path=None):
 
 def load_stock(path=None):
     """Carrega a fotografia atual do relatório de estoque 19745161."""
+    path_override=path is not None
     path=Path(path) if path else DEFAULT_STOCK
     try:
         from src.inventory import prepare_stock
-        if path.exists(): source=path
+        if path_override and path.exists(): source=path
         elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_STOCK_PATH", "bases/metalforte_estoque.csv.gz")))
+        elif path.exists(): source=path
         else: return pd.DataFrame()
         result=pd.read_csv(source,low_memory=False,compression="gzip")
         return prepare_stock(result)
@@ -127,10 +138,12 @@ def load_stock(path=None):
 
 def load_pedidos_realizado(path=None):
     """Carrega a série separada de pedidos liberados e faturamento realizado."""
+    path_override=path is not None
     path=Path(path) if path else DEFAULT_PEDIDOS_REALIZADO
     try:
-        if path.exists(): source=path
+        if path_override and path.exists(): source=path
         elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_ORDERS_ACTUAL_PATH", "bases/metalforte_pedidos_realizado.csv.gz")))
+        elif path.exists(): source=path
         else: return pd.DataFrame()
         result=pd.read_csv(source,low_memory=False,compression="gzip")
     except Exception:

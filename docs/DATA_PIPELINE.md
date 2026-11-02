@@ -41,7 +41,7 @@
 - O total em reais é distribuído no grão vendedor × grupo proporcionalmente à meta oficial de KG e reconciliado ao centavo antes da publicação.
 - A competência corrente substitui somente o mesmo mês; competências já publicadas são preservadas no histórico privado `metalforte_metas.csv.gz`.
 - Cliente e produto não são metas nativas desses relatórios. O painel os identifica como alocações gerenciais: Meta R$ e Meta KG usam a participação positiva no peso faturado dos 3 meses-calendário anteriores à competência, sempre dentro da célula oficial vendedor × grupo. Células sem peso histórico permanecem como saldo não alocado.
-- `Fat. por clientes` (`51540859`) está catalogado como fonte complementar de carteira. A alocação operacional usa a base consolidada, que já contém vendedor, cliente, produto e grupo no mesmo grão e evita duplicidade de faturamento.
+- `Fat. por clientes` (`51540859`) foi avaliado como fonte complementar, mas não é coletado: nenhuma transformação ou página ativa consome esse relatório, e a base consolidada já contém vendedor, cliente, produto e grupo no mesmo grão sem duplicar faturamento.
 
 O relatório 044 usa `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas para KG). Os indicadores de peso da carteira usam `TOTVS_INDICATOR_WEIGHT_MULTIPLIER` (padrão `1`, pois já chegam em KG). A homologação deve reconciliar o total do mês ao dashboard oficial antes da promoção para produção.
 
@@ -58,3 +58,15 @@ O relatório 044 usa `TOTVS_TARGET_KG_MULTIPLIER` (padrão `1000`, toneladas par
 - concorrência serializada no GitHub Actions.
 
 As etapas 4 a 7 são reportadas após a conclusão do processo monolítico existente. A telemetria não afirma progresso interno que a rotina ainda não expõe.
+
+## Linhagem e otimização da execução
+
+- `REPORTS` em `src/totvs.py` alimenta a base transacional de vendas (`metalforte_base.csv.gz`), com grão de nota fiscal × item. O GoodData fornece faturamento, margem, cadastro/classificação, geografia e benchmark.
+- Os relatórios GoodData de metas, pedidos x realizado, estoque e funil alimentam objetos separados no Supabase privado; não são concatenados à base de faturamento. O resumo HTML lê faturamento, indicadores e eventos do funil.
+- `resources/produtos_classificacao.csv.gz` e `resources/cidades_pivot.csv.gz` são matrizes de referência derivadas de planilhas fornecidas pela empresa, e não consultas GoodData. Os arquivos geográficos municipais/estaduais são referências cartográficas.
+- O relatório complementar `carteira_clientes` (51540859) foi retirado da coleta horária: nenhuma transformação ou painel ativo consumia o resultado; classificação e contatos já vêm da base principal de clientes.
+- O histórico de metas já publicado não é baixado de novo por competência a cada hora. Competências anteriores existentes são preservadas; a competência atual e as futuras configuradas continuam sendo renovadas. Se uma competência passada estiver ausente, ela é consultada para completar a cobertura.
+- A renovação do token GoodData ocorre no início, a cada 10 minutos e após rejeição de autenticação, em vez de acrescentar uma chamada de token antes de cada relatório.
+- No Streamlit, a chave da base em cache acompanha `atualizado_em` do status privado. Metas, estoque e pedidos são carregados sob demanda na página que os utiliza. O fluxo continua sendo mantido para o relatório HTML.
+- Quando o Supabase está configurado, o app prefere o objeto publicado; arquivos locais são fallback somente para desenvolvimento sem a conexão privada.
+- Metas e estoque são fontes auxiliares: indisponibilidade na fonte ou na publicação preserva a versão anterior e não impede a atualização da base principal. O status diferencia estoque atualizado nesta carga de estoque anterior preservado.

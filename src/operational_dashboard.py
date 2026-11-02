@@ -3555,18 +3555,24 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         selected = labels[0]
     permission = dict(pages)[selected]
     can_export = "export_data" in permissions
+    def resolve_lazy(value):
+        """Materializa bases auxiliares somente quando a página as solicita."""
+        return value() if callable(value) else value
+
     if permission == "export_reports":
         _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_export)
     elif permission == "view_overview":
         _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events, can_export, view_filters)
     elif permission == "view_order_actual":
-        _orders_actual_view(order_actual, start_date, end_date, brl, show_chart, show_table, can_export, view_filters)
+        _orders_actual_view(resolve_lazy(order_actual), start_date, end_date, brl, show_chart, show_table, can_export, view_filters)
     elif permission == "view_clients":
         _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_products":
         _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_stock":
-        _stock_view(stock, inventory_history if inventory_history is not None else history, brl, show_chart, show_table, can_export)
+        stock_data = resolve_lazy(stock)
+        stock_history = resolve_lazy(inventory_history) if inventory_history is not None else history
+        _stock_view(stock_data, stock_history, brl, show_chart, show_table, can_export)
     elif permission == "view_daily":
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":
@@ -3576,7 +3582,10 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_margin_volume":
         _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_targets":
-        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators, order_actual)
+        target_data = resolve_lazy(targets)
+        target_actual = resolve_lazy(target_history) if target_history is not None else history
+        orders_data = resolve_lazy(order_actual)
+        _targets_view(data, target_actual, target_data, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators, orders_data)
     elif permission == "view_map":
         _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters)
     elif permission == "view_heatmap":
@@ -3588,7 +3597,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_pivot":
         _pivot(data, show_table, can_export)
     elif permission == "view_unified":
-        _unified_view(data, targets, flow_events, commercial_indicators, start_date, end_date, show_table, can_export)
+        _unified_view(data, resolve_lazy(targets), resolve_lazy(flow_events), commercial_indicators, start_date, end_date, show_table, can_export)
     elif permission == "view_yoy":
         _yoy(data, history, start_date, end_date, show_chart, show_table)
     elif permission == "use_assistant":
