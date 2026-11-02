@@ -421,7 +421,7 @@ def _activity_heatmap_chart(matrix, dimension, metric):
     )
     full_names = np.repeat(np.array(full_labels, dtype=object)[:, None], len(display.columns), axis=1)
     if metric == "Faturamento":
-        hover = "<b>%{customdata}</b><br>%{x}<br>Faturamento: R$ %{z:,.2f}<extra></extra>"
+        hover = "<b>%{customdata}</b><br>%{x}<br>Faturamento: R$ %{z:,.0f}<extra></extra>"
         chart.update_coloraxes(colorbar_title="R$", colorbar_tickprefix="R$ ", colorbar_tickformat="~s")
     elif metric == "Preço médio/kg":
         hover = "<b>%{customdata}</b><br>%{x}<br>Preço médio/kg: R$ %{z:,.2f}<extra></extra>"
@@ -542,7 +542,7 @@ def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_e
                 if metric == "Preço médio/kg":
                     weight = float(latest_source["Peso"].sum())
                     value = revenue / weight if weight else 0
-                    summary[2].metric("Preço médio no último mês", brl(value))
+                    summary[2].metric("Preço médio no último mês", brl2(value))
                 else:
                     margin = float(latest_source["Margem"].sum())
                     value = margin / revenue if revenue else 0
@@ -811,7 +811,7 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
                 coloraxis_colorbar=dict(title=selected, thickness=14, bgcolor="rgba(255,255,255,.88)"),
             )
             if selected in {"Faturamento", "Potencial R$", "Potencial não atendido R$", "Preço médio/kg"}:
-                chart.update_coloraxes(colorbar_tickprefix="R$ ", colorbar_tickformat=",.2f")
+                chart.update_coloraxes(colorbar_tickprefix="R$ ", colorbar_tickformat=",.2f" if selected == "Preço médio/kg" else ",.0f")
             elif selected in {"Taxa de ativação", "Margem %"}:
                 chart.update_coloraxes(colorbar_tickformat=".2%")
             else:
@@ -868,7 +868,7 @@ def _municipal_map_view(current, history, start_date, end_date, brl, brl2, pct, 
             )
             _polish_chart(chart, height=max(430, len(ranked) * 27), x_title=cluster_metric, y_title=None)
             if cluster_metric in {"Faturamento", "Potencial R$", "Potencial não atendido R$", "Preço médio/kg"}:
-                chart.update_xaxes(tickprefix="R$ ", tickformat=",.2f")
+                chart.update_xaxes(tickprefix="R$ ", tickformat=",.2f" if cluster_metric == "Preço médio/kg" else ",.0f")
             elif cluster_metric in {"Taxa de ativação", "Margem %", "Cobertura territorial"}:
                 chart.update_xaxes(tickformat=".2%")
             else:
@@ -1178,7 +1178,7 @@ def _orders_actual_view(frame, start_date, end_date, brl, show_chart, show_table
     melted=chart_rows.melt(id_vars=dimension,value_vars=[order_label,billed_label],var_name="Medida",value_name="Valor")
     chart=px.bar(melted,x=dimension,y="Valor",color="Medida",barmode="group",title=f"Pedido × realizado por {dimension.lower()}",color_discrete_map={order_label:"#2F8FD8",billed_label:"#F36A2D"})
     if measure=="Faturamento (R$)":
-        chart.update_yaxes(tickprefix="R$ ",tickformat=",.2f")
+        chart.update_yaxes(tickprefix="R$ ",tickformat=",.0f")
     else:
         chart.update_yaxes(ticksuffix=" kg",tickformat=",.0f")
     show_chart(_polish_chart(chart,height=max(370,min(620,260+len(chart_rows)*18)),x_title=dimension,y_title=measure),key="orders_actual_chart")
@@ -1288,7 +1288,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             for trace in chart.data:
                 axis = chart.layout[trace.yaxis]
                 if trace.name in ("Faturamento", "Preço médio/kg"):
-                    axis.update(tickprefix="R$ ", tickformat=",.2f")
+                    axis.update(tickprefix="R$ ", tickformat=",.2f" if trace.name == "Preço médio/kg" else ",.0f")
                 elif trace.name == "Margem %":
                     axis.update(tickformat=".2%")
                 else:
@@ -1347,7 +1347,7 @@ def _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table):
         help="Faturamento realizado + média diária do mês multiplicada pelos dias restantes.",
     )
     projection_cards[1].metric("Realizado no mês", brl(projection["realized"]))
-    projection_cards[2].metric("Média por dia corrido", brl2(projection["daily_average"]))
+    projection_cards[2].metric("Média por dia corrido", brl(projection["daily_average"]))
     projection_cards[3].metric("Dias restantes", _quantity(projection["remaining_days"]))
     st.caption(
         f"Base: {projection['elapsed_days']} dias corridos até {pd.Timestamp(end_date).strftime('%d/%m/%Y')}. "
@@ -2065,11 +2065,11 @@ def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export
     chart.update_traces(
         hovertemplate=(
             f"{dimension}: %{{hovertext}}<br>Volume: %{{x:,.0f}} kg<br>Margem: %{{y:.2%}}"
-            "<br>Faturamento: R$ %{customdata[0]:,.2f}<br>Preço: R$ %{customdata[1]:.2f}/kg"
+            "<br>Faturamento: R$ %{customdata[0]:,.0f}<br>Preço: R$ %{customdata[1]:.2f}/kg"
             "<br>Clientes: %{customdata[2]}<br>Pedidos: %{customdata[3]}<extra></extra>"
         )
     )
-    chart.add_hline(y=floor_percent / 100, line_dash="dash", line_color="#C94B4B", annotation_text=f"Referência {floor_percent:.1f}%".replace(".", ","))
+    chart.add_hline(y=floor_percent / 100, line_dash="dash", line_color="#C94B4B", annotation_text=f"Referência {floor_percent:.2f}%".replace(".", ","))
     if pd.notna(volume_cut) and volume_cut > 0:
         median_kg = volume_cut * 1000
         chart.add_vline(x=median_kg, line_dash="dot", line_color="#667085")
@@ -2784,9 +2784,9 @@ def _funnel_chart(frame, title, unit):
         color="Etapa", color_discrete_sequence=["#F36A2D", "#E58B55", "#D8A784", "#64748B", "#2F8FD8"],
     )
     chart.update_traces(
-        texttemplate="R$ %{text:,.2f}" if unit == "R$" else "%{text:,.0f} kg",
+        texttemplate="R$ %{text:,.0f}" if unit == "R$" else "%{text:,.0f} kg",
         textposition="outside", cliponaxis=False, hovertemplate=(
-            "%{y}<br>R$ %{x:,.2f}<extra></extra>" if unit == "R$" else "%{y}<br>%{x:,.0f} kg<extra></extra>"
+            "%{y}<br>R$ %{x:,.0f}<extra></extra>" if unit == "R$" else "%{y}<br>%{x:,.0f} kg<extra></extra>"
         ),
     )
     return _polish_chart(
@@ -2978,7 +2978,7 @@ def _legacy_funnel_view(indicators, flow_events, start_date, end_date, brl, show
         with loss_chart:
             chart_rows = loss_reasons.head(12).sort_values("Valor perdido (R$)")
             chart = px.bar(chart_rows, x="Valor perdido (R$)", y="Motivo da perda", orientation="h", text="Valor perdido (R$)", title="Valor perdido por motivo", color_discrete_sequence=["#D84A3A"])
-            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.2f}<br>Peso: %{customdata[0]:,.2f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
+            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.0f}<br>Peso: %{customdata[0]:,.0f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
             show_chart(_polish_chart(chart, height=max(330, 35 * len(chart_rows) + 110), x_title="Valor perdido (R$)", y_title=""))
         with loss_table:
             table = loss_reasons.copy()
@@ -3066,7 +3066,7 @@ def _legacy_funnel_view(indicators, flow_events, start_date, end_date, brl, show
                 chart_data, x="Prazo mediano (dias)", y="Transição", orientation="h", text="Prazo mediano (dias)",
                 title="Tempo mediano entre etapas", color_discrete_sequence=["#2F8FD8"],
             )
-            chart.update_traces(texttemplate="%{text:.1f} dias", textposition="outside", cliponaxis=False)
+            chart.update_traces(texttemplate="%{text:.0f} dias", textposition="outside", cliponaxis=False)
             show_chart(_polish_chart(chart, height=max(350, 48 * len(chart_data) + 120), x_title="Dias", y_title=""))
             show_table(deadlines, height=300, width="stretch", hide_index=True)
     with commercial_tab:
@@ -3244,7 +3244,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             st.info("A carga atual ainda não publicou perdas por motivo.")
         else:
             chart = px.bar(chart_rows, x="Valor perdido (R$)", y="Motivo da perda", orientation="h", text="Valor perdido (R$)", title="Perdas por motivo", color_discrete_sequence=["#D84A3A"])
-            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.2f}<br>Peso: %{customdata[0]:,.2f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
+            chart.update_traces(texttemplate="R$ %{text:,.0f}", textposition="outside", cliponaxis=False, hovertemplate="%{y}<br>Valor: R$ %{x:,.0f}<br>Peso: %{customdata[0]:,.0f} kg<extra></extra>", customdata=chart_rows[["Peso perdido (kg)"]].fillna(0))
             show_chart(_polish_chart(chart, height=max(300, 35 * len(chart_rows) + 100), x_title="Valor perdido (R$)", y_title=""))
     with loss_table:
         table = losses.copy()
@@ -3281,7 +3281,7 @@ def _funnel_view(indicators, flow_events, start_date, end_date, brl, show_chart,
             with deadline_chart:
                 chart_rows = deadlines.sort_values("Prazo mediano (dias)")
                 chart = px.bar(chart_rows, x="Prazo mediano (dias)", y="Transição", orientation="h", text="Prazo mediano (dias)", title="Tempo mediano entre etapas", color_discrete_sequence=["#2F8FD8"])
-                chart.update_traces(texttemplate="%{text:.1f} dias", textposition="outside", cliponaxis=False)
+                chart.update_traces(texttemplate="%{text:.0f} dias", textposition="outside", cliponaxis=False)
                 show_chart(_polish_chart(chart, height=max(280, 48 * len(chart_rows) + 90), x_title="Dias", y_title=""))
             with deadline_table:
                 show_table(deadlines, height=max(280, 48 * len(deadlines) + 90), width="stretch", hide_index=True)
@@ -3435,10 +3435,10 @@ def _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_expo
             current_value = month_values[reference_key]
             previous_value = month_reference[reference_key]
             delta = (current_value / previous_value - 1) * 100 if previous_value else None
-            col.metric(label, value, f"{delta:+.1f}% vs mês ant.".replace(".", ",") if delta is not None else "sem base anterior")
+            col.metric(label, value, f"{delta:+.2f}% vs mês ant.".replace(".", ",") if delta is not None else "sem base anterior")
         annual = report["totals"]["prior_year"]
         annual_delta = (month_values["revenue"] / annual["revenue"] - 1) * 100 if annual["revenue"] else None
-        st.caption(f"Comparação anual: {brl(annual['revenue'])} no mesmo mês do ano anterior • variação {f'{annual_delta:+.1f}%'.replace('.', ',') if annual_delta is not None else 'sem base anterior'}")
+        st.caption(f"Comparação anual: {brl(annual['revenue'])} no mesmo mês do ano anterior • variação {f'{annual_delta:+.2f}%'.replace('.', ',') if annual_delta is not None else 'sem base anterior'}")
     with summary_tabs[1]:
         cards = [
             ("Faturamento YTD", brl(ytd_values["revenue"]), "revenue"),
@@ -3451,7 +3451,7 @@ def _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_expo
         for col, (label, value, key) in zip(cols, cards):
             current_value, previous_value = ytd_values[key], ytd_reference[key]
             delta = (current_value / previous_value - 1) * 100 if previous_value else None
-            col.metric(label, value, f"{delta:+.1f}% vs YTD ant.".replace(".", ",") if delta is not None else "sem base anterior")
+            col.metric(label, value, f"{delta:+.2f}% vs YTD ant.".replace(".", ",") if delta is not None else "sem base anterior")
         st.caption(f"Referência: 01/01/{report['month'].year - 1} a {report['end'] - pd.DateOffset(years=1):%d/%m/%Y}.")
     dimension_keys = [("Vendedor", "Vendedor"), ("Grupo de cliente", "Grupo de cliente"), ("Grupo de produto", "Grupo de produto")]
     for index, (tab_label, table_key) in enumerate(dimension_keys, start=2):

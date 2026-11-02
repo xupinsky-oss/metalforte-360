@@ -30,7 +30,7 @@ px.defaults.template="plotly_white"
 px.defaults.color_discrete_sequence=["#F36A2D","#2F8FD8","#34B27B","#F2B84B","#A78BFA","#EC6F91"]
 def _ptbr_number(v, decimals=2):
     return f"{v:,.{decimals}f}".replace(",", "_").replace(".", ",").replace("_", ".")
-def brl(v): return f"R$ {_ptbr_number(v, 2)}"
+def brl(v): return f"R$ {_ptbr_number(v, 0)}"
 def brl2(v): return f"R$ {_ptbr_number(v, 2)}"
 def integer(v): return _ptbr_number(v, 0)
 def pct(v): return f"{v*100:.2f}%".replace(".",",")
@@ -59,9 +59,13 @@ def _is_weight_column(name):
     is_unit_price=any(term in name for term in ("preço","preco","custo","valor","ticket","r$"))
     return is_weight and not is_unit_price
 
+def _is_average_price_column(name):
+    name=str(name).lower()
+    return any(term in name for term in ("preço","preco","pr. médio","pr médio","pr.médio"))
+
 def _is_money_column(name):
     name=str(name).lower()
-    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial","r$")) and not _is_fraction_percent(name) and not _is_weight_column(name) and "p.p." not in name
+    return any(term in name for term in ("faturamento","receita","margem","valor","preço","preco","pr. médio","pr médio","pr.médio","custo","ticket","benchmark","gap","projeção","projecao","realizado","impacto","potencial","r$")) and not _is_fraction_percent(name) and not _is_weight_column(name) and "p.p." not in name
 
 def _numeric_column_config(data):
     """Configuração de reserva para números que continuam numéricos na tabela."""
@@ -72,8 +76,8 @@ def _numeric_column_config(data):
         if "p.p." in name or "delta_margem_pp" in name: fmt="%.2f p.p."
         elif "desvio_%" in name: fmt="%.2f%%"
         elif _is_fraction_percent(name): fmt="%.2f%%"
-        elif "preço" in name or "preco" in name: fmt="R$ %.2f"
-        elif _is_money_column(name): fmt="R$ %.2f"
+        elif _is_average_price_column(name): fmt="R$ %.2f"
+        elif _is_money_column(name): fmt="R$ %.0f"
         else: fmt="%.0f"
         config[col]=st.column_config.NumberColumn(format=fmt)
     return config
@@ -88,8 +92,10 @@ def show_table(data,**kwargs):
             display[col]=display[col].map(lambda value: f"{value:.2f}%".replace(".", ",") if pd.notna(value) else "—")
         elif _is_fraction_percent(col):
             display[col]=display[col].map(lambda value: pct(value) if pd.notna(value) else "—")
-        elif _is_money_column(col):
+        elif _is_average_price_column(name):
             display[col]=display[col].map(lambda value: brl2(value) if pd.notna(value) else "—")
+        elif _is_money_column(col):
+            display[col]=display[col].map(lambda value: brl(value) if pd.notna(value) else "—")
         elif _is_weight_column(col):
             display[col]=display[col].map(lambda value: integer(value) if pd.notna(value) else "—")
     inferred=_numeric_column_config(display)
@@ -201,12 +207,13 @@ def _hover_value(label,base,raw):
     if raw is not None and not pd.api.types.is_numeric_dtype(raw): return f"%{{{base}}}"
     if "p.p." in name: return f"%{{{base}:,.2f}} p.p."
     if _is_fraction_percent(name): return f"%{{{base}:.2%}}"
-    if name.endswith(" t") or name.endswith("(t)"): return f"%{{{base}:,.1f}} t"
+    if name.endswith(" t") or name.endswith("(t)"): return f"%{{{base}:,.0f}} t"
     if _is_weight_column(name): return f"%{{{base}:,.0f}} kg"
-    if "preço" in name or "preco" in name or _is_money_column(name): return f"R$ %{{{base}:,.2f}}"
-    if "dias" in name: return f"%{{{base}:,.1f}} dias"
+    if _is_average_price_column(name): return f"R$ %{{{base}:,.2f}}"
+    if _is_money_column(name): return f"R$ %{{{base}:,.0f}}"
+    if "dias" in name: return f"%{{{base}:,.0f}} dias"
     if any(term in name for term in _HOVER_COUNT_TERMS): return f"%{{{base}:,.0f}}"
-    return f"%{{{base}:,.2f}}"
+    return f"%{{{base}:,.0f}}"
 
 def _rich_hover(fig):
     """Troca o popup padrão do Plotly ("Campo=valor") por título em destaque e valores formatados.
@@ -255,9 +262,10 @@ def show_chart(fig,**kwargs):
     fig.update_yaxes(tickfont=dict(size=12,color="#42546B"),title_font=dict(size=14,color="#27364A"),gridcolor="#E2E8F0",zerolinecolor="#CBD5E1")
     for axis_name in ("xaxis","yaxis"):
         axis=getattr(fig.layout,axis_name,None); title=((axis.title.text if axis and axis.title else "") or "").lower()
-        if "desvio_%" in title: axis.update(tickformat=",.1f",ticksuffix="%")
+        if "desvio_%" in title: axis.update(tickformat=",.2f",ticksuffix="%")
         elif any(term in title for term in ("margem %","margem_pct","participação","participacao","share")): axis.update(tickformat=".2%")
-        elif any(term in title for term in ("faturamento","receita","margem","valor","preço","preco","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.2f")
+        elif _is_average_price_column(title): axis.update(tickprefix="R$ ",tickformat=",.2f")
+        elif any(term in title for term in ("faturamento","receita","margem","valor","custo","ticket","benchmark","gap")): axis.update(tickprefix="R$ ",tickformat=",.0f")
         elif title and not any(term in title for term in ("data","mês","mes","cliente","produto","vendedor","uf","município","municipio")): axis.update(tickformat=",.0f")
     chart_title=getattr(getattr(fig.layout,"title",None),"text",None) or "gráfico"
     chart_key=kwargs.setdefault("key",f"mf_chart_{_CHART_RENDER_INDEX}_{abs(hash(str(chart_title)))%100000000}")
