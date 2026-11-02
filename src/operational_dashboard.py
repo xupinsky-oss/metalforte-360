@@ -1165,14 +1165,18 @@ def _orders_actual_view(frame, start_date, end_date, brl, show_chart, show_table
     top_n=controls[2].selectbox("Entidades no gráfico",[10,20,50,"Todas"],index=1,key="orders_actual_top_n")
     order_col="Pedidos (R$)" if measure=="Faturamento (R$)" else "Pedidos (kg)"
     billed_col="Faturado (R$)" if measure=="Faturamento (R$)" else "Faturado (kg)"
+    unit="R$" if measure=="Faturamento (R$)" else "kg"
+    order_label=f"Pedidos liberados ({unit})"
+    billed_label=f"Faturado realizado ({unit})"
+    difference_label=f"Diferença ({unit}, pedido - faturado)"
     summary=view.groupby(dimension,dropna=False).agg(**{
-        "Pedidos liberados":(order_col,"sum"),"Faturado realizado":(billed_col,"sum"),
+        order_label:(order_col,"sum"),billed_label:(billed_col,"sum"),
     }).reset_index()
-    summary["Diferença (pedido - faturado)"]=summary["Pedidos liberados"]-summary["Faturado realizado"]
-    summary=summary.sort_values("Pedidos liberados",ascending=False)
+    summary[difference_label]=summary[order_label]-summary[billed_label]
+    summary=summary.sort_values(order_label,ascending=False)
     chart_rows=summary if top_n=="Todas" else summary.head(int(top_n))
-    melted=chart_rows.melt(id_vars=dimension,value_vars=["Pedidos liberados","Faturado realizado"],var_name="Medida",value_name="Valor")
-    chart=px.bar(melted,x=dimension,y="Valor",color="Medida",barmode="group",title=f"Pedido × realizado por {dimension.lower()}",color_discrete_map={"Pedidos liberados":"#2F8FD8","Faturado realizado":"#F36A2D"})
+    melted=chart_rows.melt(id_vars=dimension,value_vars=[order_label,billed_label],var_name="Medida",value_name="Valor")
+    chart=px.bar(melted,x=dimension,y="Valor",color="Medida",barmode="group",title=f"Pedido × realizado por {dimension.lower()}",color_discrete_map={order_label:"#2F8FD8",billed_label:"#F36A2D"})
     if measure=="Faturamento (R$)":
         chart.update_yaxes(tickprefix="R$ ",tickformat=",.2f")
     else:
