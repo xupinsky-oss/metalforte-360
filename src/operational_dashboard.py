@@ -1248,21 +1248,50 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     if monthly.empty:
         st.info("Sem dados mensais para o período.")
     else:
-        selected = st.segmented_control(
-            "Indicador", ["Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados", "Novos clientes", "Clientes inativos"],
-            default="Faturamento", key="executive_trend_metric",
+        trend_metrics = [
+            "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados",
+            "Novos clientes", "Clientes inativos",
+        ]
+        selected = st.multiselect(
+            "Medidas no gráfico", trend_metrics, default=["Faturamento"],
+            key="executive_trend_metrics",
+            help="Selecione uma ou mais medidas. Cada medida usa sua própria escala para manter a leitura correta.",
         )
-        chart = px.line(monthly, x="Mês", y=selected, markers=True, title=f"{selected} nos últimos 12 meses")
-        chart.update_traces(line=dict(color="#F36A2D", width=3), marker=dict(size=7))
-        if selected == "Margem %":
-            chart.update_yaxes(tickformat=".2%")
-        elif selected == "Preço médio/kg":
-            chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f")
-        elif selected == "Faturamento":
-            chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f")
-        _polish_chart(chart, height=370, x_title="", y_title=selected)
-        chart.update_xaxes(dtick="M1", tickformat="%b/%y")
-        show_chart(chart)
+        if not selected:
+            st.info("Selecione ao menos uma medida para exibir a tendência mensal.")
+        else:
+            chart_data = monthly[["Mês", *selected]].melt(
+                id_vars="Mês", var_name="Indicador", value_name="Valor",
+            )
+            colors = {
+                "Faturamento": "#F36A2D", "Preço médio/kg": "#1769AA",
+                "Margem %": "#16845B", "Clientes positivados": "#7652A3",
+                "Novos clientes": "#D39100", "Clientes inativos": "#64748B",
+            }
+            chart = px.line(
+                chart_data, x="Mês", y="Valor", color="Indicador", facet_row="Indicador",
+                markers=True, category_orders={"Indicador": selected},
+                color_discrete_map=colors,
+            )
+            chart.update_yaxes(matches=None, title_text="")
+            chart.update_traces(line=dict(width=3), marker=dict(size=7))
+            chart.update_layout(
+                height=max(370, 190 * len(selected)),
+                title="Tendência mensal · últimos 12 meses",
+                showlegend=False,
+                margin=dict(l=70, r=24, t=70, b=36),
+            )
+            for trace in chart.data:
+                axis = chart.layout[trace.yaxis]
+                if trace.name in ("Faturamento", "Preço médio/kg"):
+                    axis.update(tickprefix="R$ ", tickformat=",.2f")
+                elif trace.name == "Margem %":
+                    axis.update(tickformat=".2%")
+                else:
+                    axis.update(tickformat=",.0f")
+            chart.update_xaxes(dtick="M1", tickformat="%b/%y")
+        if selected:
+            show_chart(chart)
         with st.expander("Conferir valores mensais"):
             show_table(
                 monthly[["Mês referência", "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados", "Novos clientes", "Clientes inativos"]]
