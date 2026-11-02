@@ -18,7 +18,7 @@ import streamlit as st
 from src.analytics import group_metrics, metrics
 from src.assistant import answer, SUGGESTED_QUESTIONS
 from src.auth import render_user_admin
-from src.data import load_city_clusters
+from src.data import enrich_city_clusters, load_city_clusters
 from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
 from src.value_intelligence import (
@@ -384,7 +384,10 @@ def _monthly_activity_matrix(history, dimension, metric, end_date, months=12, li
         positive = client_revenue.gt(0).groupby(level=[0, 1]).sum()
         matrix = positive.unstack(fill_value=0).reindex(columns=month_axis, fill_value=0).astype(int)
         ranking = matrix.sum(axis=1)
-    selected = ranking.sort_values(ascending=False).head(max(int(limit), 1)).index
+    # A ordem das linhas é sempre comercial: maior faturamento total na janela
+    # exibida primeiro, independentemente da medida selecionada para as cores.
+    ranking = revenue_matrix.sum(axis=1)
+    selected = ranking.sort_values(ascending=False, kind="stable").head(max(int(limit), 1)).index
     matrix = matrix.reindex(selected)
     return matrix, ranking.reindex(selected)
 
@@ -499,7 +502,7 @@ def _daily_sales_detail(data, selected_day, show_table, *, title="Vendas faturad
 
 
 def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table, can_export):
-    st.subheader("Mapa mensal de atividade", help=PANEL_HELP["heatmap"])
+    st.subheader("Batalha Naval", help=PANEL_HELP["heatmap"])
     st.caption("Visual em formato batalha naval: cada célula representa uma entidade em um mês. A janela termina na data final selecionada e respeita todos os filtros laterais.")
     controls = st.columns([1.35, 1, 1])
     metric = controls[0].segmented_control(
@@ -1192,7 +1195,47 @@ def _orders_actual_view(frame, start_date, end_date, brl, show_chart, show_table
         st.download_button("Exportar pedido × faturado",summary.to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"pedidos_x_faturado.csv","text/csv",width="stretch")
 
 
-def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None):
+def _filter_order_actual(frame, filters=None):
+    """Aplica ao relatório mensal de pedidos as dimensões globais do painel."""
+    required = {"Competência", "Pedidos (R$)", "Pedidos (kg)"}
+    if not isinstance(frame, pd.DataFrame) or frame.empty or not required.issubset(frame.columns):
+        return pd.DataFrame()
+    result = frame.copy()
+    result["Competência"] = pd.to_datetime(result["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+    if "Cluster PIVOT" not in result and {"UF", "Município"}.issubset(result.columns):
+        result = enrich_city_clusters(result)
+    for column in ("Pedidos (R$)", "Pedidos (kg)"):
+        result[column] = pd.to_numeric(result[column], errors="coerce").fillna(0)
+    filters = filters or {}
+    dimensions = (
+        ("Vendedor", "sellers"), ("Grupo Produto", "groups"),
+        ("Segmento Cliente", "segments"), ("Tipologia Cliente", "tipologies"),
+        ("UF", "uf"), ("Município", "municipalities"), ("Cluster PIVOT", "clusters"),
+    )
+    for column, key in dimensions:
+        values = filters.get(key)
+        if values and column in result:
+            result = result[result[column].astype(str).isin([str(value) for value in values])]
+    client = filters.get("client")
+    if client and "Cliente" in result:
+        result = result[result["Cliente"].astype(str).eq(str(client))]
+    for key, column in (("client_text", "Cliente"), ("product_text", "Produto")):
+        term = filters.get(key)
+        if term and column in result:
+            result = result[result[column].fillna("").astype(str).str.contains(str(term), case=False, na=False)]
+    return result
+
+
+def _sum_released_orders(frame, start_date, end_date, measure):
+    if frame.empty or measure not in frame:
+        return 0.0
+    first = pd.Timestamp(start_date).to_period("M").start_time
+    last = pd.Timestamp(end_date).to_period("M").start_time
+    selected = frame[frame["Competência"].between(first, last)]
+    return float(selected[measure].sum()) if not selected.empty else 0.0
+
+
+def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None, order_actual=None):
     st.subheader("Command Center", help=PANEL_HELP["overview"])
     st.caption(
         f"Visão central do METALFORTE 360 • {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
@@ -1242,6 +1285,27 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             ("Ano ant.", f"{year_value:,}".replace(",", "."), _relative(value, year_value), False),
         )
         cards.append((label, f"{value:,}".replace(",", "."), list(cards_for_clients)))
+
+    order_filters = (view_filters or {}).get("order_actual_filters", {})
+    released = _filter_order_actual(order_actual, order_filters)
+    if released.empty:
+        cards.append(("Pedidos liberados", "Sem base", [
+            ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
+        ]))
+    else:
+        current_orders = _sum_released_orders(released, start_date, end_date, "Pedidos (R$)")
+        month_orders = _sum_released_orders(
+            released, pd.Timestamp(start_date) - pd.DateOffset(months=1),
+            pd.Timestamp(end_date) - pd.DateOffset(months=1), "Pedidos (R$)",
+        )
+        year_orders = _sum_released_orders(
+            released, pd.Timestamp(start_date) - pd.DateOffset(years=1),
+            pd.Timestamp(end_date) - pd.DateOffset(years=1), "Pedidos (R$)",
+        )
+        cards.append(("Pedidos liberados", brl(current_orders), [
+            ("Mês ant.", brl(month_orders), _relative(current_orders, month_orders), False),
+            ("Ano ant.", brl(year_orders), _relative(current_orders, year_orders), False),
+        ]))
     _metric_cards(cards)
 
     st.markdown("### Tendência mensal")
@@ -1251,6 +1315,29 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         history,
         end_date,
     )
+    if not released.empty:
+        orders_window = released[
+            released["Competência"].between(
+                monthly_start.to_period("M").start_time,
+                pd.Timestamp(end_date).to_period("M").start_time,
+            )
+        ]
+        orders_by_month = orders_window.groupby("Competência", as_index=False).agg(
+            **{
+                "Pedidos liberados (R$)": ("Pedidos (R$)", "sum"),
+                "Pedidos liberados (kg)": ("Pedidos (kg)", "sum"),
+            }
+        ).rename(columns={"Competência": "Mês"})
+        monthly = orders_by_month if monthly.empty else monthly.merge(orders_by_month, on="Mês", how="outer")
+        monthly = monthly.sort_values("Mês").reset_index(drop=True)
+        monthly["Mês referência"] = pd.to_datetime(monthly["Mês"], errors="coerce").dt.strftime("%m/%Y")
+        for column in ("Faturamento", "Clientes positivados", "Novos clientes", "Clientes inativos", "Pedidos liberados (R$)", "Pedidos liberados (kg)"):
+            if column not in monthly:
+                monthly[column] = 0
+            monthly[column] = pd.to_numeric(monthly[column], errors="coerce").fillna(0)
+        for column in ("Preço médio/kg", "Margem %"):
+            if column not in monthly:
+                monthly[column] = np.nan
     if monthly.empty:
         st.info("Sem dados mensais para o período.")
     else:
@@ -1258,6 +1345,8 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados",
             "Novos clientes", "Clientes inativos",
         ]
+        if not released.empty:
+            trend_metrics.extend(["Pedidos liberados (R$)", "Pedidos liberados (kg)"])
         selected = st.multiselect(
             "Medidas no gráfico", trend_metrics, default=["Faturamento"],
             key="executive_trend_metrics",
@@ -1271,6 +1360,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
                 "Faturamento": "#F36A2D", "Preço médio/kg": "#1769AA",
                 "Margem %": "#16845B", "Clientes positivados": "#7652A3",
                 "Novos clientes": "#D39100", "Clientes inativos": "#64748B",
+                "Pedidos liberados (R$)": "#2F8FD8", "Pedidos liberados (kg)": "#44A6A0",
             }
             chart = make_subplots(specs=[[{"secondary_y": True}]])
             for index, metric_name in enumerate(selected):
@@ -1280,6 +1370,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
                     hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Preço: R$ %{{y:,.2f}}/kg<extra></extra>"
                 elif metric_name == "Margem %":
                     hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Margem: %{{y:.2%}}<extra></extra>"
+                elif metric_name == "Pedidos liberados (R$)":
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Valor: R$ %{{y:,.0f}}<extra></extra>"
+                elif metric_name == "Pedidos liberados (kg)":
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Peso: %{{y:,.0f}} kg<extra></extra>"
                 else:
                     hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Clientes: %{{y:,.0f}}<extra></extra>"
                 chart.add_trace(
@@ -1311,15 +1405,22 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
                     chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f", secondary_y=secondary)
                 elif metric_name == "Margem %":
                     chart.update_yaxes(tickformat=".2%", secondary_y=secondary)
+                elif metric_name == "Pedidos liberados (R$)":
+                    chart.update_yaxes(tickprefix="R$ ", tickformat=",.0f", secondary_y=secondary)
                 else:
-                    chart.update_yaxes(tickformat=",.0f", secondary_y=secondary)
+                    chart.update_yaxes(ticksuffix=" kg" if "(kg)" in metric_name else "", tickformat=",.0f", secondary_y=secondary)
             chart.update_xaxes(dtick="M1", tickformat="%b/%y")
         if selected:
             show_chart(chart)
         with st.expander("Conferir valores mensais"):
+            monthly_columns = [
+                "Mês referência", "Faturamento", "Preço médio/kg", "Margem %",
+                "Clientes positivados", "Novos clientes", "Clientes inativos",
+                "Pedidos liberados (R$)", "Pedidos liberados (kg)",
+            ]
             show_table(
-                monthly[["Mês referência", "Faturamento", "Preço médio/kg", "Margem %", "Clientes positivados", "Novos clientes", "Clientes inativos"]]
-                .iloc[::-1], height=390, width="stretch", hide_index=True,
+                monthly[[column for column in monthly_columns if column in monthly]].iloc[::-1],
+                height=390, width="stretch", hide_index=True,
             )
 
     st.markdown("### Detalhamento")
@@ -1711,7 +1812,7 @@ def _commercial_direction_view(data, history, start_date, end_date, brl, pct, sh
     st.subheader("Direcionador comercial", help="Acompanha resultados faturados por frente: BDR para reativação, SDR para novos clientes, Inside Sales para carteira empresarial e Balcão para consumidor final.")
     st.caption("O período e os filtros da barra lateral valem para todas as filas. As frentes representam tipos de atendimento, não etapas consecutivas da mesma venda.")
     threshold = st.selectbox(
-        "Considerar cliente inativo após", [120, 180, 365], index=1,
+        "Considerar cliente inativo após", [90, 120, 180, 365], index=2,
         format_func=lambda value: f"{value} dias sem compra", key="direction_inactivity_days",
     )
     health_summary, portfolio = portfolio_health(history, end_date, inactivity_days=threshold)
@@ -2271,13 +2372,13 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         (value for value in available if value <= current_month), default=available[-1]
     )
     default_label = default_date.strftime("%m/%Y")
-    selected_range = st.select_slider(
-        "Competências da meta", options=labels, value=(default_label, default_label),
-        help="Selecione um mês ou arraste as extremidades para analisar metas anteriores e futuras.",
-        key="target_competence_range",
+    selected_label = st.selectbox(
+        "Competência da meta", options=labels, index=labels.index(default_label),
+        help="Selecione uma competência mensal para comparar meta, pedidos liberados e faturamento.",
+        key="target_competence",
     )
-    selected_start, selected_end = selected_range if isinstance(selected_range, (tuple, list)) else (selected_range, selected_range)
-    target_start, target_end = label_to_date[selected_start], label_to_date[selected_end]
+    target_start = label_to_date[selected_label]
+    target_end = target_start
     scoped = target_scope(
         targets, target_start, target_end,
         sellers=(filters or {}).get("sellers"), groups=(filters or {}).get("groups"),
@@ -2289,7 +2390,7 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     previous_count = sum(value < current_month for value in available)
     future_count = sum(value > current_month for value in available)
     st.caption(
-        f"Cobertura oficial: {labels[0]} a {labels[-1]} • {previous_count} competência(s) anterior(es) • "
+        f"Cobertura oficial: {labels[0]} a {labels[-1]} • Competência selecionada: {selected_label} • {previous_count} competência(s) anterior(es) • "
         f"{future_count} futura(s)."
     )
     actual_source = history.copy()
@@ -2334,7 +2435,7 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     weight_cards[2].metric("Realizado faturado (kg)", f"{_quantity(actual_kg)} kg", f"Atingimento da meta {pct(kg_attainment)}")
 
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
-    st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
+    st.caption(f"Competência: {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
     controls = st.columns(2)
     dimension = controls[0].segmented_control(
         "Detalhar por", ["Vendedor", "Grupo Produto"],
@@ -3528,7 +3629,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     if "view_map" in permissions:
         pages.append(("Mapa", "view_map"))
     if "view_heatmap" in permissions:
-        pages.append(("Mapa mensal", "view_heatmap"))
+        pages.append(("Batalha Naval", "view_heatmap"))
     if "view_insights" in permissions:
         pages.append(("Insights", "view_insights"))
         pages.append(("Direcionador comercial", "view_commercial_direction"))
@@ -3562,7 +3663,11 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     if permission == "export_reports":
         _monthly_export_view(history, end_date, brl, brl2, pct, show_table, can_export)
     elif permission == "view_overview":
-        _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events, can_export, view_filters)
+        _command_center(
+            data, history, start_date, end_date, last_load, brl, brl2, pct,
+            show_chart, show_table, flow_events, can_export, view_filters,
+            resolve_lazy(order_actual),
+        )
     elif permission == "view_order_actual":
         _orders_actual_view(resolve_lazy(order_actual), start_date, end_date, brl, show_chart, show_table, can_export, view_filters)
     elif permission == "view_clients":

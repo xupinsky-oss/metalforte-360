@@ -28,7 +28,7 @@ PERMISSION_LABELS = {
     "view_margin_volume": "Volume × margem",
     "view_targets": "Metas e orçamento",
     "view_map": "Mapa comercial por município",
-    "view_heatmap": "Mapa mensal de positivação e faturamento",
+    "view_heatmap": "Batalha Naval (positivação e faturamento)",
     "view_insights": "Insights e oportunidades",
     "view_pivot": "Tabela dinâmica",
     "view_yoy": "Comparativo anual",
