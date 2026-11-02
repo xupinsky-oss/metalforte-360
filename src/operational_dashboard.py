@@ -1286,7 +1286,9 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
                 margin=dict(l=70, r=24, t=70, b=36),
             )
             for trace in chart.data:
-                axis = chart.layout[trace.yaxis]
+                axis_ref = trace.yaxis or "y"
+                axis_name = "yaxis" if axis_ref == "y" else f"yaxis{axis_ref[1:]}"
+                axis = getattr(chart.layout, axis_name)
                 if trace.name in ("Faturamento", "Preço médio/kg"):
                     axis.update(tickprefix="R$ ", tickformat=",.2f" if trace.name == "Preço médio/kg" else ",.0f")
                 elif trace.name == "Margem %":
