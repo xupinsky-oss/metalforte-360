@@ -11,6 +11,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import streamlit as st
 
 from src.analytics import group_metrics, metrics
@@ -1259,42 +1261,58 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         selected = st.multiselect(
             "Medidas no gráfico", trend_metrics, default=["Faturamento"],
             key="executive_trend_metrics",
-            help="Selecione uma ou mais medidas. Cada medida usa sua própria escala para manter a leitura correta.",
+            max_selections=2,
+            help="Selecione até duas medidas. A primeira usa o eixo da esquerda e a segunda o eixo da direita.",
         )
         if not selected:
             st.info("Selecione ao menos uma medida para exibir a tendência mensal.")
         else:
-            chart_data = monthly[["Mês", *selected]].melt(
-                id_vars="Mês", var_name="Indicador", value_name="Valor",
-            )
             colors = {
                 "Faturamento": "#F36A2D", "Preço médio/kg": "#1769AA",
                 "Margem %": "#16845B", "Clientes positivados": "#7652A3",
                 "Novos clientes": "#D39100", "Clientes inativos": "#64748B",
             }
-            chart = px.line(
-                chart_data, x="Mês", y="Valor", color="Indicador", facet_row="Indicador",
-                markers=True, category_orders={"Indicador": selected},
-                color_discrete_map=colors,
-            )
-            chart.update_yaxes(matches=None, title_text="")
-            chart.update_traces(line=dict(width=3), marker=dict(size=7))
-            chart.update_layout(
-                height=max(370, 190 * len(selected)),
-                title="Tendência mensal · últimos 12 meses",
-                showlegend=False,
-                margin=dict(l=70, r=24, t=70, b=36),
-            )
-            for trace in chart.data:
-                axis_ref = trace.yaxis or "y"
-                axis_name = "yaxis" if axis_ref == "y" else f"yaxis{axis_ref[1:]}"
-                axis = getattr(chart.layout, axis_name)
-                if trace.name in ("Faturamento", "Preço médio/kg"):
-                    axis.update(tickprefix="R$ ", tickformat=",.2f" if trace.name == "Preço médio/kg" else ",.0f")
-                elif trace.name == "Margem %":
-                    axis.update(tickformat=".2%")
+            chart = make_subplots(specs=[[{"secondary_y": True}]])
+            for index, metric_name in enumerate(selected):
+                if metric_name == "Faturamento":
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Valor: R$ %{{y:,.0f}}<extra></extra>"
+                elif metric_name == "Preço médio/kg":
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Preço: R$ %{{y:,.2f}}/kg<extra></extra>"
+                elif metric_name == "Margem %":
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Margem: %{{y:.2%}}<extra></extra>"
                 else:
-                    axis.update(tickformat=",.0f")
+                    hovertemplate = f"<b>{metric_name}</b><br>%{{x|%b/%Y}}<br>Clientes: %{{y:,.0f}}<extra></extra>"
+                chart.add_trace(
+                    go.Scatter(
+                        x=monthly["Mês"], y=monthly[metric_name], name=metric_name,
+                        mode="lines+markers",
+                        line=dict(color=colors[metric_name], width=3),
+                        marker=dict(size=7), hovertemplate=hovertemplate,
+                    ),
+                    secondary_y=index == 1,
+                )
+            chart.update_yaxes(title_text=selected[0], secondary_y=False)
+            if len(selected) > 1:
+                chart.update_yaxes(title_text=selected[1], secondary_y=True, showgrid=False)
+            chart.update_layout(
+                height=420,
+                title="Tendência mensal · últimos 12 meses",
+                showlegend=len(selected) > 1,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+                margin=dict(l=76, r=82 if len(selected) > 1 else 28, t=70, b=42),
+            )
+            axis_metrics = [(selected[0], False)]
+            if len(selected) > 1:
+                axis_metrics.append((selected[1], True))
+            for metric_name, secondary in axis_metrics:
+                if metric_name == "Faturamento":
+                    chart.update_yaxes(tickprefix="R$ ", tickformat=",.0f", secondary_y=secondary)
+                elif metric_name == "Preço médio/kg":
+                    chart.update_yaxes(tickprefix="R$ ", tickformat=",.2f", secondary_y=secondary)
+                elif metric_name == "Margem %":
+                    chart.update_yaxes(tickformat=".2%", secondary_y=secondary)
+                else:
+                    chart.update_yaxes(tickformat=",.0f", secondary_y=secondary)
             chart.update_xaxes(dtick="M1", tickformat="%b/%y")
         if selected:
             show_chart(chart)
