@@ -16,6 +16,13 @@
 
 `atualizar_gooddata.py` continua sendo a rotina oficial de extração, consolidação, controles mínimos e publicação da base. `gerar_dashboard_web.py` continua gerando somente o resumo agregado.
 
+## Nomes de cidades e vendedores
+
+- Municípios são conciliados sem diferenciar maiúsculas, minúsculas, acentos ou espaços e recebem a grafia oficial da referência municipal do IBGE, considerando a UF quando disponível.
+- Vendedores usam rótulo único sem acentos, em formato de nome próprio, e com espaços excedentes removidos. A mesma regra é aplicada à base realizada, metas, funil e Pedido × Realizado.
+- A normalização muda somente os rótulos das dimensões; não remove nem agrega linhas da base realizada. Relatórios que agrupam por cidade ou vendedor passam a reunir as grafias equivalentes.
+- A aplicação do rótulo ao histórico publicado ocorre na leitura do painel; a próxima execução do ETL também publicará os nomes já padronizados.
+
 ## Classificação de produtos
 
 - A matriz versionada `resources/produtos_classificacao.csv.gz` deriva da planilha **Produtos Ecommerce - SQL (1).xlsx**.

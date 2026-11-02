@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REPORTS,DETAIL_REPORTS,FUNNEL_INDICATOR_REPORTS,FUNNEL_DETAIL_REPORTS,FUNNEL_DATE_REPORTS,LOSS_DETAIL_REPORTS,PEDIDOS_REALIZADO_REPORT
 from src.inventory import prepare_stock
+from src.dimensions import normalize_dimensions
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
 from src.targets import TARGET_COLUMNS,consolidate_targets,merge_target_history
@@ -94,6 +95,7 @@ def normalize_order_actual(frame):
     for key in ('Cod Cliente','Produto Codigo'):
         result[key]=result[key].astype('string').str.strip()
     result['Vendedor']=result['Vendedor'].fillna('').astype('string').str.strip()
+    result=normalize_dimensions(result)
     result=result[result['Competência'].notna()]
     result=result[~result['Cod Cliente'].fillna('').str.casefold().isin(invalid)]
     result=result[~result['Produto Codigo'].fillna('').str.casefold().isin(invalid)]
@@ -306,7 +308,7 @@ def build_flow_timeline(frames):
         op_key=result['OP'].astype('string').str.strip()
         is_production=result['Origem'].eq('OP sob encomenda')
         result=result[~is_production | (op_key.notna() & ~op_key.str.casefold().isin(['','sum','rollup']))]
-    return result.reindex(columns=columns)
+    return normalize_dimensions(result.reindex(columns=columns))
 
 def collect_target_periods(con,current_detail,current_value,existing_targets=None):
     """Atualiza metas correntes/futuras e consulta apenas competências históricas ausentes."""
@@ -426,7 +428,7 @@ def consolidate(downloaded,product_matrix=None):
     revenue=x.groupby('Cod Cliente',dropna=False)['Faturamento'].sum().sort_values(ascending=False); positive=revenue.clip(lower=0); cum=positive.cumsum()/positive.sum() if positive.sum() else positive
     curve=pd.Series('C',index=cum.index); curve[cum<=.90]='B'; curve[cum<=.70]='A'; x['Curva Cliente']=x['Cod Cliente'].map(curve).fillna('C')
     x['NF']=_key(x['NF']); x['Filial']=pd.to_numeric(x['Filial'],errors='coerce')
-    return x[FINAL_COLUMNS]
+    return normalize_dimensions(x[FINAL_COLUMNS])
 
 def main():
     stamp=datetime.now().strftime('%Y%m%d_%H%M%S'); cred=credentials()
@@ -570,6 +572,7 @@ def main():
         for column in ('Cliente','Produto','Grupo Produto','Subgrupo Produto','Tipo Produto','ESPEC.','Sub Espec.','Segmento Cliente','Tipologia Cliente','UF','Município','Cluster PIVOT'):
             if column in order_actual:
                 order_actual[column]=order_actual[column].fillna('Não mapeado').astype(str)
+        order_actual=normalize_dimensions(order_actual)
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
