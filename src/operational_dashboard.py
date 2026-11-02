@@ -48,7 +48,7 @@ PANEL_HELP = {
     "stock": "Cruza a fotografia atual do estoque com as vendas do período móvel escolhido. A curva ABC usa a participação acumulada em KG ou faturamento: A até 80%, B de 80% a 95% e C no restante. Dias de estoque é o saldo disponível dividido pela venda média diária; ABC e cobertura são classificações independentes.",
     "insights": "Gera filas acionáveis por cliente. Reativação e queda comparam o período ao mesmo intervalo do ano anterior e acrescentam a tendência dos 3 meses recentes frente aos 3 meses anteriores; sazonalidade usa a cadência mediana de compras dos últimos 12 meses; recuperação de mix compara a quantidade de produtos do período com a referência anual.",
     "sellers": "Consolida os indicadores por vendedor no período e aplica a referência escolhida. Positivação conta clientes com faturamento líquido positivo.",
-    "targets": "Compara o realizado às metas oficiais mensais. KG vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Cliente e produto recebem alocações proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
+    "targets": "Compara metas oficiais, pedidos liberados e faturamento. KG da meta vem do relatório 044 no grão vendedor × grupo; o total R$ vem do relatório 045 e é conciliado nesse grão. Pedidos liberados vêm das medidas 23/24 do relatório GRANULAR e são agrupados por competência e dimensão. Cliente e produto recebem alocações de meta proporcionais ao peso faturado nos 3 meses-calendário anteriores.",
     "funnel": "A posição atual coloca cada pedido ou OP somente na etapa mais avançada já registrada, sem acumular o mesmo volume em caixas anteriores. Etapas comerciais exibem R$; operação/logística exibem kg. A aba de movimentações por data é histórica e pode registrar o mesmo documento em mais de uma etapa.",
     "heatmap": "Mostra a atividade mensal em formato de mapa de intensidade. Canais correspondem ao Segmento Cliente. Para cliente, positivação indica faturamento líquido mensal positivo; para produto e canal, conta clientes distintos com faturamento líquido positivo. Células cinza representam ausência de positivação ou faturamento líquido não positivo.",
     "map": "Consolida a carteira por município e por cluster de cidade PIVOT. Clientes totais usam o histórico até a data final; clientes ativos possuem faturamento líquido positivo no período. Potencial usa o faturamento positivo do mesmo período do ano anterior e potencial não atendido é a diferença positiva para o faturamento atual.",
@@ -2228,7 +2228,7 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
     show_table(result, height=520, width="stretch", hide_index=True)
 
 
-def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export, indicators=None):
+def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export, indicators=None, order_actual=None):
     st.subheader("Metas e orçamento", help=PANEL_HELP["targets"])
     st.caption("ⓘ A competência da meta é independente do calendário de faturamento. Para meses futuros, o realizado permanece zerado até ocorrer faturamento.")
     targets = targets.copy() if targets is not None else pd.DataFrame()
@@ -2280,11 +2280,34 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     actual_kg = float(actual_source["Peso"].sum()) if not actual_source.empty else 0.0
     value_attainment = actual_value / target_value if target_value else 0.0
     kg_attainment = actual_kg / target_kg if target_kg else 0.0
-    cards = st.columns(4)
-    cards[0].metric("Meta faturamento", brl(target_value), f"Realizado {brl(actual_value)}")
-    cards[1].metric("Atingimento R$", pct(value_attainment), f"Saldo {brl(actual_value-target_value)}")
-    cards[2].metric("Meta KG", f"{_quantity(target_kg)} kg", f"Realizado {_quantity(actual_kg)} kg")
-    cards[3].metric("Atingimento KG", pct(kg_attainment), f"Saldo {_quantity(actual_kg-target_kg)} kg")
+    orders_source = pd.DataFrame()
+    order_value = order_kg = 0.0
+    if isinstance(order_actual, pd.DataFrame) and not order_actual.empty:
+        required_orders = {"Competência", "Pedidos (R$)", "Pedidos (kg)"}
+        if required_orders.issubset(order_actual.columns):
+            orders_source = order_actual.copy()
+            orders_source["Competência"] = pd.to_datetime(orders_source["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+            orders_source = orders_source[
+                orders_source["Competência"].between(target_start, target_end)
+            ].copy()
+            for column, key in (("Vendedor", "sellers"), ("Grupo Produto", "groups")):
+                selected_values = (filters or {}).get(key)
+                if selected_values is not None and len(selected_values) > 0 and column in orders_source:
+                    orders_source = orders_source[orders_source[column].astype(str).isin([str(value) for value in selected_values])]
+            if not orders_source.empty:
+                orders_source[["Pedidos (R$)", "Pedidos (kg)"]] = orders_source[["Pedidos (R$)", "Pedidos (kg)"]].apply(
+                    pd.to_numeric, errors="coerce",
+                ).fillna(0)
+                order_value = float(orders_source["Pedidos (R$)"].sum())
+                order_kg = float(orders_source["Pedidos (kg)"].sum())
+    value_cards = st.columns(3)
+    value_cards[0].metric("Meta faturamento", brl(target_value))
+    value_cards[1].metric("Pedidos liberados (R$)", brl(order_value))
+    value_cards[2].metric("Realizado faturado (R$)", brl(actual_value), f"Atingimento da meta {pct(value_attainment)}")
+    weight_cards = st.columns(3)
+    weight_cards[0].metric("Meta KG", f"{_quantity(target_kg)} kg")
+    weight_cards[1].metric("Pedidos liberados (kg)", f"{_quantity(order_kg)} kg")
+    weight_cards[2].metric("Realizado faturado (kg)", f"{_quantity(actual_kg)} kg", f"Atingimento da meta {pct(kg_attainment)}")
 
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
     st.caption(f"Competência(s): {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
@@ -2305,19 +2328,45 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         actual = actual_source.groupby(dimension, dropna=False, as_index=False).agg(
             **{"Realizado R$": ("Faturamento", "sum"), "Realizado KG": ("Peso", "sum")}
         )
-    view = allocation.merge(actual, on=dimension, how="outer").fillna(0)
-    view["Atingimento R$ %"] = view["Realizado R$"] / view["Meta R$"].replace(0, pd.NA)
+    if orders_source.empty or dimension not in orders_source:
+        orders = pd.DataFrame(columns=[dimension, "Pedidos liberados R$", "Pedidos liberados KG"])
+    else:
+        orders = orders_source.groupby(dimension, dropna=False, as_index=False).agg(
+            **{"Pedidos liberados R$": ("Pedidos (R$)", "sum"), "Pedidos liberados KG": ("Pedidos (kg)", "sum")}
+        )
+    view = allocation.merge(actual, on=dimension, how="outer").merge(orders, on=dimension, how="outer").fillna(0)
+    numeric_columns = [
+        "Meta R$", "Meta KG", "Pedidos liberados R$", "Pedidos liberados KG", "Realizado R$", "Realizado KG",
+    ]
+    for column in numeric_columns:
+        if column in view:
+            view[column] = pd.to_numeric(view[column], errors="coerce").fillna(0)
+    view["Atingimento pedido R$ %"] = np.where(
+        view["Meta R$"] != 0, view["Pedidos liberados R$"] / view["Meta R$"].where(view["Meta R$"] != 0, 1), np.nan,
+    )
+    view["Atingimento pedido KG %"] = np.where(
+        view["Meta KG"] != 0, view["Pedidos liberados KG"] / view["Meta KG"].where(view["Meta KG"] != 0, 1), np.nan,
+    )
+    view["Atingimento R$ %"] = np.where(
+        view["Meta R$"] != 0, view["Realizado R$"] / view["Meta R$"].where(view["Meta R$"] != 0, 1), np.nan,
+    )
     view["Saldo R$"] = view["Realizado R$"] - view["Meta R$"]
-    view["Atingimento KG %"] = view["Realizado KG"] / view["Meta KG"].replace(0, pd.NA)
+    view["Saldo pedidos R$"] = view["Pedidos liberados R$"] - view["Meta R$"]
+    view["Atingimento KG %"] = np.where(
+        view["Meta KG"] != 0, view["Realizado KG"] / view["Meta KG"].where(view["Meta KG"] != 0, 1), np.nan,
+    )
     view["Saldo KG"] = view["Realizado KG"] - view["Meta KG"]
+    view["Saldo pedidos KG"] = view["Pedidos liberados KG"] - view["Meta KG"]
     metric = {
         "Faturamento (R$)": {
-            "target": "Meta R$", "actual": "Realizado R$", "attainment": "Atingimento R$ %",
-            "balance": "Saldo R$", "axis": "Valor (R$)", "title": "faturamento",
+            "target": "Meta R$", "order": "Pedidos liberados R$", "actual": "Realizado R$",
+            "order_attainment": "Atingimento pedido R$ %", "attainment": "Atingimento R$ %",
+            "order_balance": "Saldo pedidos R$", "balance": "Saldo R$", "axis": "Valor (R$)", "title": "faturamento",
         },
         "Peso (kg)": {
-            "target": "Meta KG", "actual": "Realizado KG", "attainment": "Atingimento KG %",
-            "balance": "Saldo KG", "axis": "Peso (kg)", "title": "peso",
+            "target": "Meta KG", "order": "Pedidos liberados KG", "actual": "Realizado KG",
+            "order_attainment": "Atingimento pedido KG %", "attainment": "Atingimento KG %",
+            "order_balance": "Saldo pedidos KG", "balance": "Saldo KG", "axis": "Peso (kg)", "title": "peso",
         },
     }[measure]
     view = view.sort_values(metric["target"], ascending=False)
@@ -2327,15 +2376,19 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
         return
     chart_data = view.head(15).sort_values(metric["target"])
     chart = px.bar(
-        chart_data, x=[metric["target"], metric["actual"]], y=dimension, orientation="h", barmode="group",
-        title=f"Meta x realizado em {metric['title']} por {dimension.lower()}",
+        chart_data, x=[metric["target"], metric["order"], metric["actual"]], y=dimension, orientation="h", barmode="group",
+        title=f"Meta × pedidos × faturado em {metric['title']} por {dimension.lower()}",
         labels={"value": metric["axis"], "variable": "Indicador"},
-        color_discrete_sequence=["#94A3B8", "#F36A2D"],
+        color_discrete_map={metric["target"]: "#94A3B8", metric["order"]: "#1769AA", metric["actual"]: "#F36A2D"},
     )
     show_chart(_polish_chart(chart, height=max(390, 31 * len(chart_data) + 130), x_title=metric["axis"], y_title=""))
-    displayed = view[[dimension, metric["target"], metric["actual"], metric["attainment"], metric["balance"]]].rename(
-        columns={metric["attainment"]: "Atingimento %"}
-    )
+    displayed = view[[
+        dimension, metric["target"], metric["order"], metric["actual"], metric["order_attainment"],
+        metric["attainment"], metric["order_balance"], metric["balance"],
+    ]].rename(columns={
+        metric["order_attainment"]: "Atingimento pedidos %", metric["attainment"]: "Atingimento faturado %",
+        metric["order_balance"]: "Saldo pedidos vs meta", metric["balance"]: "Saldo faturado vs meta",
+    })
     show_table(displayed, height=560, width="stretch", hide_index=True)
     if can_export:
         st.download_button(
@@ -3499,7 +3552,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_margin_volume":
         _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_targets":
-        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators)
+        _targets_view(data, target_history if target_history is not None else history, targets, start_date, end_date, brl, pct, show_chart, show_table, target_filters, can_export, commercial_indicators, order_actual)
     elif permission == "view_map":
         _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters)
     elif permission == "view_heatmap":
