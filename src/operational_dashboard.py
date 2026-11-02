@@ -498,7 +498,7 @@ def _daily_sales_detail(data, selected_day, show_table, *, title="Vendas faturad
         return detail
 
 
-def _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export):
+def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table, can_export):
     st.subheader("Mapa mensal de atividade", help=PANEL_HELP["heatmap"])
     st.caption("Visual em formato batalha naval: cada célula representa uma entidade em um mês. A janela termina na data final selecionada e respeita todos os filtros laterais.")
     controls = st.columns([1.35, 1, 1])
@@ -3589,7 +3589,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     elif permission == "view_map":
         _municipal_map_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export, view_filters)
     elif permission == "view_heatmap":
-        _monthly_activity_view(history, end_date, brl, show_chart, show_table, can_export)
+        _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table, can_export)
     elif permission == "view_insights":
         _insights_view(data, history, start_date, end_date, brl, show_table, can_export)
     elif permission == "view_commercial_direction":

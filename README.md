@@ -1,6 +1,6 @@
-# METALFORTE 360 v2.27.22
+# METALFORTE 360 v2.27.23
 
-## Desempenho e origem dos dados — v2.27.22
+## Desempenho e origem dos dados — v2.27.23
 
 - O Streamlit consulta a versão publicada no status privado do Supabase e mantém a base de vendas em cache até a próxima publicação (limite de 2 horas). Ao detectar nova carga, usa uma nova chave de cache.
 - Metas, estoque e Pedido × Realizado são lidos apenas quando o usuário abre a página correspondente; a trilha de eventos continua alimentando o resumo HTML e não é baixada sem necessidade pelo Streamlit.
@@ -10,7 +10,7 @@
 - A matriz de classificação de produto e a matriz de cidades PIVOT são referências versionadas derivadas das planilhas enviadas pela METALFORTE; não vêm do GoodData. O mapa de municípios/estados também é uma referência geográfica pública. As bases comerciais e as fotografias operacionais continuam vindo dos relatórios GoodData/TOTVS e são publicadas no bucket privado do Supabase.
 - Cidades usam a grafia oficial da referência municipal do IBGE; vendedor é padronizado sem diferença de acentos, caixa ou espaços entre GoodData, metas, funil e pedidos.
 
-## Painel comercial — v2.27.22
+## Painel comercial — v2.27.23
 
 O Command Center resume o desempenho faturado no período e compara o resultado com o mês e o ano anteriores. A aba Metas compara o faturamento realizado com as metas cadastradas para vendedor e grupo de produto.
 
