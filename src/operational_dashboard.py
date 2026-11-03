@@ -1289,7 +1289,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     order_filters = (view_filters or {}).get("order_actual_filters", {})
     released = _filter_order_actual(order_actual, order_filters)
     if released.empty:
-        cards.append(("Pedidos liberados", "Sem base", [
+        cards.append(("Pedidos liberados (R$)", "Sem base", [
+            ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
+        ]))
+        cards.append(("Pedidos liberados (kg)", "Sem base", [
             ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
         ]))
     else:
@@ -1302,10 +1305,28 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             released, pd.Timestamp(start_date) - pd.DateOffset(years=1),
             pd.Timestamp(end_date) - pd.DateOffset(years=1), "Pedidos (R$)",
         )
-        cards.append(("Pedidos liberados", brl(current_orders), [
+        current_order_kg = _sum_released_orders(released, start_date, end_date, "Pedidos (kg)")
+        month_order_kg = _sum_released_orders(
+            released, pd.Timestamp(start_date) - pd.DateOffset(months=1),
+            pd.Timestamp(end_date) - pd.DateOffset(months=1), "Pedidos (kg)",
+        )
+        year_order_kg = _sum_released_orders(
+            released, pd.Timestamp(start_date) - pd.DateOffset(years=1),
+            pd.Timestamp(end_date) - pd.DateOffset(years=1), "Pedidos (kg)",
+        )
+        cards.append(("Pedidos liberados (R$)", brl(current_orders), [
             ("Mês ant.", brl(month_orders), _relative(current_orders, month_orders), False),
             ("Ano ant.", brl(year_orders), _relative(current_orders, year_orders), False),
         ]))
+        cards.append(("Pedidos liberados (kg)", f"{_quantity(current_order_kg)} kg", [
+            ("Mês ant.", f"{_quantity(month_order_kg)} kg", _relative(current_order_kg, month_order_kg), False),
+            ("Ano ant.", f"{_quantity(year_order_kg)} kg", _relative(current_order_kg, year_order_kg), False),
+        ]))
+    card_order = [
+        "Faturamento", "Pedidos liberados (R$)", "KG faturado", "Pedidos liberados (kg)",
+        "Margem %", "Preço médio/kg", "Clientes positivados", "Novos clientes", "Clientes inativos",
+    ]
+    cards.sort(key=lambda card: card_order.index(card[0]) if card[0] in card_order else len(card_order))
     _metric_cards(cards)
 
     st.markdown("### Tendência mensal")
@@ -2010,6 +2031,43 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     _comparison_cards(commercial_metrics(current), commercial_metrics(reference), reference_label, brl, brl2, pct)
 
     st.markdown("### Saúde da carteira")
+    portfolio_export = customer_rfmv(history, end_date)
+    if selected != "Todos os vendedores" and "Vendedor" in portfolio_export:
+        portfolio_export = portfolio_export[
+            portfolio_export["Vendedor"].astype(str).eq(selected)
+        ].copy()
+    if not portfolio_export.empty:
+        portfolio_export["Situação (90 dias)"] = np.where(
+            portfolio_export["Dias sem comprar"].le(90), "Ativo", "Inativo",
+        )
+        portfolio_export["Situação (120 dias)"] = np.where(
+            portfolio_export["Dias sem comprar"].le(120), "Ativo", "Inativo",
+        )
+        portfolio_columns = [
+            ("Cod Cliente", "Código"), ("Cliente", "Cliente"),
+            ("Segmento Cliente", "Segmento"), ("Última compra", "Última compra"),
+            ("Nota RFMV", "Nota RFMV"), ("Situação (90 dias)", "Situação (90 dias)"),
+            ("Situação (120 dias)", "Situação (120 dias)"),
+        ]
+        portfolio_export = portfolio_export[
+            [source for source, _ in portfolio_columns if source in portfolio_export.columns]
+        ].rename(columns=dict(portfolio_columns))
+        st.caption(
+            "A carteira acompanha o último vendedor registrado até a data final. "
+            "Ativo = compra nos últimos 90 ou 120 dias, conforme a coluna; acima do limite = inativo."
+        )
+        if can_export:
+            st.download_button(
+                "Exportar carteira de clientes",
+                portfolio_export.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                "carteira_clientes_vendedores.csv", "text/csv",
+                key="export_seller_customer_portfolio", width="stretch",
+            )
+        with st.expander("Prévia da carteira exportada"):
+            show_table(portfolio_export, height=360, width="stretch", hide_index=True)
+    else:
+        st.info("Não há carteira de clientes com histórico positivo até a data selecionada.")
+
     health_controls = st.columns([1, 2])
     inactivity_days = health_controls[0].selectbox(
         "Considerar inativo após", [120, 180, 365], index=1,
