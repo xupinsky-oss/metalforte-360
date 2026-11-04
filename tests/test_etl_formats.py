@@ -60,7 +60,7 @@ class EtlFormatTests(unittest.TestCase):
         })
         row = flow.iloc[0]
         self.assertEqual(row["Origem"], "Orçamento em aberto")
-        self.assertEqual(row["Vendedor"], "ANA")
+        self.assertEqual(row["Vendedor"], "Ana")
         self.assertEqual(row["Cliente"], "CLIENTE A")
         self.assertAlmostEqual(row["Peso"], 1250.5)
         self.assertAlmostEqual(row["Projeção Margem"], 3500)
