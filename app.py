@@ -5,8 +5,15 @@ import plotly.graph_objects as go
 import html
 import json
 import inspect
+import os
 from pathlib import Path
 from src.data import load_data,load_targets,apply_filters
+try:
+    from src.data import depara_available, prepare_depara_upload, clear_depara_cache
+except ImportError:
+    def depara_available(): return False
+    def prepare_depara_upload(payload): raise RuntimeError("A versão do aplicativo ainda não oferece importação do DE/PARA.")
+    def clear_depara_cache(): pass
 from src.dimensions import normalize_seller
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
@@ -19,7 +26,7 @@ except ImportError:
         return pd.DataFrame()
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
-from src.cloud_storage import download_status
+from src.cloud_storage import download_status, upload_bytes, is_configured
 from src.operational_dashboard import render as render_operational_dashboard
 from src.auth import require_login, logout, ROLE_LABELS
 from src.version import APP_RELEASE
@@ -113,7 +120,7 @@ def _plotly_points(event):
 
 def _chart_filter_candidates(data,point):
     """Relaciona o rótulo clicado a uma dimensão existente na base comercial."""
-    dimensions=("Cliente","Produto","Vendedor","Canal","Segmento Cliente","Grupo Produto",
+    dimensions=("Cliente","Grupo Econômico Cliente","Produto","Vendedor","Vendedor Painel","Grupo Vendedor","Canal","Segmento Cliente","Grupo Produto",
                 "Subgrupo Produto","Tipo Produto","Tipologia Cliente","Filial","UF","Município",
                 "Cluster PIVOT","ESPEC.","Sub Espec.","Espessura")
     candidates=[]
@@ -417,6 +424,35 @@ with st.sidebar:
         get_stock.clear()
         get_pedidos_realizado.clear()
         st.rerun()
+    if access["role"] == "admin":
+        with st.expander("DE/PARA de clientes e vendedores"):
+            if depara_available():
+                st.success("Agrupamentos privados carregados.")
+            else:
+                st.warning("Ainda não há um DE/PARA disponível no armazenamento privado.")
+            if is_configured():
+                mapping_file = st.file_uploader(
+                    "Importar arquivo DE/PARA (.xlsx)", type=["xlsx"], key="depara_upload_file",
+                    help="O aplicativo mantém somente código/loja/cliente/grupo econômico e vendedor/classificação/nome consolidado. Contatos e demais colunas não são enviados.",
+                )
+                if st.button("Validar e carregar DE/PARA", key="depara_upload_button", width="stretch", disabled=mapping_file is None):
+                    try:
+                        payload, counts = prepare_depara_upload(mapping_file.getvalue())
+                        object_path = os.getenv("SUPABASE_DEPARA_PATH", "bases/DE_PARA_METALFORTE360.xlsx")
+                        upload_bytes(
+                            payload, object_path,
+                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        )
+                        clear_depara_cache()
+                        get_data.clear()
+                        get_targets.clear()
+                        get_pedidos_realizado.clear()
+                        st.success(f"DE/PARA carregado: {counts['clientes']:,} clientes e {counts['vendedores']:,} vendedores.")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Não foi possível carregar o DE/PARA: {exc}")
+            else:
+                st.info("O armazenamento privado do Supabase precisa estar configurado para receber o arquivo.")
     with st.container(key="period_filter"):
         st.subheader("Período")
         with st.form("period_form",border=False):
@@ -453,6 +489,18 @@ with st.sidebar:
             "Tipo de cliente", sorted(df["Tipologia Cliente"].unique()),
             help="Classificação comercial do cliente, como revenda, construtora e demais tipologias.",
         ) if "Tipologia Cliente" in df else []
+        grupo_economico=st.multiselect(
+            "Grupo econômico do cliente", sorted(df["Grupo Econômico Cliente"].dropna().astype(str).unique()),
+            help="Consolida filiais e empresas relacionadas conforme o DE/PARA privado da METALFORTE.",
+        ) if "Grupo Econômico Cliente" in df and depara_available() else []
+        grupo_vendedor=st.multiselect(
+            "Classificação do vendedor", sorted(df["Grupo Vendedor"].dropna().astype(str).unique()),
+            help="Agrupa vendedores pela classificação indicada no DE/PARA.",
+        ) if "Grupo Vendedor" in df and depara_available() else []
+        vendedor_painel=st.multiselect(
+            "Vendedor consolidado", sorted(df["Vendedor Painel"].dropna().astype(str).unique()),
+            help="Usa o nome consolidado definido na coluna VENDEDOR PAINEL do DE/PARA.",
+        ) if "Vendedor Painel" in df and depara_available() else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
         subgrupo=st.multiselect("Subgrupo Produto",sorted(df["Subgrupo Produto"].unique())) if "Subgrupo Produto" in df else []
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
@@ -480,17 +528,19 @@ with st.sidebar:
             if st.button("Limpar filtro do gráfico",key="clear_chart_crossfilter",width="stretch"):
                 st.session_state["_chart_crossfilter_point"]=None
                 st.rerun()
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
+f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
 if chart_filter:
     f=_filter_chart_dimension(f,*chart_filter)
 # Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
 # continua controlando todas as análises do período, mas não corta a série usada
 # para projetar o fechamento do ano.
-monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
+monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
 if chart_filter:
     monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
 def target_history_loader():
-    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+    # Metas não têm grão de cliente; o filtro de grupo econômico não reduz o
+    # realizado isoladamente para evitar comparar meta integral com cliente parcial.
+    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
     return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
 
 def inventory_history_loader():
@@ -499,6 +549,8 @@ def inventory_history_loader():
     return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
 target_filters={
     "sellers": ([seller_scope] if access["role"] == "seller" else vend),
+    "seller_panels": vendedor_painel,
+    "seller_groups": grupo_vendedor,
     "groups": grupo,
     "client": selected_client,
     "client_text": ct,
