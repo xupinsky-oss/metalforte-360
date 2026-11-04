@@ -30,3 +30,5 @@ O monitor usa apenas a biblioteca padrão do Python; qualquer versão 3.11 ou po
 O próximo horário é a próxima janela de tentativa (:17 ou :47, no fuso de São Paulo), respeitando o bloqueio de 55 minutos após uma execução bem-sucedida. O agendamento do GitHub é de melhor esforço, portanto não é garantia de início exatamente naquele minuto. Os erros apresentados vêm da telemetria sanitizada e do estado das execuções; os logs detalhados ficam no GitHub e abrem com a autenticação normal da sua conta.
 
 O servidor se liga somente a `127.0.0.1`; este painel não é publicado nem fica acessível a outras pessoas na rede.
+
+Para ver o mapa completo das informações, programas, destinos e horários, consulte [MAPA_DO_FLUXO.md](MAPA_DO_FLUXO.md). A mesma ilustração também aparece no começo do painel Monitor.
