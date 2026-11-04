@@ -153,8 +153,43 @@ def show_table(data,*,raw_detail=False,**kwargs):
             display[col]=display[col].map(lambda value: brl(value) if pd.notna(value) else "—")
         elif _is_weight_column(col):
             display[col]=display[col].map(lambda value: integer(value) if pd.notna(value) else "—")
+    # Destaque variações e atingimento sem colorir métricas absolutas.
+    signal_values={}
+    for col in display.columns:
+        if col not in data.columns or not pd.api.types.is_numeric_dtype(data[col]):
+            continue
+        name=str(col).casefold()
+        attainment=any(term in name for term in ("atingimento","% meta","meta atingida"))
+        variation=any(term in name for term in ("variação","variacao","Δ ","delta ","diferença %","diferenca %"))
+        if not (attainment or variation):
+            continue
+        raw=pd.to_numeric(data[col],errors="coerce")
+        if not raw.notna().any():
+            continue
+        lower_is_better=any(term in name for term in ("inativo","pendente","queda","perdido","atraso","ruptura","risco","excesso"))
+        if attainment:
+            positive=raw.ge(1); negative=raw.lt(1)
+            marker=raw.map(lambda value: "● " if pd.notna(value) else "")
+        else:
+            positive=raw.lt(0) if lower_is_better else raw.gt(0)
+            negative=raw.gt(0) if lower_is_better else raw.lt(0)
+            marker=raw.map(lambda value: ("↑ " if (value < 0 if lower_is_better else value > 0) else "↓ ") if pd.notna(value) and value != 0 else ("• " if pd.notna(value) else ""))
+        display[col]=marker.astype(str)+display[col].astype(str)
+        signal_values[col]=(positive,negative,attainment,raw)
+
     inferred=_numeric_column_config(display)
     inferred.update(kwargs.pop("column_config",{}) or {})
+    if signal_values:
+        def signal_style(_):
+            styles=pd.DataFrame("",index=display.index,columns=display.columns)
+            for column,(positive,negative,attainment,raw) in signal_values.items():
+                styles.loc[positive.index[positive],column]="background-color:#EAF7EF;color:#176B43;font-weight:700"
+                styles.loc[negative.index[negative],column]="background-color:#FFF0EF;color:#B33A2B;font-weight:700"
+                if attainment:
+                    middle=~positive & ~negative & raw.notna()
+                    styles.loc[middle.index[middle],column]="background-color:#FFF7E5;color:#8A5A00;font-weight:700"
+            return styles
+        display=display.style.apply(signal_style,axis=None)
     return st.dataframe(display,column_config=inferred,**kwargs)
 _HOVER_LABEL_COLOR="#64748B"
 _HOVER_COUNT_TERMS=("clientes","pedidos","produtos","documentos","registros","quantidade","notas","positivados","entidades","municípios","municipios","nfs","amostra")
@@ -327,7 +362,9 @@ def show_chart(fig,**kwargs):
     _CHART_RENDER_INDEX+=1
     kwargs.setdefault("on_select","rerun")
     kwargs.setdefault("selection_mode","points")
-    event=st.plotly_chart(fig,width="stretch",**kwargs)
+    config=kwargs.pop("config",{}) or {}
+    config={**config,"responsive":True,"displaylogo":False,"scrollZoom":False}
+    event=st.plotly_chart(fig,width="stretch",config=config,**kwargs)
     points=_plotly_points(event)
     point=points[0] if points else None
     signature=json.dumps(point,ensure_ascii=False,sort_keys=True,default=str) if point else ""
@@ -396,20 +433,31 @@ else: last_load=f'{last_update} (horário indisponível)'
 today=pd.Timestamp.today().date(); month_start=today.replace(day=1)
 default_start=month_start if base_min<=month_start<=base_max else base_max.replace(day=1)
 logo_path=Path(__file__).parent/'LOGO_METALFORTE.jpg'
-head_logo,head_title=st.columns([.16,.84],vertical_alignment="center")
-with head_logo:
-    if logo_path.exists(): st.image(str(logo_path),width=190)
-with head_title:
-    st.title("METALFORTE 360")
-    st.caption(f"Command Center e operação comercial em um único app  |  Versão {APP_RELEASE}  |  Última carga: {last_load}")
+with st.container(key="mf_app_header"):
+    head_logo,head_title=st.columns([.095,.905],vertical_alignment="center",gap="medium")
+    with head_logo:
+        if logo_path.exists(): st.image(str(logo_path),width=112)
+    with head_title:
+        st.title("METALFORTE 360")
+        st.caption(f"Command Center e operação comercial em um único app  ·  Versão {APP_RELEASE}  ·  Última carga: {last_load}")
 st.markdown("""<style>
 html,body,[class*="css"]{font-size:16px;color:#172033}
 .stApp{background:linear-gradient(180deg,#FFFFFF 0,#F7F9FC 280px)}
 .block-container{padding-top:1.6rem;padding-bottom:3rem;max-width:1800px}
+.st-key-mf_app_header [data-testid="stHorizontalBlock"]{align-items:center!important;gap:1rem!important}
+.st-key-mf_app_header [data-testid="stImage"] img{width:clamp(72px,8vw,112px)!important;height:auto!important;border-radius:10px}
+.st-key-mf_app_header h1{margin:0!important;line-height:1.05!important}
+.st-key-mf_app_header [data-testid="stCaptionContainer"]{margin-top:.3rem}
 h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!important} h3{font-size:1.28rem!important}
 [data-testid="stCaptionContainer"]{font-size:.92rem;color:#52647A!important;opacity:1!important}
 [data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid #DCE3EC}
 [data-testid="stSidebar"] label,[data-testid="stSidebar"] p{font-size:.95rem!important;color:#27364A!important}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"]{margin-bottom:.2rem!important}
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="select"]{min-height:42px!important;align-items:flex-start!important}
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="tag"]{max-width:100%;overflow:hidden}
+[data-testid="stSidebar"] [data-testid="stMultiSelect"] [data-baseweb="tag"] span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-testid="stSidebar"] [data-testid="stSelectbox"],[data-testid="stSidebar"] [data-testid="stMultiSelect"],[data-testid="stSidebar"] [data-testid="stDateInput"]{width:100%;min-width:0}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p{white-space:normal!important;line-height:1.25!important}
 [data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]){background:#F7F9FC!important;border:1px solid #CBD5E1!important;border-radius:8px!important;transition:border-color .15s,box-shadow .15s}
 [data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]):hover{border-color:#94A3B8!important}
 [data-testid="stSidebar"] [data-testid="stTextInput"] :is([data-testid="stTextInputRootElement"],[data-baseweb="input"]):focus-within{border-color:#F36A2D!important;box-shadow:0 0 0 3px rgba(243,106,45,.15)!important;background:#FFFFFF!important}
@@ -421,7 +469,7 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 [data-testid="stMetricLabel"] p{font-size:.9rem!important;font-weight:650;color:#52647A!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 [data-testid="stMetricValue"]{font-size:clamp(1.25rem,1.55vw,1.9rem)!important;font-weight:750;color:#172033;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 [data-testid="stMetricDelta"]{font-size:.88rem!important}
-[data-baseweb="tab-list"]{gap:.3rem;overflow-x:auto}
+[data-baseweb="tab-list"]{gap:.3rem;overflow-x:auto;scrollbar-width:thin;scroll-behavior:smooth}
 [data-baseweb="tab"]{min-height:46px;padding:.7rem .9rem;font-size:.92rem;font-weight:650;color:#52647A;white-space:nowrap}
 [aria-selected="true"][data-baseweb="tab"]{color:#C54112;background:#FFF1EA;border-radius:9px 9px 0 0}
 .mf-status{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .8rem;border:1px solid #9AD5B5;border-radius:999px;font-size:.9rem;font-weight:700;background:#EEF9F3;color:#176B43}
@@ -430,13 +478,15 @@ h1{font-size:2.25rem!important;letter-spacing:-.02em} h2{font-size:1.65rem!impor
 .mf-alert small{font-size:.88rem;color:#755F2B}.mf-critical{border-left-color:#DC4C58;background:#FFF0F1;color:#81252C}.mf-critical small{color:#8C4750}.mf-info{border-left-color:#3289CF;background:#EEF7FF;color:#18577E}.mf-info small{color:#3F6F8C}
 .mw-strip{display:flex;gap:.65rem;overflow-x:auto;padding:.25rem 0 .8rem}.mw-quote{min-width:210px;background:#FFFFFF;border:1px solid #DCE3EC;border-radius:9px;padding:.7rem .8rem;box-shadow:0 2px 10px rgba(23,32,51,.04)}.mw-name{font-size:.78rem;color:#607086;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mw-value{font-size:1rem;font-weight:750;color:#172033;margin-top:.2rem}.mw-up{color:#168653}.mw-down{color:#C74426}.mw-flat{color:#637287}
 [data-testid="stDataFrame"]{border:1px solid #DCE3EC;border-radius:10px;overflow:hidden}
+[data-testid="stDataFrame"] [role="grid"]{border-radius:10px}
 .mf-funnel-note{padding:.85rem 1rem;background:#FFF4EE;border:1px solid #FFD5C2;border-radius:10px;color:#71371E;margin:.5rem 0 1rem}
 button,input,[role="combobox"]{font-size:.95rem!important}
 .st-key-mf_page{margin:.35rem 0 1.15rem}
 .st-key-mf_page [data-testid="stWidgetLabel"] p{font-size:.86rem!important;font-weight:750!important;letter-spacing:.02em;color:#52647A!important;text-transform:uppercase}
-.st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(var(--mf-nav-cols,8),minmax(0,1fr));grid-auto-rows:1fr;gap:.38rem;width:100%;padding:.42rem;background:#F2F5F9;border:1px solid #DCE3EC;border-radius:12px}
+.st-key-mf_page [role="radiogroup"]{display:grid!important;grid-template-columns:repeat(var(--mf-nav-cols,8),minmax(0,1fr));grid-auto-rows:1fr;gap:.42rem;width:100%;padding:.48rem;background:linear-gradient(135deg,#F5F7FA,#EDF2F7);border:1px solid #DCE3EC;border-radius:12px}
 .st-key-mf_page [role="radiogroup"]>*{width:100%!important;min-width:0!important;height:100%!important}
-.st-key-mf_page [role="radiogroup"] button,.st-key-mf_page [role="radiogroup"] label{justify-content:center!important;min-height:42px!important;height:100%!important;width:100%!important;border-radius:8px!important}
+.st-key-mf_page [role="radiogroup"] button,.st-key-mf_page [role="radiogroup"] label{justify-content:center!important;min-height:42px!important;height:100%!important;width:100%!important;border-radius:8px!important;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+.st-key-mf_page [role="radiogroup"] button:hover,.st-key-mf_page [role="radiogroup"] label:hover{transform:translateY(-1px);border-color:#F36A2D!important}
 .st-key-mf_page [role="radiogroup"] p{white-space:normal!important;text-align:center!important;line-height:1.15!important;font-size:.88rem!important;font-weight:650!important}
 @media(min-width:700px) and (max-width:1400px){
   .block-container{padding:1.1rem 1.15rem 2.4rem;max-width:100%}
@@ -455,6 +505,8 @@ button,input,[role="combobox"]{font-size:.95rem!important}
 }
 @media(max-width:699px){
   .block-container{padding-left:.8rem;padding-right:.8rem}
+  .st-key-mf_app_header [data-testid="stHorizontalBlock"]{gap:.65rem!important}
+  .st-key-mf_app_header [data-testid="stImage"] img{width:68px!important}
   [data-testid="stMetric"]{min-height:100px;padding:.75rem}
   [data-testid="stMetricValue"]{font-size:1.28rem!important}
   [data-testid="stSegmentedControl"] [role="radiogroup"]{display:flex!important;flex-wrap:wrap!important}
