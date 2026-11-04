@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import unicodedata
 from functools import lru_cache
 from pathlib import Path
@@ -15,11 +16,187 @@ DEFAULT_STOCK = Path(__file__).resolve().parents[1] / "data" / "metalforte_estoq
 DEFAULT_PEDIDOS_REALIZADO = Path(__file__).resolve().parents[1] / "data" / "metalforte_pedidos_realizado.csv.gz"
 CITY_CLUSTERS = Path(__file__).resolve().parents[1] / "resources" / "cidades_pivot.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
+DEFAULT_DEPARA_PATH = "bases/DE_PARA_METALFORTE360.xlsx"
 
 
 def _location_key(value):
     text=unicodedata.normalize("NFKD", "" if pd.isna(value) else str(value))
     return "".join(char for char in text if not unicodedata.combining(char)).strip().upper()
+
+
+def _dimension_key(value):
+    text = unicodedata.normalize("NFKD", "" if pd.isna(value) else str(value).casefold())
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", "", text)
+
+
+def _code_key(value):
+    text = "" if pd.isna(value) else str(value).strip()
+    return re.sub(r"\.0$", "", text).strip()
+
+
+def _first_column(frame, names):
+    keys = {_dimension_key(column): column for column in frame.columns}
+    return next((keys[_dimension_key(name)] for name in names if _dimension_key(name) in keys), None)
+
+
+@lru_cache(maxsize=2)
+def _cached_depara(object_path):
+    """Lê o DE/PARA do bucket privado e mantém somente dimensões necessárias."""
+    if not is_configured():
+        return None
+    try:
+        payload = download_bytes(object_path=object_path)
+        workbook = pd.ExcelFile(io.BytesIO(payload), engine="openpyxl")
+        seller_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparavendedor"), None)
+        client_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparacliente"), None)
+        if not seller_sheet or not client_sheet:
+            return None
+        sellers = pd.read_excel(workbook, sheet_name=seller_sheet, dtype=str)
+        clients = pd.read_excel(workbook, sheet_name=client_sheet, dtype=str)
+
+        seller_source = _first_column(sellers, ("VENDEDOR CADASTRO",))
+        seller_panel = _first_column(sellers, ("VENDEDOR PAINEL",))
+        seller_group = _first_column(sellers, ("CLASSIFICAÇÃO", "CLASSIFICACAO"))
+        customer_code = _first_column(clients, ("Cód. Cliente", "Cod. Cliente", "Código Cliente", "Cod Cliente"))
+        customer_branch = _first_column(clients, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
+        customer_name = _first_column(clients, ("Cliente", "Nome Cliente"))
+        economic_group = _first_column(clients, ("GRUPO ECONOMICO", "Grupo Econômico", "Grupo Economico"))
+        if not all((seller_source, seller_panel, seller_group, customer_code, customer_name, economic_group)):
+            return None
+
+        seller_map = sellers[[seller_source, seller_panel, seller_group]].copy()
+        seller_map.columns = ["_source", "Vendedor Painel", "Grupo Vendedor"]
+        seller_map = seller_map.dropna(subset=["_source", "Vendedor Painel"])
+        seller_map["Grupo Vendedor"] = seller_map["Grupo Vendedor"].fillna("Não classificado")
+        seller_map["_key"] = seller_map["_source"].map(_dimension_key)
+        seller_map = seller_map[seller_map["_key"].ne("")].drop_duplicates("_key", keep="last")
+
+        client_cols = [customer_code, customer_name, economic_group]
+        if customer_branch:
+            client_cols.insert(1, customer_branch)
+        client_map = clients[client_cols].copy()
+        renamed = {customer_code: "_code", customer_name: "_name", economic_group: "Grupo Econômico Cliente"}
+        if customer_branch:
+            renamed[customer_branch] = "_branch"
+        client_map = client_map.rename(columns=renamed)
+        client_map["_code_key"] = client_map["_code"].map(_code_key)
+        client_map["_name_key"] = client_map["_name"].map(_dimension_key)
+        if "_branch" in client_map:
+            client_map["_branch_key"] = client_map["_branch"].map(_code_key)
+            client_map["_composite_key"] = client_map["_code_key"] + "|" + client_map["_branch_key"]
+        else:
+            client_map["_composite_key"] = ""
+        client_map["Grupo Econômico Cliente"] = client_map["Grupo Econômico Cliente"].fillna("").astype(str).str.strip()
+        client_map = client_map[client_map["Grupo Econômico Cliente"].ne("")]
+
+        def unique_lookup(key_column):
+            pairs = client_map.loc[client_map[key_column].ne(""), [key_column, "Grupo Econômico Cliente"]].drop_duplicates()
+            counts = pairs.groupby(key_column)["Grupo Econômico Cliente"].nunique()
+            valid = counts[counts.eq(1)].index
+            return pairs[pairs[key_column].isin(valid)].drop_duplicates(key_column).set_index(key_column)["Grupo Econômico Cliente"].to_dict()
+
+        return {
+            "sellers": seller_map.set_index("_key")[["Vendedor Painel", "Grupo Vendedor"]].to_dict("index"),
+            "customer_composite": unique_lookup("_composite_key"),
+            "customer_code": unique_lookup("_code_key"),
+            "customer_name": unique_lookup("_name_key"),
+        }
+    except Exception:
+        # DE/PARA ausente ou temporariamente indisponível não impede a leitura
+        # das vendas publicadas; a interface permanece funcional sem agrupamento.
+        return None
+
+
+def apply_depara(frame):
+    """Acrescenta grupos econômicos e consolidações sem sobrescrever campos fonte."""
+    if frame is None or frame.empty:
+        return frame
+    object_path = os.getenv("SUPABASE_DEPARA_PATH", DEFAULT_DEPARA_PATH)
+    mapping = _cached_depara(object_path)
+    if not mapping:
+        return frame
+    result = frame.copy()
+
+    seller_column = _first_column(result, ("Vendedor", "Vendedor cadastro", "Nome Vendedor"))
+    if seller_column:
+        seller_keys = result[seller_column].map(_dimension_key)
+        result["Vendedor Painel"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Vendedor Painel", "Não mapeado"))
+        result["Grupo Vendedor"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Grupo Vendedor", "Não mapeado"))
+
+    code_column = _first_column(result, ("Cod Cliente", "Cód. Cliente", "Código Cliente", "Cliente Código"))
+    branch_column = _first_column(result, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
+    name_column = _first_column(result, ("Cliente", "Nome Cliente"))
+    group_values = pd.Series(pd.NA, index=result.index, dtype="object")
+    if code_column:
+        codes = result[code_column].map(_code_key)
+        if branch_column:
+            branches = result[branch_column].map(_code_key)
+            composite = (codes + "|" + branches).map(mapping["customer_composite"].get)
+            group_values = group_values.where(composite.isna(), composite)
+        by_code = codes.map(mapping["customer_code"].get)
+        group_values = group_values.where(group_values.notna() | by_code.isna(), by_code)
+    if name_column:
+        by_name = result[name_column].map(_dimension_key).map(mapping["customer_name"].get)
+        group_values = group_values.where(group_values.notna() | by_name.isna(), by_name)
+    result["Grupo Econômico Cliente"] = group_values.fillna("Não mapeado")
+    return result
+
+
+def depara_available():
+    """Indica se o arquivo de mapeamento privado está acessível nesta sessão."""
+    return _cached_depara(os.getenv("SUPABASE_DEPARA_PATH", DEFAULT_DEPARA_PATH)) is not None
+
+
+def prepare_depara_upload(payload):
+    """Valida e reduz o xlsx aos campos de agrupamento antes do envio privado."""
+    workbook = pd.ExcelFile(io.BytesIO(payload), engine="openpyxl")
+    seller_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparavendedor"), None)
+    client_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparacliente"), None)
+    if not seller_sheet or not client_sheet:
+        raise ValueError("A planilha precisa conter as abas DE_PARA_VENDEDOR e DE_PARA_CLIENTE.")
+
+    seller_headers = pd.read_excel(workbook, sheet_name=seller_sheet, nrows=0)
+    seller_columns = [
+        _first_column(seller_headers, ("VENDEDOR CADASTRO",)),
+        _first_column(seller_headers, ("CLASSIFICAÇÃO", "CLASSIFICACAO")),
+        _first_column(seller_headers, ("VENDEDOR PAINEL",)),
+    ]
+    client_headers = pd.read_excel(workbook, sheet_name=client_sheet, nrows=0)
+    customer_code = _first_column(client_headers, ("Cód. Cliente", "Cod. Cliente", "Código Cliente", "Cod Cliente"))
+    customer_branch = _first_column(client_headers, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
+    customer_name = _first_column(client_headers, ("Cliente", "Nome Cliente"))
+    economic_group = _first_column(client_headers, ("GRUPO ECONOMICO", "Grupo Econômico", "Grupo Economico"))
+    if not all(seller_columns) or not all((customer_code, customer_name, economic_group)):
+        raise ValueError("Não encontrei as colunas necessárias de vendedor, código/cliente e grupo econômico.")
+
+    sellers = pd.read_excel(workbook, sheet_name=seller_sheet, usecols=seller_columns, dtype=str)
+    clients_columns = [customer_code, customer_name, economic_group] + ([customer_branch] if customer_branch else [])
+    clients = pd.read_excel(workbook, sheet_name=client_sheet, usecols=clients_columns, dtype=str)
+    sellers = sellers.rename(columns={
+        seller_columns[0]: "VENDEDOR CADASTRO",
+        seller_columns[1]: "CLASSIFICAÇÃO",
+        seller_columns[2]: "VENDEDOR PAINEL",
+    })
+    clients = clients.rename(columns={
+        customer_code: "Cód. Cliente", customer_name: "Cliente",
+        economic_group: "GRUPO ECONOMICO",
+        **({customer_branch: "Lj Cliente"} if customer_branch else {}),
+    })
+    sellers = sellers.dropna(subset=["VENDEDOR CADASTRO", "VENDEDOR PAINEL"])
+    clients = clients.dropna(subset=["Cód. Cliente", "GRUPO ECONOMICO"])
+    sellers = sellers.drop_duplicates()
+    clients = clients.drop_duplicates()
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        sellers.to_excel(writer, sheet_name="DE_PARA_VENDEDOR", index=False)
+        clients.to_excel(writer, sheet_name="DE_PARA_CLIENTE", index=False)
+    return output.getvalue(), {"vendedores": len(sellers), "clientes": len(clients)}
+
+
+def clear_depara_cache():
+    _cached_depara.cache_clear()
 
 
 @lru_cache(maxsize=1)
@@ -76,6 +253,7 @@ def load_data(path=None):
     for c in ["UF","Município","Grupo Produto","Subgrupo Produto","Tipo Produto","ESPEC.","Sub Espec.","Fonte Classificação Produto","Vendedor","Filial","Canal","Segmento Cliente","Tipologia Cliente","Curva Cliente"]:
         if c in df: df[c]=df[c].fillna("Não mapeado").astype(str)
     df=normalize_dimensions(df)
+    df=apply_depara(df)
     if "Grupo Produto" in df:
         df["Grupo Produto"]=df["Grupo Produto"].map(normalize_product_group)
     # Regra comercial METALFORTE: "Canal" é o segmento de clientes.
@@ -98,6 +276,7 @@ def load_targets(path=None):
         return pd.DataFrame()
     if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
     result=normalize_dimensions(result)
+    result=apply_depara(result)
     if "Grupo Produto" in result: result["Grupo Produto"]=result["Grupo Produto"].map(normalize_product_group)
     for column in ("Meta KG","Meta R$"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
@@ -119,6 +298,7 @@ def load_flow(path=None):
         if str(column).startswith("Data "):
             result[column]=pd.to_datetime(result[column],errors="coerce")
     result=normalize_dimensions(result)
+    result=apply_depara(result)
     for column in ("Peso","Valor","Projeção Custo","Projeção Imposto","Projeção Margem","Margem %"):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
     return result
@@ -158,15 +338,15 @@ def load_pedidos_realizado(path=None):
         if column in result: result[column]=pd.to_numeric(result[column],errors="coerce").fillna(0)
     for column in ("Cod Cliente","Produto Codigo","Cod Vendedor"):
         if column in result: result[column]=result[column].fillna("").astype(str).str.replace(r"\.0$","",regex=True).str.strip()
-    return normalize_dimensions(result)
+    return apply_depara(normalize_dimensions(result))
 
-def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, cidade_pivot=None, vendedor=None, canal=None, tipologia=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
+def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=None, cidade_pivot=None, vendedor=None, vendedor_painel=None, grupo_vendedor=None, grupo_economico=None, canal=None, tipologia=None, grupo=None, subgrupo=None, tipo=None, espec=None, sub_espec=None, espessura=None, cliente=None, cliente_text="", produto_text="", start_date=None, end_date=None):
     x=df
     if start_date is not None: x=x[x["Data"]>=pd.Timestamp(start_date)]
     if end_date is not None: x=x[x["Data"]<pd.Timestamp(end_date)+pd.Timedelta(days=1)]
     if years: x=x[x["Ano"].isin(years)]
     if months: x=x[x["Data"].dt.month.isin(months)]
-    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Cluster PIVOT",cidade_pivot),("Vendedor",vendedor),("Canal",canal),("Tipologia Cliente",tipologia),("Grupo Produto",grupo),("Subgrupo Produto",subgrupo),("Tipo Produto",tipo),("ESPEC.",espec),("Sub Espec.",sub_espec),("Espessura",espessura)]:
+    for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Cluster PIVOT",cidade_pivot),("Vendedor",vendedor),("Vendedor Painel",vendedor_painel),("Grupo Vendedor",grupo_vendedor),("Grupo Econômico Cliente",grupo_economico),("Canal",canal),("Tipologia Cliente",tipologia),("Grupo Produto",grupo),("Subgrupo Produto",subgrupo),("Tipo Produto",tipo),("ESPEC.",espec),("Sub Espec.",sub_espec),("Espessura",espessura)]:
         if values and col in x: x=x[x[col].isin(values)]
     if cliente and "Cliente" in x: x=x[x["Cliente"]==cliente]
     if cliente_text: x=x[x["Cliente"].fillna("").str.contains(cliente_text,case=False,na=False)]
