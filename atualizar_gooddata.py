@@ -245,10 +245,8 @@ def _released_detail(frame):
     required = {
         "pedido": _flow_column(frame, "Nº Pedido", "N Pedido", "Pedido"),
         "item": _flow_column(frame, "Item"),
-        "cliente": _flow_column(frame, "Cliente", "Nome Cliente"),
-        "produto": _flow_column(frame, "Produto", "Descrição Produto", "Descrição Prod."),
-        "valor": _flow_column(frame, "Valor R$", "Valor"),
-        "peso": _flow_column(frame, "Peso em kg", "Peso Kg", "Peso"),
+        "valor": _flow_column(frame, "Valor R$", "Valor", "Vlr. Pedidos"),
+        "peso": _flow_column(frame, "Peso em kg", "Peso Kg", "Peso", "Peso Pedidos"),
     }
     missing = [key for key, column in required.items() if column is None]
     if missing:
@@ -258,18 +256,24 @@ def _released_detail(frame):
         "Modalidade": _flow_series(frame, "CIF / FOB", "CIF/FOB", "Modalidade"),
         "Vendedor": _flow_series(frame, "Vendedor", "Nome Vendedor"),
         "Cod Cliente": _flow_series(frame, "Cod Cliente", "Código Cliente", "Codigo Cliente", "Cód. Cliente", "Cod. Cliente"),
-        "Cliente": frame[required["cliente"]],
+        "Cliente": _flow_series(frame, "Cliente", "Nome Cliente"),
         "Grupo Produto": _flow_series(frame, "Grupo", "Grupo Prod.", "Grupo Produto"),
         "Produto Codigo": _flow_series(frame, "Cod. Prod.", "Código Produto", "Codigo Produto", "Cód. Produto", "Produto Codigo"),
-        "Produto": frame[required["produto"]],
+        "Produto": _flow_series(frame, "Produto", "Descrição Produto", "Descrição Prod."),
         "Pedido": frame[required["pedido"]],
         "Item": frame[required["item"]],
         "OP": pd.NA, "Data Orçamento": pd.NaT,
-        "Data Pedido": _flow_series(frame, "Emissão", "Emissao", "Emissão Pedido", "Data Emissão", date=True),
-        "Data Liberação": _flow_series(frame, "Liberação", "Liberacao", "Data Liberação", date=True),
-        "Data Emissão OP": pd.NaT, "Data Confirmação OP": pd.NaT, "Data OS": pd.NaT,
-        "Data Montagem Carga": pd.NaT, "Data Emissão NF": pd.NaT, "Data Saída": pd.NaT,
-        "Hora Saída": pd.NA, "Data Desejo Cliente": pd.NaT, "Data Previsão Entrega": pd.NaT,
+        "Data Pedido": _flow_series(frame, "Emissão", "Emissao", "Emissão Pedido", "Data Emissão", "Emiss. PV", date=True),
+        "Data Liberação": _flow_series(frame, "Liberação", "Liberacao", "Data Liberação", "Lib. PV", date=True),
+        "Data Emissão OP": _flow_series(frame, "Emissão OP", "Emissao OP", date=True),
+        "Data Confirmação OP": _flow_series(frame, "Confirmação OP", "Confirm. OP", "Confirma. OP", date=True),
+        "Data OS": _flow_series(frame, "Data OS", "Data O.S.", date=True),
+        "Data Montagem Carga": _flow_series(frame, "Montagem Carga", "Mont. Carga", date=True),
+        "Data Emissão NF": _flow_series(frame, "Emissão NF", "Emiss. NF", date=True),
+        "Data Saída": _flow_series(frame, "Data Saída", date=True),
+        "Hora Saída": _flow_series(frame, "Hora Saída", "Horário Saída"),
+        "Data Desejo Cliente": _flow_series(frame, "Data Desejo Cliente", "Desejo Cliente", "Desejo Cli.", date=True),
+        "Data Previsão Entrega": _flow_series(frame, "Previsão Entrega", "Data Previsão Entrega", date=True),
         "Data Produção": pd.NaT, "Peso": frame[required["peso"]], "Valor": frame[required["valor"]],
         "Projeção Custo": pd.NA, "Projeção Imposto": pd.NA, "Projeção Margem": pd.NA, "Margem %": pd.NA,
     })
@@ -287,6 +291,13 @@ def build_flow_timeline(frames):
         # Rel.029 é a fonte única das linhas e valores liberados. Não somar as
         # antigas extrações CIF/FOB junto com ela: duplicaria pedido, cliente e item.
         rows.append(_released_detail(released))
+    else:
+        # Compatibilidade com snapshots antigos do funil enquanto Rel.029 está
+        # ausente/sem linhas. Conserva datas de processo sem contar em dobro.
+        for legacy_name in ('fluxo_liberados_cif', 'fluxo_liberados_fob'):
+            legacy = frames.get(legacy_name)
+            if legacy is not None and not legacy.empty:
+                rows.append(_released_detail(legacy))
     quote=frames.get('orcamentos_abertos_detalhe')
     if quote is not None and not quote.empty:
         rows.append(pd.DataFrame({'Origem':'Orçamento em aberto','Modalidade':pd.NA,'Vendedor':_flow_series(quote,'Nome Vendedor','Vendedor'),'Cod Cliente':_flow_series(quote,'Cod Cliente','Código Cliente','Codigo Cliente','Cód. Cliente','Cod. Cliente'),'Cliente':_flow_series(quote,'Nome Cliente','Cliente'),'Grupo Produto':_flow_series(quote,'Grupo Prod.','Grupo Produto'),'Produto Codigo':_flow_series(quote,'Produto Codigo','Código Produto','Codigo Produto','Cód. Produto','Cod. Produto'),'Produto':_flow_series(quote,'Produto','Descrição Produto'),'Pedido':_flow_series(quote,'Pedido'),'Item':pd.NA,'OP':pd.NA,'Data Orçamento':_flow_series(quote,'Emissão','Emissao',date=True),'Data Pedido':pd.NaT,'Data Liberação':pd.NaT,'Data Emissão OP':pd.NaT,'Data Confirmação OP':pd.NaT,'Data OS':pd.NaT,'Data Montagem Carga':pd.NaT,'Data Emissão NF':pd.NaT,'Data Saída':pd.NaT,'Hora Saída':pd.NA,'Data Desejo Cliente':pd.NaT,'Data Previsão Entrega':pd.NaT,'Data Produção':pd.NaT,'Peso':_flow_series(quote,'Peso'),'Valor':_flow_series(quote,'Total'),'Projeção Custo':_flow_series(quote,'Projeção Custo','Projecao Custo'),'Projeção Imposto':_flow_series(quote,'Projeção Imposto','Projecao Imposto'),'Projeção Margem':_flow_series(quote,'Projeção Margem','Projecao Margem'),'Margem %':_flow_series(quote,'Margem %','%')}))

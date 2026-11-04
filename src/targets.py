@@ -8,7 +8,7 @@ import unicodedata
 
 import pandas as pd
 
-from src.dimensions import normalize_dimensions
+from src.dimensions import normalize_dimensions, normalize_seller
 from src.product_groups import normalize_product_group
 
 
@@ -110,7 +110,8 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     last = pd.Timestamp(end_date).to_period("M").start_time
     scoped = scoped[scoped["Competência"].between(first, last)]
     if sellers:
-        scoped = scoped[scoped["Vendedor"].astype(str).isin(set(map(str, sellers)))]
+        normalized_sellers = {normalize_seller(seller) for seller in sellers}
+        scoped = scoped[scoped["Vendedor"].astype(str).isin(normalized_sellers)]
     if groups:
         normalized_groups = {normalize_product_group(group) for group in groups}
         scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
@@ -121,9 +122,11 @@ def allocate_target(targets, history, dimension):
     """Aloca vendedor×grupo para cliente/SKU pelo peso faturado nos 3 meses anteriores."""
     if targets.empty:
         return pd.DataFrame(), {"Meta R$": 0.0, "Meta KG": 0.0}
-    targets = targets.copy()
+    targets = normalize_dimensions(targets)
     targets["Grupo Produto"] = targets["Grupo Produto"].map(normalize_product_group)
-    history = history.copy()
+    history = normalize_dimensions(history)
+    if "Data" in history:
+        history["Data"] = pd.to_datetime(history["Data"], errors="coerce")
     if "Grupo Produto" in history:
         history["Grupo Produto"] = history["Grupo Produto"].map(normalize_product_group)
     if dimension in ("Vendedor", "Grupo Produto"):
