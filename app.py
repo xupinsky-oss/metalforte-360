@@ -525,9 +525,30 @@ with st.sidebar:
     if filial: client_pool=client_pool[client_pool["Filial"].isin(filial)]
     if uf: client_pool=client_pool[client_pool["UF"].isin(uf)]
     client_label="Cliente Painel" if "Cliente Painel" in client_pool else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in client_pool else "Cliente")
-    client_options=["Todos os grupos"]+sorted(client_pool[client_label].dropna().astype(str).unique().tolist())
-    client_scope=st.selectbox("Grupo de clientes",client_options,index=0,help="Selecione o grupo econômico para consolidar as análises. A razão social aparece apenas no detalhamento da aba Clientes.")
-    selected_client=None if client_scope=="Todos os grupos" else client_scope
+    mapping_available=depara_available()
+    client_values=sorted(client_pool[client_label].dropna().astype(str).unique().tolist())
+    group_values=set()
+    if mapping_available and "Grupo Econômico Cliente" in client_pool:
+        group_values=set(client_pool.loc[
+            client_pool["Grupo Econômico Cliente"].notna()
+            & ~client_pool["Grupo Econômico Cliente"].astype(str).str.strip().str.casefold().isin({"", "não mapeado", "nao mapeado"}),
+            "Grupo Econômico Cliente",
+        ].astype(str))
+    option_to_value={"Todos os grupos": None}
+    option_labels=[]
+    for value in client_values:
+        label=f"Grupo · {value}" if value in group_values else f"Cliente sem grupo · {value}"
+        option_to_value[label]=value
+        option_labels.append(label)
+    if mapping_available:
+        st.caption(f"DE/PARA ativo · {len(group_values):,} grupo(s) econômico(s) disponíveis.".replace(",", "."))
+    else:
+        st.warning("DE/PARA de clientes indisponível. A lista abaixo mostra razões sociais individuais; os grupos econômicos só aparecem após carregar o arquivo DE/PARA na seção acima.")
+    client_scope=st.selectbox(
+        "Grupo de clientes", ["Todos os grupos"] + option_labels, index=0,
+        help="Grupos econômicos vêm do DE/PARA privado. Clientes sem grupo aparecem identificados pela razão social. A razão social dos membros do grupo fica disponível no drill-down da aba Clientes.",
+    )
+    selected_client=option_to_value[client_scope]
     st.subheader("Mais filtros")
     with st.container(key="more_filters"):
         pool=df if not uf else df[df["UF"].isin(uf)]
@@ -548,11 +569,11 @@ with st.sidebar:
         grupo_economico=st.multiselect(
             "Grupo econômico do cliente", sorted(df["Grupo Econômico Cliente"].dropna().astype(str).unique()),
             help="Consolida filiais e empresas relacionadas conforme o DE/PARA privado da METALFORTE.",
-        ) if "Grupo Econômico Cliente" in df and depara_available() else []
+        ) if "Grupo Econômico Cliente" in df and mapping_available else []
         grupo_vendedor=st.multiselect(
             "Classificação do vendedor", sorted(df["Grupo Vendedor"].dropna().astype(str).unique()),
             help="Agrupa vendedores pela classificação indicada no DE/PARA.",
-        ) if "Grupo Vendedor" in df and depara_available() else []
+        ) if "Grupo Vendedor" in df and mapping_available else []
         vendedor_painel=st.multiselect(
             "Vendedor Painel", seller_options,
             help="Filtro de vendedor baseado na coluna Vendedor Painel.",

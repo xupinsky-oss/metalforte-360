@@ -63,6 +63,21 @@ PANEL_HELP = {
 }
 
 
+def _client_scope_choices(frame, all_label="Todos os grupos"):
+    """Distingue grupos econômicos de clientes que usam razão social de fallback."""
+    label_column = "Cliente Painel" if "Cliente Painel" in frame else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in frame else "Cliente")
+    values = sorted(frame[label_column].dropna().astype(str).unique().tolist()) if label_column in frame else []
+    mapped_groups = set()
+    if "Grupo Econômico Cliente" in frame:
+        groups = frame["Grupo Econômico Cliente"].dropna().astype(str).str.strip()
+        mapped_groups = set(groups[~groups.str.casefold().isin({"", "não mapeado", "nao mapeado"})])
+    labels = {all_label: None}
+    for value in values:
+        prefix = "Grupo" if value in mapped_groups else "Cliente sem grupo"
+        labels[f"{prefix} · {value}"] = value
+    return label_column, labels
+
+
 INSIGHT_HELP = {
     "reactivation": "Clientes que compraram no mesmo período do ano anterior e ainda não faturaram no período atual. O potencial é a diferença positiva entre faturamento de referência e atual. A tendência recente mostra os últimos 3 meses contra uma janela anterior de igual duração.",
     "declines": "Clientes ativos nos dois períodos cuja queda anual de faturamento é de 20% ou mais. A classificação combina esse sinal com a variação dos últimos 3 meses: queda persistente, recuperação recente, estável ou alerta de reversão. O potencial é a parcela necessária para recuperar o nível do ano anterior.",
@@ -1747,17 +1762,39 @@ def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
     _metric_cards(cards)
 
 
+def _client_panel_grain(frame):
+    """Agrupa o histórico na etiqueta pública do cliente, mantendo o CNPJ no drill."""
+    if frame is None or frame.empty or "Cliente Painel" not in frame or "Cliente" not in frame:
+        return frame.copy() if frame is not None else pd.DataFrame()
+    result = frame.copy()
+    account_key = result.get("Cod Cliente", result.get("Razão Social", result["Cliente"]))
+    account_key = account_key.astype("string").fillna("").str.strip()
+    document = result.get("NF", pd.Series("", index=result.index)).astype("string").fillna("").str.strip()
+    has_account = account_key.ne("")
+    has_document = document.ne("")
+    result["NF"] = (account_key + "|" + document).where(has_account & has_document, document)
+    labels = result["Cliente Painel"].astype("string").fillna("").str.strip()
+    fallback = result.get("Razão Social", result["Cliente"]).astype("string").fillna("").str.strip()
+    labels = labels.where(labels.ne("") & ~labels.str.casefold().isin({"<na>", "nan", "não mapeado", "nao mapeado"}), fallback)
+    result["Cliente"] = labels
+    # customer_rfmv usa Cod Cliente como chave. Substituí-lo pelo rótulo de
+    # painel faz o cálculo consolidar as empresas que pertencem ao mesmo grupo.
+    if "Cod Cliente" in result:
+        result["Cod Cliente"] = labels
+    return result
+
+
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de clientes", help=PANEL_HELP["clients"])
     st.caption("A classificação comercial combina a variação do período contra o mesmo intervalo do ano anterior com o ritmo dos últimos 3 meses frente aos 3 meses anteriores. Quedas e altas de 20% ou mais recebem alertas; divergências ficam explícitas como recuperação ou reversão.")
-    client_label = "Cliente Painel" if "Cliente Painel" in history else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in history else "Cliente")
-    available = sorted(history[client_label].dropna().astype(str).unique().tolist())
+    client_label, client_choices = _client_scope_choices(history)
     c1, c2 = st.columns([1.7, 1])
-    selected_group = c1.selectbox("Grupo de clientes", ["Todos os grupos"] + available, key="client_page_scope")
+    selected_group_label = c1.selectbox("Grupo de clientes", list(client_choices), key="client_page_scope")
+    selected_group = client_choices[selected_group_label]
     selected_entity = None
-    group_current = data if selected_group == "Todos os grupos" else data[data[client_label].astype(str).eq(selected_group)]
-    group_history = history if selected_group == "Todos os grupos" else history[history[client_label].astype(str).eq(selected_group)]
-    if selected_group != "Todos os grupos":
+    group_current = data if selected_group is None else data[data[client_label].astype(str).eq(selected_group)]
+    group_history = history if selected_group is None else history[history[client_label].astype(str).eq(selected_group)]
+    if selected_group is not None:
         with st.expander("Drill-down · razão social / CNPJ", expanded=False):
             entity_column = "Razão Social" if "Razão Social" in group_history else "Cliente"
             entities = sorted(group_history[entity_column].dropna().astype(str).unique().tolist())
@@ -1776,7 +1813,8 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 
     # O cliente isolado mantém sua posição na carteira filtrada; selecionar um
     # nome não recalcula os quintis contra uma população de uma única pessoa.
-    rfmv_all = customer_rfmv(history, end_date)
+    rfmv_history = history if selected_entity is not None else _client_panel_grain(history)
+    rfmv_all = customer_rfmv(rfmv_history, end_date)
     st.markdown("### Matriz RFMV")
     st.caption(
         "R = relacionamento, F = frequência de pedidos, M = faturamento e V = volume em KG. "
@@ -1867,8 +1905,10 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             show_table(cadence.sort_values(["Janela vencida", "Dias sem comprar"], ascending=False), height=420, width="stretch", hide_index=True)
 
     st.markdown("### Carteira e movimentação")
-    portfolio = customer_portfolio(current, client_history, start_date, end_date, mode)
-    directional = customer_directional_signals(client_history, start_date, end_date)
+    portfolio_current = current if selected_entity is not None else _client_panel_grain(current)
+    portfolio_history = client_history if selected_entity is not None else _client_panel_grain(client_history)
+    portfolio = customer_portfolio(portfolio_current, portfolio_history, start_date, end_date, mode)
+    directional = customer_directional_signals(portfolio_history, start_date, end_date)
     if not portfolio.empty and not directional.empty:
         portfolio = portfolio.merge(directional, on="Cliente", how="left")
         if selected != "Todos os clientes":
@@ -1885,27 +1925,6 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             "Nota M", "Nota V", "Anos elegíveis", "Pedidos 12m", "Faturamento 12m", "KG 12m",
         ]
         portfolio = portfolio.merge(rfmv_all[rfmv_columns], on="Cliente", how="left")
-    if selected_entity is None and not portfolio.empty:
-        if "Cliente Painel" in client_history:
-            group_names = client_history[["Cliente", "Cliente Painel"]].drop_duplicates("Cliente")
-            portfolio = portfolio.merge(group_names, on="Cliente", how="left")
-            portfolio["Cliente"] = portfolio["Cliente Painel"].fillna("Grupo não mapeado")
-            portfolio = portfolio.drop(columns=["Cliente Painel"])
-            sum_columns = [column for column in ("Faturamento atual", "Faturamento referência", "KG atual", "Margem atual", "Margem referência", "Faturamento últimos 3m", "Faturamento 3m anteriores", "Faturamento 12m", "KG 12m", "Pedidos 12m") if column in portfolio]
-            first_columns = [column for column in portfolio.columns if column not in sum_columns and column not in ("Cliente", "Última compra", "Dias sem comprar")]
-            aggregations = {column: "sum" for column in sum_columns}
-            aggregations.update({column: "first" for column in first_columns})
-            if "Última compra" in portfolio:
-                aggregations["Última compra"] = "max"
-            if "Dias sem comprar" in portfolio:
-                aggregations["Dias sem comprar"] = "min"
-            portfolio = portfolio.groupby("Cliente", as_index=False, dropna=False).agg(aggregations)
-            if {"Margem atual", "Faturamento atual"}.issubset(portfolio.columns):
-                portfolio["Margem % atual"] = portfolio["Margem atual"] / portfolio["Faturamento atual"].replace(0, pd.NA)
-            if {"Faturamento atual", "KG atual"}.issubset(portfolio.columns):
-                portfolio["Preço médio atual"] = portfolio["Faturamento atual"] / portfolio["KG atual"].replace(0, pd.NA)
-            if {"Faturamento atual", "Faturamento referência"}.issubset(portfolio.columns):
-                portfolio["Variação faturamento %"] = portfolio["Faturamento atual"] / portfolio["Faturamento referência"].replace(0, pd.NA) - 1
         if "Vendedor Painel" in client_history and "Vendedor" in portfolio:
             seller_names = client_history[["Vendedor", "Vendedor Painel"]].drop_duplicates("Vendedor")
             portfolio = portfolio.merge(seller_names, on="Vendedor", how="left")
@@ -1936,14 +1955,14 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de produtos", help=PANEL_HELP["products"])
     controls = st.columns([1.2, 1.5, 1])
-    client_label = "Cliente Painel" if "Cliente Painel" in history else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in history else "Cliente")
-    clients = sorted(history[client_label].dropna().astype(str).unique().tolist())
-    selected_client = controls[0].selectbox(
-        "Grupo de clientes", ["Todos os grupos"] + clients, key="product_client_scope",
+    client_label, client_choices = _client_scope_choices(history)
+    selected_client_label = controls[0].selectbox(
+        "Grupo de clientes", list(client_choices), key="product_client_scope",
         help="Filtra indicadores, curva, comparação e batalha naval pelo grupo econômico.",
     )
-    client_current = data if selected_client == "Todos os grupos" else data[data[client_label].astype(str) == selected_client]
-    client_history = history if selected_client == "Todos os grupos" else history[history[client_label].astype(str) == selected_client]
+    selected_client = client_choices[selected_client_label]
+    client_current = data if selected_client is None else data[data[client_label].astype(str) == selected_client]
+    client_history = history if selected_client is None else history[history[client_label].astype(str) == selected_client]
     available = sorted(client_history["Produto"].dropna().astype(str).unique().tolist())
     selected = controls[1].selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
     options = {"Período anterior": "period", "Mês anterior": "month", "Ano anterior": "year"}
@@ -1958,7 +1977,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
     st.markdown("### Batalha naval de produtos")
     st.caption(
         "Cada célula representa o desempenho mensal de um produto"
-        + (f" para {selected_client}." if selected_client != "Todos os grupos" else ". Selecione um grupo acima para analisar seu mix consolidado.")
+        + (f" para {selected_client}." if selected_client is not None else ". Selecione um grupo acima para analisar seu mix consolidado.")
     )
     heat_controls = st.columns([1.4, 1, 1])
     heat_metric = heat_controls[0].segmented_control(

@@ -1,6 +1,6 @@
-# METALFORTE 360 v2.27.24
+# METALFORTE 360 v2.27.25
 
-## Desempenho e origem dos dados — v2.27.24
+## Desempenho e origem dos dados — v2.27.25
 
 - O Streamlit consulta a versão publicada no status privado do Supabase e mantém a base de vendas em cache até a próxima publicação (limite de 2 horas). Ao detectar nova carga, usa uma nova chave de cache.
 - Metas, estoque e Pedido × Realizado são lidos apenas quando o usuário abre a página correspondente; a trilha de eventos continua alimentando o resumo HTML e não é baixada sem necessidade pelo Streamlit.
