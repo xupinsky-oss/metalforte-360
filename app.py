@@ -85,8 +85,36 @@ def _numeric_column_config(data):
         else: fmt="%.0f"
         config[col]=st.column_config.NumberColumn(format=fmt)
     return config
-def show_table(data,**kwargs):
+DISPLAY_CUSTOMER_GROUPS={}
+DISPLAY_SELLER_NAMES={}
+def show_table(data,*,raw_detail=False,**kwargs):
     display=data.copy()
+    if not raw_detail and "Razão Social" in display.columns:
+        display=display.drop(columns=["Razão Social"])
+    if "Cliente Painel" in display.columns:
+        if "Razão Social" in display.columns:
+            display["Cliente Painel"]=display["Cliente Painel"].fillna(display["Razão Social"])
+        elif "Cliente" in display.columns:
+            display["Cliente Painel"]=display["Cliente Painel"].fillna(display["Cliente"])
+        if "Cliente" in display.columns:
+            display=display.drop(columns=["Cliente"])
+        display=display.rename(columns={"Cliente Painel":"Grupo de clientes"})
+    elif "Cliente" in display.columns and not raw_detail:
+        original=display["Cliente"].astype(str)
+        mapped=original.map(DISPLAY_CUSTOMER_GROUPS)
+        known_groups=set(DISPLAY_CUSTOMER_GROUPS.values())
+        display["Cliente"]=mapped.where(mapped.notna(),original.where(original.isin(known_groups),original))
+        display=display.rename(columns={"Cliente":"Grupo de clientes"})
+    if "Vendedor Painel" in display.columns:
+        display["Vendedor Painel"]=display["Vendedor Painel"].fillna("Não mapeado")
+        if "Vendedor" in display.columns:
+            display=display.drop(columns=["Vendedor"])
+    elif "Vendedor" in display.columns:
+        original=display["Vendedor"].astype(str)
+        mapped=original.map(DISPLAY_SELLER_NAMES)
+        known_sellers=set(DISPLAY_SELLER_NAMES.values())
+        display["Vendedor"]=mapped.where(mapped.notna(),original.where(original.isin(known_sellers),"Não mapeado"))
+        display=display.rename(columns={"Vendedor":"Vendedor Painel"})
     for col in display.columns:
         if not pd.api.types.is_numeric_dtype(display[col]): continue
         name=str(col).lower()
@@ -120,7 +148,7 @@ def _plotly_points(event):
 
 def _chart_filter_candidates(data,point):
     """Relaciona o rótulo clicado a uma dimensão existente na base comercial."""
-    dimensions=("Cliente","Grupo Econômico Cliente","Produto","Vendedor","Vendedor Painel","Grupo Vendedor","Canal","Segmento Cliente","Grupo Produto",
+    dimensions=("Cliente Painel","Grupo Econômico Cliente","Produto","Vendedor Painel","Grupo Vendedor","Canal","Segmento Cliente","Grupo Produto",
                 "Subgrupo Produto","Tipo Produto","Tipologia Cliente","Filial","UF","Município",
                 "Cluster PIVOT","ESPEC.","Sub Espec.","Espessura")
     candidates=[]
@@ -322,6 +350,10 @@ access=require_login()
 load_status=get_load_status()
 load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")
 df=get_data(load_version)
+if "Cliente" in df and "Cliente Painel" in df:
+    DISPLAY_CUSTOMER_GROUPS=dict(zip(df["Cliente"].astype(str),df["Cliente Painel"].astype(str)))
+if "Vendedor" in df and "Vendedor Painel" in df:
+    DISPLAY_SELLER_NAMES=dict(zip(df["Vendedor"].astype(str),df["Vendedor Painel"].astype(str)))
 if access["role"] == "seller":
     seller_scope = normalize_seller(access.get("seller_scope", ""))
     if not seller_scope:
@@ -464,14 +496,15 @@ with st.sidebar:
     st.caption(f"Período disponível: {base_min.strftime('%d/%m/%Y')} a {last_update}")
     filial=st.multiselect("Filial",sorted(df["Filial"].unique()))
     uf=st.multiselect("UF",sorted(df["UF"].unique()))
-    vend=st.multiselect("Vendedor",sorted(df["Vendedor"].unique()))
+    vend=[]  # Nome cadastrado permanece interno; o filtro visível usa Vendedor Painel.
+    seller_options=sorted(df["Vendedor Painel"].dropna().astype(str).unique()) if "Vendedor Painel" in df else sorted(df["Vendedor"].dropna().astype(str).unique())
     client_pool=df
     if filial: client_pool=client_pool[client_pool["Filial"].isin(filial)]
     if uf: client_pool=client_pool[client_pool["UF"].isin(uf)]
-    if vend: client_pool=client_pool[client_pool["Vendedor"].isin(vend)]
-    client_options=["Todos os clientes"]+sorted(client_pool["Cliente"].dropna().astype(str).unique().tolist())
-    client_scope=st.selectbox("Cliente",client_options,index=0,help="Selecione um cliente para isolar todas as análises.")
-    selected_client=None if client_scope=="Todos os clientes" else client_scope
+    client_label="Cliente Painel" if "Cliente Painel" in client_pool else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in client_pool else "Cliente")
+    client_options=["Todos os grupos"]+sorted(client_pool[client_label].dropna().astype(str).unique().tolist())
+    client_scope=st.selectbox("Grupo de clientes",client_options,index=0,help="Selecione o grupo econômico para consolidar as análises. A razão social aparece apenas no detalhamento da aba Clientes.")
+    selected_client=None if client_scope=="Todos os grupos" else client_scope
     st.subheader("Mais filtros")
     with st.container(key="more_filters"):
         pool=df if not uf else df[df["UF"].isin(uf)]
@@ -498,9 +531,9 @@ with st.sidebar:
             help="Agrupa vendedores pela classificação indicada no DE/PARA.",
         ) if "Grupo Vendedor" in df and depara_available() else []
         vendedor_painel=st.multiselect(
-            "Vendedor consolidado", sorted(df["Vendedor Painel"].dropna().astype(str).unique()),
-            help="Usa o nome consolidado definido na coluna VENDEDOR PAINEL do DE/PARA.",
-        ) if "Vendedor Painel" in df and depara_available() else []
+            "Vendedor Painel", seller_options,
+            help="Filtro de vendedor baseado na coluna Vendedor Painel.",
+        ) if seller_options else []
         grupo=st.multiselect("Grupo Produto",sorted(df["Grupo Produto"].unique()))
         subgrupo=st.multiselect("Subgrupo Produto",sorted(df["Subgrupo Produto"].unique())) if "Subgrupo Produto" in df else []
         tipo=st.multiselect("Tipo Produto",sorted(df["Tipo Produto"].unique()))
@@ -574,12 +607,14 @@ dashboard_kwargs={
         "seller_scope": seller_scope if access["role"] == "seller" else None,
         "order_actual_filters": {
             "sellers": [seller_scope] if access["role"] == "seller" else vend,
+            "seller_panels": vendedor_painel,
             "groups": grupo, "segments": canal, "tipologies": tipologia,
             "uf": uf, "municipalities": city, "clusters": cidade_pivot,
             "client": selected_client, "client_text": ct, "product_text": pt,
         },
         "released_order_filters": {
             "sellers": [seller_scope] if access["role"] == "seller" else vend,
+            "seller_panels": vendedor_painel,
             "client": selected_client, "client_text": ct, "product_text": pt, "groups": grupo,
         },
     },
