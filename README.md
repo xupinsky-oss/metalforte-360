@@ -1,4 +1,12 @@
-# METALFORTE 360 v2.27.25
+# METALFORTE 360 v2.27.26
+
+## DE/PARA e carregamento centralizado — v2.27.26
+
+- Importação reconhece cabeçalhos após linhas vazias e preserva clientes sem grupo para auditoria.
+- A versão do DE/PARA invalida o cache das bases; a publicação confere a integridade do arquivo privado.
+- `src/data_catalog.py` centraliza os caminhos usados pelo app e pelo ETL; a leitura das cinco bases usa uma única rotina.
+- Filtros globais e dicionários de nomes deixam de ser processados repetidamente a cada interação.
+- Validação: 79 testes aprovados. Detalhes em `docs/REVISAO_BASES_E_DEPARA.md`.
 
 ## Desempenho e origem dos dados — v2.27.25
 

@@ -2775,7 +2775,8 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
     st.caption(f"Competência: {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
     controls = st.columns(2)
-    target_dimensions = [column for column in ("Vendedor Painel", "Grupo Vendedor", "Grupo Produto") if column in scoped.columns]
+    seller_dimension = "Vendedor Painel" if "Vendedor Painel" in scoped.columns else "Vendedor"
+    target_dimensions = [column for column in (seller_dimension, "Grupo Vendedor", "Grupo Produto") if column in scoped.columns]
     dimension = controls[0].segmented_control(
         "Detalhar por", target_dimensions,
         default="Vendedor Painel" if "Vendedor Painel" in target_dimensions else target_dimensions[0], key="target_dimension",

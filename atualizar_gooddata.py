@@ -1,3 +1,4 @@
+from src.data_catalog import object_path as dataset_path
 import io,json,logging,os,shutil,sys,unicodedata,zipfile
 from datetime import datetime
 from pathlib import Path
@@ -587,7 +588,7 @@ def main():
     previous_targets=pd.DataFrame()
     try:
         if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
-        elif is_configured(): previous_targets=pd.read_csv(io.BytesIO(download_bytes(object_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz'))),compression='gzip',low_memory=False)
+        elif is_configured(): previous_targets=pd.read_csv(io.BytesIO(download_bytes(object_path=dataset_path('targets'))),compression='gzip',low_memory=False)
     except Exception as exc:
         logging.warning('Histórico anterior de metas indisponível: %s',type(exc).__name__)
     current_targets=collect_target_periods(
@@ -615,7 +616,7 @@ def main():
     target_cloud_updated=False
     if not target_df.empty:
         target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
-        target_path=os.getenv('SUPABASE_TARGET_PATH','bases/metalforte_metas.csv.gz')
+        target_path=dataset_path('targets')
         try:
             target_cloud_updated=upload_file(target_tmp,object_path=target_path)
             if target_cloud_updated or not is_configured(): target_tmp.replace(ACTIVE_TARGETS)
@@ -630,7 +631,7 @@ def main():
     if stock_df is not None:
         stock_tmp=DATA/'metalforte_estoque.novo.csv.gz'
         stock_df.to_csv(stock_tmp,index=False,compression='gzip')
-        stock_path=os.getenv('SUPABASE_STOCK_PATH','bases/metalforte_estoque.csv.gz')
+        stock_path=dataset_path('stock')
         try:
             stock_cloud_updated=upload_file(stock_tmp,object_path=stock_path)
             if stock_cloud_updated or not is_configured(): stock_tmp.replace(ACTIVE_STOCK)
@@ -650,7 +651,7 @@ def main():
     flow_cloud_updated=False
     flow_tmp=DATA/'metalforte_fluxo.novo.csv.gz'; flow.to_csv(flow_tmp,index=False,compression='gzip')
     try:
-        flow_cloud_updated=upload_file(flow_tmp,object_path=os.getenv('SUPABASE_FLOW_PATH','bases/metalforte_fluxo.csv.gz'))
+        flow_cloud_updated=upload_file(flow_tmp,object_path=dataset_path('flow'))
         flow_tmp.replace(ACTIVE_FLOW)
     except Exception as exc:
         logging.warning('Publicação da tabela de eventos do funil indisponível: %s',type(exc).__name__)
@@ -658,7 +659,7 @@ def main():
     orders_cloud_updated=False
     if order_actual is not None and not order_actual.empty:
         orders_tmp=DATA/'metalforte_pedidos_realizado.novo.csv.gz'
-        orders_actual_path=os.getenv('SUPABASE_ORDERS_ACTUAL_PATH','bases/metalforte_pedidos_realizado.csv.gz')
+        orders_actual_path=dataset_path('orders')
         order_actual.to_csv(orders_tmp,index=False,compression='gzip')
         try:
             orders_cloud_updated=upload_file(orders_tmp,object_path=orders_actual_path)
