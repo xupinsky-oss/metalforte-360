@@ -6,11 +6,34 @@ import html
 import json
 import inspect
 import os
+import importlib
+import time
 from pathlib import Path
-from src.data import load_data,load_targets,apply_filters
+
+
+def _load_data_module():
+    """Retry transient import-cache races while Streamlit refreshes source files."""
+    for attempt in range(4):
+        try:
+            return importlib.import_module("src.data")
+        except KeyError as error:
+            # Python can raise KeyError from sys.modules if a hot reload removes
+            # a dependency while another Streamlit session is importing it.
+            if not error.args or not str(error.args[0]).startswith("src.") or attempt == 3:
+                raise
+            importlib.invalidate_caches()
+            time.sleep(0.15 * (attempt + 1))
+
+
+_data_module = _load_data_module()
+load_data = _data_module.load_data
+load_targets = _data_module.load_targets
+apply_filters = _data_module.apply_filters
 try:
-    from src.data import depara_available, prepare_depara_upload, clear_depara_cache
-except ImportError:
+    depara_available = _data_module.depara_available
+    prepare_depara_upload = _data_module.prepare_depara_upload
+    clear_depara_cache = _data_module.clear_depara_cache
+except (ImportError, AttributeError):
     def depara_available(): return False
     def prepare_depara_upload(payload): raise RuntimeError("A versão do aplicativo ainda não oferece importação do DE/PARA.")
     def clear_depara_cache(): pass

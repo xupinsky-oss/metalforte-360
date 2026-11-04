@@ -1338,11 +1338,11 @@ def _sum_released_orders(frame, start_date, end_date, measure):
     return float(selected[measure].sum()) if not selected.empty else 0.0
 
 
-def _command_target_totals(targets, start_date, end_date, filters=None):
-    """Soma as metas das competências abrangidas e dos filtros comerciais ativos."""
+def _command_target_totals(targets, start_date, end_date, filters=None, history=None):
+    """Soma metas e estima Meta R$ ausente com KG meta × preço do mês anterior."""
     if targets is None or not isinstance(targets, pd.DataFrame) or targets.empty:
         return None
-    required = {"Competência", "Meta R$", "Meta KG"}
+    required = {"Competência", "Meta KG"}
     if not required.issubset(targets.columns):
         return None
     scoped = target_scope(
@@ -1360,8 +1360,40 @@ def _command_target_totals(targets, start_date, end_date, filters=None):
             scoped = scoped[scoped[column].astype(str).str.strip().str.casefold().isin(selected_keys)]
     if scoped.empty:
         return None
+    scoped = scoped.copy()
+    scoped["Meta KG"] = pd.to_numeric(scoped["Meta KG"], errors="coerce").fillna(0)
+    if "Meta R$" not in scoped:
+        scoped["Meta R$"] = np.nan
+    official_revenue = pd.to_numeric(scoped["Meta R$"], errors="coerce")
+    missing_value = official_revenue.isna() | official_revenue.le(0)
+    estimated_revenue = 0.0
+    revenue_complete = True
+    if missing_value.any():
+        if history is None or history.empty or not {"Data", "Faturamento", "Peso"}.issubset(history.columns):
+            revenue_complete = False
+        else:
+            sales = history.copy()
+            sales["Data"] = pd.to_datetime(sales["Data"], errors="coerce")
+            sales["Faturamento"] = pd.to_numeric(sales["Faturamento"], errors="coerce").fillna(0)
+            sales["Peso"] = pd.to_numeric(sales["Peso"], errors="coerce").fillna(0)
+            for competence in scoped.loc[missing_value, "Competência"].dropna().drop_duplicates():
+                previous_start = competence - pd.DateOffset(months=1)
+                previous_month = sales[
+                    (sales["Data"] >= previous_start) & (sales["Data"] < competence)
+                ]
+                previous_weight = float(previous_month["Peso"].sum())
+                if previous_weight <= 0:
+                    revenue_complete = False
+                    continue
+                average_price = float(previous_month["Faturamento"].sum()) / previous_weight
+                if average_price <= 0:
+                    revenue_complete = False
+                    continue
+                rows = missing_value & scoped["Competência"].eq(competence)
+                estimated_revenue += float(scoped.loc[rows, "Meta KG"].sum()) * average_price
+    official_total = float(official_revenue[~missing_value].fillna(0).sum())
     return {
-        "revenue": float(pd.to_numeric(scoped["Meta R$"], errors="coerce").fillna(0).sum()),
+        "revenue": official_total + estimated_revenue if revenue_complete else None,
         "weight": float(pd.to_numeric(scoped["Meta KG"], errors="coerce").fillna(0).sum()),
     }
 
@@ -1377,10 +1409,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     prior_year = _period_metrics(_shifted_period(history, start_date, end_date, years=1))
 
     definitions = [
-        ("Faturamento", brl(current["revenue"]), "revenue", False),
-        ("KG faturado", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
-        ("Margem %", pct(current["margin_pct"]), "margin_pct", True),
-        ("Preço médio/kg", brl2(current["price_kg"]), "price_kg", False),
+        ("Faturamento R$", brl(current["revenue"]), "revenue", False),
+        ("Faturamento KG", f"{current['weight']:,.0f} kg".replace(",", "."), "weight", False),
+        ("Margem", pct(current["margin_pct"]), "margin_pct", True),
+        ("Preço médio", brl2(current["price_kg"]), "price_kg", False),
         ("Clientes positivados", f"{current['positive_clients']:,}".replace(",", "."), "positive_clients", False),
     ]
     cards = []
@@ -1420,10 +1452,10 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
     order_filters = (view_filters or {}).get("order_actual_filters", {})
     released = _filter_order_actual(order_actual, order_filters)
     if released.empty:
-        cards.append(("Pedidos liberados (R$)", "Sem base", [
+        cards.append(("Pedidos R$", "Sem base", [
             ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
         ]))
-        cards.append(("Pedidos liberados (kg)", "Sem base", [
+        cards.append(("Pedidos KG", "Sem base", [
             ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
         ]))
     else:
@@ -1445,24 +1477,24 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             released, pd.Timestamp(start_date) - pd.DateOffset(years=1),
             pd.Timestamp(end_date) - pd.DateOffset(years=1), "Pedidos (kg)",
         )
-        cards.append(("Pedidos liberados (R$)", brl(current_orders), [
+        cards.append(("Pedidos R$", brl(current_orders), [
             ("Mês ant.", brl(month_orders), _relative(current_orders, month_orders), False),
             ("Ano ant.", brl(year_orders), _relative(current_orders, year_orders), False),
         ]))
-        cards.append(("Pedidos liberados (kg)", f"{_quantity(current_order_kg)} kg", [
+        cards.append(("Pedidos KG", f"{_quantity(current_order_kg)} kg", [
             ("Mês ant.", f"{_quantity(month_order_kg)} kg", _relative(current_order_kg, month_order_kg), False),
             ("Ano ant.", f"{_quantity(year_order_kg)} kg", _relative(current_order_kg, year_order_kg), False),
         ]))
     target_filters = target_filters or {}
     target_periods = {
-        "current": _command_target_totals(targets, start_date, end_date, target_filters),
+        "current": _command_target_totals(targets, start_date, end_date, target_filters, history),
         "month": _command_target_totals(
             targets, pd.Timestamp(start_date) - pd.DateOffset(months=1),
-            pd.Timestamp(end_date) - pd.DateOffset(months=1), target_filters,
+            pd.Timestamp(end_date) - pd.DateOffset(months=1), target_filters, history,
         ),
         "year": _command_target_totals(
             targets, pd.Timestamp(start_date) - pd.DateOffset(years=1),
-            pd.Timestamp(end_date) - pd.DateOffset(years=1), target_filters,
+            pd.Timestamp(end_date) - pd.DateOffset(years=1), target_filters, history,
         ),
     }
     for measure, label, formatter in (
@@ -1476,10 +1508,15 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             ]))
             continue
         current_value = current_target[measure]
+        if current_value is None:
+            cards.append((label, "Sem base", [
+                ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
+            ]))
+            continue
         comparisons = []
         for period_key, period_label in (("month", "Mês ant."), ("year", "Ano ant.")):
             reference = target_periods[period_key]
-            if reference is None:
+            if reference is None or reference[measure] is None:
                 comparisons.append((period_label, "—", None, False))
             else:
                 reference_value = reference[measure]
@@ -1487,12 +1524,12 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
         cards.append((label, formatter(current_value), comparisons))
 
     card_order = [
-        "Faturamento", "Pedidos liberados (R$)", "Meta R$",
-        "KG faturado", "Pedidos liberados (kg)", "Meta KG",
-        "Margem %", "Preço médio/kg", "Clientes positivados", "Novos clientes", "Clientes inativos",
+        "Faturamento R$", "Faturamento KG", "Pedidos R$", "Pedidos KG",
+        "Margem", "Preço médio", "Meta R$", "Meta KG",
+        "Clientes positivados", "Novos clientes", "Clientes inativos",
     ]
     cards.sort(key=lambda card: card_order.index(card[0]) if card[0] in card_order else len(card_order))
-    st.caption("Metas somadas por competência mensal no período selecionado; os filtros de vendedor e grupo de produto são aplicados quando disponíveis na base de metas.")
+    st.caption("Metas somadas por competência mensal no período selecionado. Se Meta R$ estiver ausente ou zerada, o card estima KG meta × preço médio faturado no mês-calendário anterior. Filtros de vendedor e grupo de produto são aplicados quando disponíveis na base.")
     _metric_cards(cards, columns=6, grid_class="mf-command-kpi-grid")
 
     st.markdown("### Tendência mensal")
