@@ -32,10 +32,12 @@ apply_filters = _data_module.apply_filters
 try:
     depara_available = _data_module.depara_available
     prepare_depara_upload = _data_module.prepare_depara_upload
+    publish_depara = _data_module.publish_depara
     clear_depara_cache = _data_module.clear_depara_cache
 except (ImportError, AttributeError):
     def depara_available(): return False
     def prepare_depara_upload(payload): raise RuntimeError("A versão do aplicativo ainda não oferece importação do DE/PARA.")
+    publish_depara = prepare_depara_upload
     def clear_depara_cache(): pass
 from src.dimensions import normalize_seller
 try:
@@ -49,7 +51,8 @@ except ImportError:
         return pd.DataFrame()
 from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
 from src.assistant import answer
-from src.cloud_storage import download_status, upload_bytes, is_configured
+from src.cloud_storage import download_status, upload_bytes, is_configured, object_version
+from src.data_catalog import object_path as dataset_path
 from src.operational_dashboard import render as render_operational_dashboard
 from src.auth import require_login, logout, ROLE_LABELS
 from src.version import APP_RELEASE
@@ -76,6 +79,13 @@ def get_pedidos_realizado(load_version): return load_pedidos_realizado()
 def get_load_status():
     try: return download_status()
     except Exception: return {}
+@st.cache_data(ttl=60,show_spinner=False)
+def get_reference_version():
+    try:
+        return object_version(dataset_path("depara"))
+    except Exception:
+        return "unavailable"
+
 def _is_fraction_percent(name):
     name=str(name).lower()
     return ("_pct" in name or "margem %" in name or name.endswith(" %") or any(term in name for term in ("variação %","variacao %","share","participação","participacao","cobertura","atingimento"))) and "desvio_%" not in name
@@ -408,12 +418,18 @@ def yoy_comparison(current,previous,dimension):
 
 access=require_login()
 load_status=get_load_status()
-load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")
+reference_version=get_reference_version()
+getattr(_data_module,"set_depara_version",lambda version: None)(reference_version)
+load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")+"|depara:"+reference_version
 df=get_data(load_version)
-if "Cliente" in df and "Cliente Painel" in df:
-    DISPLAY_CUSTOMER_GROUPS=dict(zip(df["Cliente"].astype(str),df["Cliente Painel"].astype(str)))
-if "Vendedor" in df and "Vendedor Painel" in df:
-    DISPLAY_SELLER_NAMES=dict(zip(df["Vendedor"].astype(str),df["Vendedor Painel"].astype(str)))
+@st.cache_data(ttl=7200,show_spinner=False)
+def get_display_names(version):
+    source=get_data(version)
+    customers=source[["Cliente","Cliente Painel"]].drop_duplicates("Cliente") if {"Cliente","Cliente Painel"}.issubset(source.columns) else pd.DataFrame()
+    sellers=source[["Vendedor","Vendedor Painel"]].drop_duplicates("Vendedor") if {"Vendedor","Vendedor Painel"}.issubset(source.columns) else pd.DataFrame()
+    return (dict(zip(customers["Cliente"],customers["Cliente Painel"])) if not customers.empty else {},
+            dict(zip(sellers["Vendedor"],sellers["Vendedor Painel"])) if not sellers.empty else {})
+DISPLAY_CUSTOMER_GROUPS,DISPLAY_SELLER_NAMES=get_display_names(load_version)
 if access["role"] == "seller":
     seller_scope = normalize_seller(access.get("seller_scope", ""))
     if not seller_scope:
@@ -525,6 +541,8 @@ with st.sidebar:
     st.header("Filtros")
     st.markdown(f'<span class="mf-status"><span class="mf-dot"></span> Última carga: {last_load}</span>',unsafe_allow_html=True)
     if st.button("Atualizar visualização", width="stretch"):
+        get_reference_version.clear()
+        clear_depara_cache()
         get_load_status.clear()
         get_data.clear()
         get_targets.clear()
@@ -544,12 +562,8 @@ with st.sidebar:
                 )
                 if st.button("Validar e carregar DE/PARA", key="depara_upload_button", width="stretch", disabled=mapping_file is None):
                     try:
-                        payload, counts = prepare_depara_upload(mapping_file.getvalue())
-                        object_path = os.getenv("SUPABASE_DEPARA_PATH", "bases/DE_PARA_METALFORTE360.xlsx")
-                        upload_bytes(
-                            payload, object_path,
-                            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        )
+                        counts = publish_depara(mapping_file.getvalue())
+                        get_reference_version.clear()
                         clear_depara_cache()
                         get_data.clear()
                         get_targets.clear()
@@ -657,15 +671,10 @@ with st.sidebar:
             if st.button("Limpar filtro do gráfico",key="clear_chart_crossfilter",width="stretch"):
                 st.session_state["_chart_crossfilter_point"]=None
                 st.rerun()
-f=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt,start_date=start_date,end_date=end_date)
-if chart_filter:
-    f=_filter_chart_dimension(f,*chart_filter)
-# Forecast, meta anual e alertas YTD precisam do histórico completo. O calendário
-# continua controlando todas as análises do período, mas não corta a série usada
-# para projetar o fechamento do ano.
 monitor_scope=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
 if chart_filter:
     monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
+f=apply_filters(monitor_scope,start_date=start_date,end_date=end_date)
 def target_history_loader():
     # Metas não têm grão de cliente; o filtro de grupo econômico não reduz o
     # realizado isoladamente para evitar comparar meta integral com cliente parcial.

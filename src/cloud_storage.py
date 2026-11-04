@@ -8,13 +8,14 @@ from urllib.parse import quote
 from urllib.parse import urlparse
 
 import requests
+from src.data_catalog import object_path as dataset_path
 
 
 def _settings():
     base_url = os.getenv("SUPABASE_URL", "").rstrip("/")
     api_key = os.getenv("SUPABASE_SERVICE_KEY", "")
     bucket = os.getenv("SUPABASE_BUCKET", "metalforte-private")
-    object_path = os.getenv("SUPABASE_DATA_PATH", "bases/metalforte_base.csv.gz")
+    object_path = dataset_path("sales")
     if not base_url or not api_key:
         return None
     return base_url, api_key, bucket, object_path
@@ -44,6 +45,17 @@ def download_bytes(timeout=120, object_path=None):
     response = requests.get(_object_url(object_path), headers=_headers(), timeout=timeout)
     response.raise_for_status()
     return response.content
+
+
+def object_version(object_path, timeout=10):
+    """Consulta a versão sem baixar o arquivo; não inclui dados nem credenciais."""
+    if not is_configured():
+        return "local"
+    response = requests.head(_object_url(object_path), headers=_headers(), timeout=timeout)
+    if response.status_code == 404:
+        return "missing"
+    response.raise_for_status()
+    return response.headers.get("ETag") or response.headers.get("Last-Modified") or "unversioned"
 
 
 def download_status(timeout=30):

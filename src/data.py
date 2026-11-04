@@ -2,21 +2,35 @@ import io
 import os
 import re
 import unicodedata
+import time
+import logging
+import hashlib
 from functools import lru_cache
 from pathlib import Path
 import pandas as pd
-from src.cloud_storage import download_bytes, is_configured
+from src.cloud_storage import download_bytes, is_configured, upload_bytes
 from src.dimensions import normalize_dimensions
 from src.product_groups import normalize_product_group
+from src.data_catalog import object_path as dataset_path, local_path
 
-DEFAULT_DATA = Path(__file__).resolve().parents[1] / "data" / "metalforte_base.csv.gz"
-DEFAULT_TARGETS = Path(__file__).resolve().parents[1] / "data" / "metalforte_metas.csv.gz"
-DEFAULT_FLOW = Path(__file__).resolve().parents[1] / "data" / "metalforte_fluxo.csv.gz"
-DEFAULT_STOCK = Path(__file__).resolve().parents[1] / "data" / "metalforte_estoque.csv.gz"
-DEFAULT_PEDIDOS_REALIZADO = Path(__file__).resolve().parents[1] / "data" / "metalforte_pedidos_realizado.csv.gz"
+DEFAULT_DATA = local_path("sales")
+DEFAULT_TARGETS = local_path("targets")
+DEFAULT_FLOW = local_path("flow")
+DEFAULT_STOCK = local_path("stock")
+DEFAULT_PEDIDOS_REALIZADO = local_path("orders")
 CITY_CLUSTERS = Path(__file__).resolve().parents[1] / "resources" / "cidades_pivot.csv.gz"
 NUMERIC = ["Faturamento","Peso","Preço Real Kg","Benchmark Grupo","Desvio Benchmark %","Custo","Impostos","PIS","COFINS","ICMS","Margem","Margem %","Espessura"]
 DEFAULT_DEPARA_PATH = "bases/DE_PARA_METALFORTE360.xlsx"
+_DEPARA_VERSION = None
+
+
+def set_depara_version(version):
+    global _DEPARA_VERSION
+    _DEPARA_VERSION = version
+
+
+def _depara_cache_key():
+    return _DEPARA_VERSION if _DEPARA_VERSION is not None else int(time.time() // 60)
 
 
 def _location_key(value):
@@ -32,7 +46,8 @@ def _dimension_key(value):
 
 def _code_key(value):
     text = "" if pd.isna(value) else str(value).strip()
-    return re.sub(r"\.0$", "", text).strip()
+    text = re.sub(r"\.0$", "", text).strip()
+    return (text.lstrip("0") or "0") if text.isdigit() else text
 
 
 def _first_column(frame, names):
@@ -40,8 +55,18 @@ def _first_column(frame, names):
     return next((keys[_dimension_key(name)] for name in names if _dimension_key(name) in keys), None)
 
 
+def _read_mapping_sheet(workbook, sheet_name):
+    """Reconhece títulos mesmo com linhas vazias/capa antes do cabeçalho."""
+    preview = pd.read_excel(workbook, sheet_name=sheet_name, header=None, nrows=25, dtype=str)
+    required = {"vendedorcadastro", "vendedorpainel"} if _dimension_key(sheet_name) == "deparavendedor" else {"cliente", "grupoeconomico"}
+    header = next((index for index, row in preview.iterrows() if required.issubset({_dimension_key(value) for value in row})), None)
+    if header is None:
+        raise ValueError(f"Cabeçalho de agrupamentos não encontrado na aba {sheet_name}.")
+    return pd.read_excel(workbook, sheet_name=sheet_name, header=int(header), dtype=str)
+
+
 @lru_cache(maxsize=2)
-def _cached_depara(object_path):
+def _cached_depara(object_path, version_window=0):
     """Lê o DE/PARA do bucket privado e mantém somente dimensões necessárias."""
     if not is_configured():
         return None
@@ -52,8 +77,8 @@ def _cached_depara(object_path):
         client_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparacliente"), None)
         if not seller_sheet or not client_sheet:
             return None
-        sellers = pd.read_excel(workbook, sheet_name=seller_sheet, dtype=str)
-        clients = pd.read_excel(workbook, sheet_name=client_sheet, dtype=str)
+        sellers = _read_mapping_sheet(workbook, seller_sheet)
+        clients = _read_mapping_sheet(workbook, client_sheet)
 
         seller_source = _first_column(sellers, ("VENDEDOR CADASTRO",))
         seller_panel = _first_column(sellers, ("VENDEDOR PAINEL",))
@@ -110,7 +135,8 @@ def _cached_depara(object_path):
             "customer_known_code": known_lookup("_code_key"),
             "customer_known_name": known_lookup("_name_key"),
         }
-    except Exception:
+    except Exception as error:
+        logging.getLogger(__name__).warning("DE/PARA indisponível (%s)", type(error).__name__)
         # DE/PARA ausente ou temporariamente indisponível não impede a leitura
         # das vendas publicadas; a interface permanece funcional sem agrupamento.
         return None
@@ -120,13 +146,13 @@ def apply_depara(frame):
     """Acrescenta grupos econômicos e consolidações sem sobrescrever campos fonte."""
     if frame is None or frame.empty:
         return frame
-    object_path = os.getenv("SUPABASE_DEPARA_PATH", DEFAULT_DEPARA_PATH)
-    mapping = _cached_depara(object_path)
+    object_path = dataset_path("depara")
+    mapping = _cached_depara(object_path, _depara_cache_key())
     result = frame.copy()
     if mapping:
         seller_column = _first_column(result, ("Vendedor", "Vendedor cadastro", "Nome Vendedor"))
         if seller_column:
-            seller_keys = result[seller_column].map(_dimension_key)
+            seller_keys = result[seller_column].map(dict((value, _dimension_key(value)) for value in result[seller_column].drop_duplicates()))
             result["Vendedor Painel"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Vendedor Painel", "Não mapeado"))
             result["Grupo Vendedor"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Grupo Vendedor", "Não mapeado"))
             seller_known = seller_keys.isin(mapping.get("seller_known", set()))
@@ -141,7 +167,7 @@ def apply_depara(frame):
         group_values = pd.Series(pd.NA, index=result.index, dtype="object")
         known_customer = pd.Series(False, index=result.index)
         if code_column:
-            codes = result[code_column].map(_code_key)
+            codes = result[code_column].map(dict((value, _code_key(value)) for value in result[code_column].drop_duplicates()))
             if branch_column:
                 branches = result[branch_column].map(_code_key)
                 composite_keys = codes + "|" + branches
@@ -152,7 +178,7 @@ def apply_depara(frame):
             known_customer |= codes.isin(mapping.get("customer_known_code", set()))
             group_values = group_values.where(group_values.notna() | by_code.isna(), by_code)
         if name_column:
-            name_keys = result[name_column].map(_dimension_key)
+            name_keys = result[name_column].map(dict((value, _dimension_key(value)) for value in result[name_column].drop_duplicates()))
             by_name = name_keys.map(mapping["customer_name"].get)
             known_customer |= name_keys.isin(mapping.get("customer_known_name", set()))
             group_values = group_values.where(group_values.notna() | by_name.isna(), by_name)
@@ -185,7 +211,7 @@ def apply_depara(frame):
 
 def depara_available():
     """Indica se o arquivo de mapeamento privado está acessível nesta sessão."""
-    return _cached_depara(os.getenv("SUPABASE_DEPARA_PATH", DEFAULT_DEPARA_PATH)) is not None
+    return _cached_depara(dataset_path("depara"), _depara_cache_key()) is not None
 
 
 def prepare_depara_upload(payload):
@@ -196,13 +222,13 @@ def prepare_depara_upload(payload):
     if not seller_sheet or not client_sheet:
         raise ValueError("A planilha precisa conter as abas DE_PARA_VENDEDOR e DE_PARA_CLIENTE.")
 
-    seller_headers = pd.read_excel(workbook, sheet_name=seller_sheet, nrows=0)
+    seller_headers = _read_mapping_sheet(workbook, seller_sheet)
     seller_columns = [
         _first_column(seller_headers, ("VENDEDOR CADASTRO",)),
         _first_column(seller_headers, ("CLASSIFICAÇÃO", "CLASSIFICACAO")),
         _first_column(seller_headers, ("VENDEDOR PAINEL",)),
     ]
-    client_headers = pd.read_excel(workbook, sheet_name=client_sheet, nrows=0)
+    client_headers = _read_mapping_sheet(workbook, client_sheet)
     customer_code = _first_column(client_headers, ("Cód. Cliente", "Cod. Cliente", "Código Cliente", "Cod Cliente"))
     customer_branch = _first_column(client_headers, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
     customer_name = _first_column(client_headers, ("Cliente", "Nome Cliente"))
@@ -210,9 +236,9 @@ def prepare_depara_upload(payload):
     if not all(seller_columns) or not all((customer_code, customer_name, economic_group)):
         raise ValueError("Não encontrei as colunas necessárias de vendedor, código/cliente e grupo econômico.")
 
-    sellers = pd.read_excel(workbook, sheet_name=seller_sheet, usecols=seller_columns, dtype=str)
+    sellers = seller_headers[seller_columns].copy()
     clients_columns = [customer_code, customer_name, economic_group] + ([customer_branch] if customer_branch else [])
-    clients = pd.read_excel(workbook, sheet_name=client_sheet, usecols=clients_columns, dtype=str)
+    clients = client_headers[clients_columns].copy()
     sellers = sellers.rename(columns={
         seller_columns[0]: "VENDEDOR CADASTRO",
         seller_columns[1]: "CLASSIFICAÇÃO",
@@ -224,9 +250,13 @@ def prepare_depara_upload(payload):
         **({customer_branch: "Lj Cliente"} if customer_branch else {}),
     })
     sellers = sellers.dropna(subset=["VENDEDOR CADASTRO", "VENDEDOR PAINEL"])
-    clients = clients.dropna(subset=["Cód. Cliente", "GRUPO ECONOMICO"])
+    # Cadastros sem grupo também precisam existir para a auditoria distinguir
+    # "Sem grupo" de "Novo no DE/PARA".
+    clients = clients.dropna(subset=["Cód. Cliente", "Cliente"])
     sellers = sellers.drop_duplicates()
     clients = clients.drop_duplicates()
+    if sellers.empty or clients.empty:
+        raise ValueError("O DE/PARA não contém cadastros válidos de clientes e vendedores.")
 
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -237,6 +267,19 @@ def prepare_depara_upload(payload):
 
 def clear_depara_cache():
     _cached_depara.cache_clear()
+
+
+def publish_depara(payload):
+    """Validação e publicação usadas tanto pela tela administrativa quanto pelo CLI."""
+    normalized, counts = prepare_depara_upload(payload)
+    destination = dataset_path("depara")
+    if not upload_bytes(normalized, destination, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):
+        raise RuntimeError("Armazenamento privado não configurado.")
+    confirmed = download_bytes(object_path=destination)
+    if hashlib.sha256(confirmed).digest() != hashlib.sha256(normalized).digest():
+        raise RuntimeError("O arquivo publicado não passou na conferência de integridade.")
+    clear_depara_cache()
+    return counts
 
 
 @lru_cache(maxsize=1)
@@ -269,20 +312,35 @@ def enrich_city_clusters(frame):
     result["Cluster PIVOT"]=result["Cluster PIVOT"].fillna("Não mapeado")
     return result.drop(columns="_municipio_key")
 
+def _read_dataset(dataset, path=None, *, required=False):
+    """Um único critério de origem: override explícito, nuvem ou desenvolvimento."""
+    try:
+        if path is not None:
+            source = Path(path)
+            if not source.exists():
+                raise FileNotFoundError("Arquivo de desenvolvimento não encontrado.")
+            compression = "infer"
+        elif is_configured():
+            source = io.BytesIO(download_bytes(object_path=dataset_path(dataset)))
+            compression = "gzip"
+        else:
+            source = local_path(dataset)
+            if not source.exists():
+                raise FileNotFoundError("Base não encontrada. Configure o Supabase ou a base de desenvolvimento.")
+            compression = "infer"
+        return pd.read_csv(source, low_memory=False, compression=compression)
+    except Exception as error:
+        logging.getLogger(__name__).warning("Base %s indisponível (%s)", dataset, type(error).__name__)
+        if required:
+            raise
+        result = pd.DataFrame()
+        result.attrs["load_error"] = type(error).__name__
+        result.attrs["dataset"] = dataset
+        return result
+
+
 def load_data(path=None):
-    path_override=path is not None
-    path=Path(path) if path else DEFAULT_DATA
-    # Em produção, o objeto privado publicado pelo ETL é a fonte de verdade.
-    # Arquivos locais servem apenas ao desenvolvimento sem Supabase configurado.
-    if path_override and path.exists():
-        source=path; compression="infer"
-    elif is_configured():
-        source=io.BytesIO(download_bytes()); compression="gzip"
-    elif path.exists():
-        source=path; compression="infer"
-    else:
-        raise FileNotFoundError("Base não encontrada. Configure o Supabase ou disponibilize data/metalforte_base.csv.gz.")
-    df=pd.read_csv(source,low_memory=False,compression=compression)
+    df=_read_dataset("sales",path,required=True)
     df["Data"]=pd.to_datetime(df["Data"],errors="coerce")
     if "Data Pedido" in df:
         df["Data Pedido"]=pd.to_datetime(df["Data Pedido"],errors="coerce")
@@ -304,16 +362,8 @@ def load_data(path=None):
     return enrich_city_clusters(df)
 
 def load_targets(path=None):
-    path_override=path is not None
-    path=Path(path) if path else DEFAULT_TARGETS
-    try:
-        if path_override and path.exists(): source=path
-        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_TARGET_PATH", "bases/metalforte_metas.csv.gz")))
-        elif path.exists(): source=path
-        else: return pd.DataFrame()
-        result=pd.read_csv(source,low_memory=False,compression="gzip")
-    except Exception:
-        return pd.DataFrame()
+    result=_read_dataset("targets",path)
+    if result.empty: return result
     if "Competência" in result: result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
     result=normalize_dimensions(result)
     result=apply_depara(result)
@@ -324,16 +374,8 @@ def load_targets(path=None):
 
 def load_flow(path=None):
     """Carrega a trilha privada do funil e preserva cada data do processo."""
-    path_override=path is not None
-    path=Path(path) if path else DEFAULT_FLOW
-    try:
-        if path_override and path.exists(): source=path
-        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_FLOW_PATH", "bases/metalforte_fluxo.csv.gz")))
-        elif path.exists(): source=path
-        else: return pd.DataFrame()
-        result=pd.read_csv(source,low_memory=False,compression="gzip")
-    except Exception:
-        return pd.DataFrame()
+    result=_read_dataset("flow",path)
+    if result.empty: return result
     for column in result.columns:
         if str(column).startswith("Data "):
             result[column]=pd.to_datetime(result[column],errors="coerce")
@@ -346,32 +388,15 @@ def load_flow(path=None):
 
 def load_stock(path=None):
     """Carrega a fotografia atual do relatório de estoque 19745161."""
-    path_override=path is not None
-    path=Path(path) if path else DEFAULT_STOCK
-    try:
-        from src.inventory import prepare_stock
-        if path_override and path.exists(): source=path
-        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_STOCK_PATH", "bases/metalforte_estoque.csv.gz")))
-        elif path.exists(): source=path
-        else: return pd.DataFrame()
-        result=pd.read_csv(source,low_memory=False,compression="gzip")
-        return prepare_stock(result)
-    except Exception:
-        return pd.DataFrame()
+    from src.inventory import prepare_stock
+    result=_read_dataset("stock",path)
+    return prepare_stock(result) if not result.empty else result
 
 
 def load_pedidos_realizado(path=None):
     """Carrega a série separada de pedidos liberados e faturamento realizado."""
-    path_override=path is not None
-    path=Path(path) if path else DEFAULT_PEDIDOS_REALIZADO
-    try:
-        if path_override and path.exists(): source=path
-        elif is_configured(): source=io.BytesIO(download_bytes(object_path=os.getenv("SUPABASE_ORDERS_ACTUAL_PATH", "bases/metalforte_pedidos_realizado.csv.gz")))
-        elif path.exists(): source=path
-        else: return pd.DataFrame()
-        result=pd.read_csv(source,low_memory=False,compression="gzip")
-    except Exception:
-        return pd.DataFrame()
+    result=_read_dataset("orders",path)
+    if result.empty: return result
     if "Competência" in result:
         result["Competência"]=pd.to_datetime(result["Competência"],errors="coerce")
     for column in ("Pedidos (R$)","Pedidos (kg)","Faturado (R$)","Faturado (kg)"):
