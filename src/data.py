@@ -67,9 +67,11 @@ def _cached_depara(object_path):
 
         seller_map = sellers[[seller_source, seller_panel, seller_group]].copy()
         seller_map.columns = ["_source", "Vendedor Painel", "Grupo Vendedor"]
-        seller_map = seller_map.dropna(subset=["_source", "Vendedor Painel"])
-        seller_map["Grupo Vendedor"] = seller_map["Grupo Vendedor"].fillna("Não classificado")
+        seller_map = seller_map.dropna(subset=["_source"])
         seller_map["_key"] = seller_map["_source"].map(_dimension_key)
+        seller_known = set(seller_map.loc[seller_map["_key"].ne(""), "_key"])
+        seller_map = seller_map.dropna(subset=["Vendedor Painel"])
+        seller_map["Grupo Vendedor"] = seller_map["Grupo Vendedor"].fillna("Não classificado")
         seller_map = seller_map[seller_map["_key"].ne("")].drop_duplicates("_key", keep="last")
 
         client_cols = [customer_code, customer_name, economic_group]
@@ -88,19 +90,25 @@ def _cached_depara(object_path):
         else:
             client_map["_composite_key"] = ""
         client_map["Grupo Econômico Cliente"] = client_map["Grupo Econômico Cliente"].fillna("").astype(str).str.strip()
-        client_map = client_map[client_map["Grupo Econômico Cliente"].ne("")]
 
         def unique_lookup(key_column):
-            pairs = client_map.loc[client_map[key_column].ne(""), [key_column, "Grupo Econômico Cliente"]].drop_duplicates()
+            pairs = client_map.loc[client_map[key_column].ne("") & client_map["Grupo Econômico Cliente"].ne(""), [key_column, "Grupo Econômico Cliente"]].drop_duplicates()
             counts = pairs.groupby(key_column)["Grupo Econômico Cliente"].nunique()
             valid = counts[counts.eq(1)].index
             return pairs[pairs[key_column].isin(valid)].drop_duplicates(key_column).set_index(key_column)["Grupo Econômico Cliente"].to_dict()
 
+        def known_lookup(key_column):
+            return set(client_map.loc[client_map[key_column].ne(""), key_column].dropna().astype(str))
+
         return {
             "sellers": seller_map.set_index("_key")[["Vendedor Painel", "Grupo Vendedor"]].to_dict("index"),
+            "seller_known": seller_known,
             "customer_composite": unique_lookup("_composite_key"),
             "customer_code": unique_lookup("_code_key"),
             "customer_name": unique_lookup("_name_key"),
+            "customer_known_composite": known_lookup("_composite_key"),
+            "customer_known_code": known_lookup("_code_key"),
+            "customer_known_name": known_lookup("_name_key"),
         }
     except Exception:
         # DE/PARA ausente ou temporariamente indisponível não impede a leitura
@@ -114,32 +122,64 @@ def apply_depara(frame):
         return frame
     object_path = os.getenv("SUPABASE_DEPARA_PATH", DEFAULT_DEPARA_PATH)
     mapping = _cached_depara(object_path)
-    if not mapping:
-        return frame
     result = frame.copy()
+    if mapping:
+        seller_column = _first_column(result, ("Vendedor", "Vendedor cadastro", "Nome Vendedor"))
+        if seller_column:
+            seller_keys = result[seller_column].map(_dimension_key)
+            result["Vendedor Painel"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Vendedor Painel", "Não mapeado"))
+            result["Grupo Vendedor"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Grupo Vendedor", "Não mapeado"))
+            seller_known = seller_keys.isin(mapping.get("seller_known", set()))
+            seller_mapped = result["Vendedor Painel"].fillna("").astype(str).str.strip().ne("") & ~result["Vendedor Painel"].astype(str).str.casefold().isin({"não mapeado", "nao mapeado"})
+            result["Status DE/PARA Vendedor"] = pd.Series("Novo no DE/PARA", index=result.index, dtype="string")
+            result.loc[seller_known & ~seller_mapped, "Status DE/PARA Vendedor"] = "Sem grupo"
+            result.loc[seller_mapped, "Status DE/PARA Vendedor"] = "Com grupo"
 
-    seller_column = _first_column(result, ("Vendedor", "Vendedor cadastro", "Nome Vendedor"))
-    if seller_column:
-        seller_keys = result[seller_column].map(_dimension_key)
-        result["Vendedor Painel"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Vendedor Painel", "Não mapeado"))
-        result["Grupo Vendedor"] = seller_keys.map(lambda key: mapping["sellers"].get(key, {}).get("Grupo Vendedor", "Não mapeado"))
+        code_column = _first_column(result, ("Cod Cliente", "Cód. Cliente", "Código Cliente", "Cliente Código"))
+        branch_column = _first_column(result, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
+        name_column = _first_column(result, ("Cliente", "Nome Cliente"))
+        group_values = pd.Series(pd.NA, index=result.index, dtype="object")
+        known_customer = pd.Series(False, index=result.index)
+        if code_column:
+            codes = result[code_column].map(_code_key)
+            if branch_column:
+                branches = result[branch_column].map(_code_key)
+                composite_keys = codes + "|" + branches
+                composite = composite_keys.map(mapping["customer_composite"].get)
+                known_customer |= composite_keys.isin(mapping.get("customer_known_composite", set()))
+                group_values = group_values.where(composite.isna(), composite)
+            by_code = codes.map(mapping["customer_code"].get)
+            known_customer |= codes.isin(mapping.get("customer_known_code", set()))
+            group_values = group_values.where(group_values.notna() | by_code.isna(), by_code)
+        if name_column:
+            name_keys = result[name_column].map(_dimension_key)
+            by_name = name_keys.map(mapping["customer_name"].get)
+            known_customer |= name_keys.isin(mapping.get("customer_known_name", set()))
+            group_values = group_values.where(group_values.notna() | by_name.isna(), by_name)
+        result["Grupo Econômico Cliente"] = group_values.fillna("Não mapeado")
+        valid_group = group_values.notna() & group_values.astype(str).str.strip().ne("") & ~group_values.astype(str).str.casefold().isin({"não mapeado", "nao mapeado"})
+        result["Status DE/PARA Cliente"] = pd.Series("Novo no DE/PARA", index=result.index, dtype="string")
+        result.loc[known_customer & ~valid_group, "Status DE/PARA Cliente"] = "Sem grupo"
+        result.loc[valid_group, "Status DE/PARA Cliente"] = "Com grupo"
+    else:
+        if "Vendedor" in result:
+            result["Status DE/PARA Vendedor"] = "DE/PARA indisponível"
+        if "Cliente" in result:
+            result["Status DE/PARA Cliente"] = "DE/PARA indisponível"
 
-    code_column = _first_column(result, ("Cod Cliente", "Cód. Cliente", "Código Cliente", "Cliente Código"))
-    branch_column = _first_column(result, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
-    name_column = _first_column(result, ("Cliente", "Nome Cliente"))
-    group_values = pd.Series(pd.NA, index=result.index, dtype="object")
-    if code_column:
-        codes = result[code_column].map(_code_key)
-        if branch_column:
-            branches = result[branch_column].map(_code_key)
-            composite = (codes + "|" + branches).map(mapping["customer_composite"].get)
-            group_values = group_values.where(composite.isna(), composite)
-        by_code = codes.map(mapping["customer_code"].get)
-        group_values = group_values.where(group_values.notna() | by_code.isna(), by_code)
-    if name_column:
-        by_name = result[name_column].map(_dimension_key).map(mapping["customer_name"].get)
-        group_values = group_values.where(group_values.notna() | by_name.isna(), by_name)
-    result["Grupo Econômico Cliente"] = group_values.fillna("Não mapeado")
+    # Rótulo para visuais e filtros: o nome jurídico fica preservado apenas
+    # como detalhe para drill-down. Não alteramos o grão nem as chaves de CNPJ.
+    if "Cliente" in result:
+        result["Razão Social"] = result["Cliente"]
+        groups = result.get("Grupo Econômico Cliente", pd.Series("Não mapeado", index=result.index))
+        valid_group = groups.notna() & groups.astype(str).str.strip().ne("") & ~groups.astype(str).str.casefold().isin({"não mapeado", "nao mapeado"})
+        result["Cliente Painel"] = groups.where(valid_group, result["Razão Social"]).fillna("Cliente sem razão social").astype("string")
+    if "Vendedor" in result:
+        if "Vendedor Painel" not in result:
+            result["Vendedor Painel"] = result["Vendedor"]
+        panel = result["Vendedor Painel"].fillna("").astype(str).str.strip()
+        missing_panel = panel.eq("") | panel.str.casefold().isin({"não mapeado", "nao mapeado"})
+        result["Vendedor Painel"] = panel.where(~missing_panel, "Não mapeado").astype("string")
     return result
 
 
@@ -348,7 +388,8 @@ def apply_filters(df, years=None, months=None, filial=None, uf=None, municipio=N
     if months: x=x[x["Data"].dt.month.isin(months)]
     for col,values in [("Filial",filial),("UF",uf),("Município",municipio),("Cluster PIVOT",cidade_pivot),("Vendedor",vendedor),("Vendedor Painel",vendedor_painel),("Grupo Vendedor",grupo_vendedor),("Grupo Econômico Cliente",grupo_economico),("Canal",canal),("Tipologia Cliente",tipologia),("Grupo Produto",grupo),("Subgrupo Produto",subgrupo),("Tipo Produto",tipo),("ESPEC.",espec),("Sub Espec.",sub_espec),("Espessura",espessura)]:
         if values and col in x: x=x[x[col].isin(values)]
-    if cliente and "Cliente" in x: x=x[x["Cliente"]==cliente]
-    if cliente_text: x=x[x["Cliente"].fillna("").str.contains(cliente_text,case=False,na=False)]
+    client_label = "Cliente Painel" if "Cliente Painel" in x else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in x else "Cliente")
+    if cliente and client_label in x: x=x[x[client_label].astype(str)==str(cliente)]
+    if cliente_text and client_label in x: x=x[x[client_label].fillna("").astype(str).str.contains(cliente_text,case=False,na=False)]
     if produto_text: x=x[x["Produto"].fillna("").str.contains(produto_text,case=False,na=False)]
     return x

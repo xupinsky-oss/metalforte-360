@@ -125,6 +125,98 @@ def _customer_key(frame):
     )
 
 
+def _panel_names(frame, source):
+    """Aplica rótulos consolidados nas tabelas, sem mudar a base de cálculo."""
+    result = frame.copy()
+    if "Cliente" in result and "Cliente" in source and "Cliente Painel" in source:
+        lookup = source[["Cliente", "Cliente Painel"]].dropna(subset=["Cliente"]).drop_duplicates("Cliente")
+        result = result.merge(lookup, on="Cliente", how="left", suffixes=("", "_ref"))
+        panel_col = "Cliente Painel" if "Cliente Painel" in result else "Cliente Painel_ref"
+        fallback = result.get("Razão Social", result["Cliente"])
+        result["Cliente"] = result[panel_col].fillna(fallback)
+        result = result.drop(columns=[column for column in ("Cliente Painel", "Cliente Painel_ref", "Razão Social") if column in result])
+    if "Vendedor" in result and "Vendedor" in source and "Vendedor Painel" in source:
+        lookup = source[["Vendedor", "Vendedor Painel"]].dropna(subset=["Vendedor"]).drop_duplicates("Vendedor")
+        result = result.merge(lookup, on="Vendedor", how="left", suffixes=("", "_ref"))
+        panel_col = "Vendedor Painel" if "Vendedor Painel" in result else "Vendedor Painel_ref"
+        result["Vendedor"] = result[panel_col].fillna(result["Vendedor"])
+        result = result.drop(columns=[column for column in ("Vendedor Painel", "Vendedor Painel_ref") if column in result])
+    return result
+
+
+def _dimension_validation_view(history, show_table, can_export):
+    """Audita entidades comerciais que precisam de revisão no DE/PARA."""
+    st.subheader("Validação de clientes e vendedores")
+    st.caption("Compara os nomes encontrados na base comercial com o DE/PARA carregado. ‘Novo no DE/PARA’ indica um código ou nome ainda sem correspondência; ‘Sem grupo’ indica um cadastro reconhecido sem grupo preenchido.")
+    if history is None or history.empty:
+        st.info("Não há histórico comercial disponível para validar.")
+        return
+
+    source = history.copy()
+    if "Data" in source:
+        source = source.sort_values("Data")
+    if "Cliente" in source:
+        customer_name = source.get("Razão Social", source["Cliente"])
+        customer_group = source.get("Cliente Painel", customer_name)
+        customer_columns = [column for column in ("Cod Cliente", "Razão Social", "Cliente", "Cliente Painel", "Grupo Econômico Cliente", "Status DE/PARA Cliente") if column in source]
+        customer = source[customer_columns].copy()
+        if "Razão Social" not in customer:
+            customer["Razão Social"] = customer_name
+        if "Cliente Painel" not in customer:
+            customer["Cliente Painel"] = customer_group
+        if "Status DE/PARA Cliente" not in customer:
+            customer["Status DE/PARA Cliente"] = "DE/PARA indisponível"
+        if "Cod Cliente" in customer:
+            customer["_audit_key"] = customer["Cod Cliente"].astype("string").str.strip()
+            customer["_audit_key"] = customer["_audit_key"].mask(customer["_audit_key"].isin(["", "<NA>", "nan", "None"]), customer["Razão Social"].astype("string").str.strip())
+        else:
+            customer["_audit_key"] = customer["Razão Social"].astype("string").str.strip()
+        customer = customer[customer["_audit_key"].fillna("").ne("")].drop_duplicates("_audit_key", keep="last")
+        customer = customer[customer["Status DE/PARA Cliente"].astype(str).ne("Com grupo")]
+        customer = customer.rename(columns={"Cliente Painel": "Nome no painel", "Grupo Econômico Cliente": "Grupo no DE/PARA"})
+        customer_columns = [column for column in ("Cod Cliente", "Razão Social", "Nome no painel", "Grupo no DE/PARA", "Status DE/PARA Cliente") if column in customer]
+        customer = customer[customer_columns].sort_values([column for column in ("Status DE/PARA Cliente", "Razão Social") if column in customer_columns])
+    else:
+        customer = pd.DataFrame(columns=["Cod Cliente", "Razão Social", "Nome no painel", "Grupo no DE/PARA", "Status DE/PARA Cliente"])
+
+    if "Vendedor" in source:
+        seller_columns = [column for column in ("Vendedor", "Vendedor Painel", "Grupo Vendedor", "Status DE/PARA Vendedor") if column in source]
+        sellers = source[seller_columns].copy()
+        if "Vendedor Painel" not in sellers:
+            sellers["Vendedor Painel"] = sellers["Vendedor"]
+        if "Status DE/PARA Vendedor" not in sellers:
+            sellers["Status DE/PARA Vendedor"] = "DE/PARA indisponível"
+        sellers = sellers.drop_duplicates("Vendedor", keep="last")
+        sellers = sellers[sellers["Status DE/PARA Vendedor"].astype(str).ne("Com grupo")]
+        sellers = sellers.rename(columns={"Vendedor Painel": "Nome no painel", "Grupo Vendedor": "Grupo no DE/PARA"})
+        seller_columns = [column for column in ("Vendedor", "Nome no painel", "Grupo no DE/PARA", "Status DE/PARA Vendedor") if column in sellers]
+        sellers = sellers[seller_columns].sort_values([column for column in ("Status DE/PARA Vendedor", "Vendedor") if column in seller_columns])
+    else:
+        sellers = pd.DataFrame(columns=["Vendedor", "Nome no painel", "Grupo no DE/PARA", "Status DE/PARA Vendedor"])
+
+    cards = st.columns(4)
+    cards[0].metric("Clientes para revisar", f"{len(customer):,}".replace(",", "."))
+    cards[1].metric("Clientes novos no DE/PARA", int(customer.get("Status DE/PARA Cliente", pd.Series(dtype=str)).astype(str).eq("Novo no DE/PARA").sum()))
+    cards[2].metric("Vendedores para revisar", f"{len(sellers):,}".replace(",", "."))
+    cards[3].metric("Vendedores novos no DE/PARA", int(sellers.get("Status DE/PARA Vendedor", pd.Series(dtype=str)).astype(str).eq("Novo no DE/PARA").sum()))
+
+    client_tab, seller_tab = st.tabs(["Clientes", "Vendedores"])
+    with client_tab:
+        if customer.empty:
+            st.success("Todos os clientes encontrados têm grupo preenchido no DE/PARA.")
+        else:
+            show_table(customer, height=520, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button("Exportar validação de clientes", customer.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "validacao_clientes_depara.csv", "text/csv", key="export_dimension_validation_clients")
+    with seller_tab:
+        if sellers.empty:
+            st.success("Todos os vendedores encontrados têm grupo preenchido no DE/PARA.")
+        else:
+            show_table(sellers, height=520, width="stretch", hide_index=True)
+            if can_export:
+                st.download_button("Exportar validação de vendedores", sellers.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "validacao_vendedores_depara.csv", "text/csv", key="export_dimension_validation_sellers")
+
+
 def _customer_period_counts(history, start_date, end_date):
     """Conta novos, ativos e inativos a partir das compras faturadas disponíveis."""
     empty = {"new": 0, "active": 0, "inactive": 0}
@@ -206,9 +298,11 @@ def _metric_card_html(label, value, comparisons=()):
     )
 
 
-def _metric_cards(cards):
+def _metric_cards(cards, *, columns=None, grid_class=""):
+    column_count = max(int(columns or len(cards)), 1)
+    extra_class = f" {html.escape(grid_class)}" if grid_class else ""
     st.markdown(
-        f'<div class="mf-kpi-grid" style="--mf-kpi-count:{max(len(cards), 1)}">' + ''.join(
+        f'<div class="mf-kpi-grid{extra_class}" style="--mf-kpi-count:{column_count}">' + ''.join(
             _metric_card_html(label, value, comparisons) for label, value, comparisons in cards
         ) + '</div>',
         unsafe_allow_html=True,
@@ -289,6 +383,7 @@ def _inject_kpi_styles():
     /* Cards sempre em uma linha: cada card recebe uma fração igual da largura e o texto
        escala pelo tamanho do próprio card (container query), sem quebrar a grade. */
     .mf-kpi-grid{display:grid;grid-template-columns:repeat(var(--mf-kpi-count,4),minmax(0,1fr));gap:clamp(.4rem,.9vw,.8rem);margin:.45rem 0 1rem}
+    .mf-command-kpi-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
     .mf-kpi{container-type:inline-size;min-width:0;background:#fff;border:1px solid #DCE3EC;border-radius:12px;padding:clamp(.6rem,1vw,1rem);min-height:132px;box-shadow:0 3px 14px rgba(23,32,51,.05)}
     .mf-kpi-label{font-size:clamp(.74rem,7cqi,.86rem);font-weight:700;color:#52647A;line-height:1.25}
     .mf-kpi-value{font-size:clamp(1rem,10.5cqi,1.65rem);font-weight:800;color:#172033;margin:.3rem 0 .55rem;white-space:nowrap;line-height:1.2}
@@ -305,6 +400,8 @@ def _inject_kpi_styles():
     .mf-stage-line.missing .mf-stage-dot{color:#AAB4C2}.mf-stage-line.missing .mf-stage-value{font-size:.76rem;font-weight:650;color:#8591A2}
     @media(max-width:1100px){.mf-flow{grid-template-columns:repeat(3,minmax(190px,1fr))}.mf-stage:nth-child(3)::after{display:none}}
     @media(min-width:700px) and (max-width:1400px){[data-testid="stHorizontalBlock"]{flex-wrap:wrap!important;gap:.75rem!important}[data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{flex:1 1 min(100%,260px)!important;width:auto!important;min-width:min(100%,220px)!important}}
+    @media(min-width:700px) and (max-width:1100px){.mf-command-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:699px){.mf-command-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:699px){.mf-flow{grid-template-columns:repeat(6,minmax(210px,1fr))}.mf-stage:nth-child(3)::after{display:block}}
     [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"]){flex-wrap:nowrap!important;gap:clamp(.4rem,.9vw,.8rem)!important}
     [data-testid="stHorizontalBlock"]:has(>[data-testid="stColumn"] [data-testid="stMetric"])>[data-testid="stColumn"]{flex:1 1 0!important;width:auto!important;min-width:0!important}
@@ -512,9 +609,8 @@ def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table,
     months = controls[1].selectbox("Janela", [6, 12, 18, 24], index=1, format_func=lambda value: f"{value} meses", key="activity_months")
     limit = controls[2].selectbox("Entidades", [10, 15, 20, 30, 50], index=2, format_func=lambda value: f"Top {value}", key="activity_limit")
     channel_dimension = "Segmento Cliente" if "Segmento Cliente" in history.columns else "Canal"
-    heatmap_dimensions = [("Clientes", "Cliente")]
-    if "Grupo Econômico Cliente" in history.columns:
-        heatmap_dimensions.append(("Grupos econômicos", "Grupo Econômico Cliente"))
+    client_group_dimension = "Cliente Painel" if "Cliente Painel" in history.columns else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in history.columns else "Cliente")
+    heatmap_dimensions = [("Grupos de clientes", client_group_dimension)]
     heatmap_dimensions.extend((("Produtos", "Produto"), ("Canais", channel_dimension)))
     tabs = st.tabs([label for label, _ in heatmap_dimensions])
     for tab, (label, dimension) in zip(tabs, heatmap_dimensions):
@@ -523,7 +619,7 @@ def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table,
                 st.info(f"A dimensão {dimension.lower()} não está disponível na base atual.")
                 continue
             heatmap_data = history
-            if dimension == "Grupo Econômico Cliente":
+            if dimension in {"Cliente Painel", "Grupo Econômico Cliente"}:
                 heatmap_data = history[history[dimension].astype(str).ne("Não mapeado")]
             matrix, _ = _monthly_activity_matrix(heatmap_data, dimension, metric, end_date, months, limit)
             if matrix.empty:
@@ -556,7 +652,7 @@ def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table,
                     margin = float(latest_source["Margem"].sum())
                     value = margin / revenue if revenue else 0
                     summary[2].metric("Margem no último mês", f"{value * 100:.2f}%".replace(".", ","))
-            elif dimension == "Cliente":
+            elif dimension in {"Cliente", "Cliente Painel", "Grupo Econômico Cliente"}:
                 summary[2].metric("Positivados no último mês", _quantity(int(latest.sum())))
             else:
                 summary[2].metric("Soma de positivação no último mês", _quantity(int(latest.sum())), help="Soma por entidade; o mesmo cliente pode comprar mais de um produto ou canal.")
@@ -567,7 +663,7 @@ def _monthly_activity_view(history, end_date, brl, brl2, show_chart, show_table,
             show_chart(chart)
             st.caption(
                 "ⓘ Cliente positivado = faturamento líquido mensal maior que zero. "
-                + ("As células mostram 1 para mês positivado e cinza para mês sem positivação." if dimension == "Cliente" and metric == "Positivação" else
+                + ("As células mostram 1 para grupo de clientes positivado e cinza para mês sem positivação." if dimension in {"Cliente", "Cliente Painel", "Grupo Econômico Cliente"} and metric == "Positivação" else
                    "As células mostram clientes distintos positivados em cada mês." if metric == "Positivação" else
                    "Preço médio é o faturamento dividido pelo peso faturado; células sem peso ficam vazias." if metric == "Preço médio/kg" else
                    "Margem % é a margem em reais dividida pelo faturamento; a escala separa margens negativas e positivas." if metric == "Margem %" else
@@ -990,15 +1086,16 @@ def _released_orders_view(history, flow_events, start_date, end_date, brl, show_
     seller_scope = (view_filters or {}).get("seller_scope")
     if seller_scope and "Vendedor" in released:
         released = released[released["Vendedor"].astype(str).eq(str(seller_scope))]
-    for column, values in (("Vendedor", filters.get("sellers")), ("Grupo Produto", filters.get("groups"))):
+    for column, values in (("Vendedor", filters.get("sellers")), ("Vendedor Painel", filters.get("seller_panels")), ("Grupo Produto", filters.get("groups"))):
         if values and column in released:
             released = released[released[column].astype(str).isin([str(value) for value in values])]
     client = filters.get("client")
-    if client and "Cliente" in released:
-        released = released[released["Cliente"].astype(str).eq(str(client))]
+    client_column = "Cliente Painel" if "Cliente Painel" in released else "Cliente"
+    if client and client_column in released:
+        released = released[released[client_column].astype(str).eq(str(client))]
     client_text = filters.get("client_text")
-    if client_text and "Cliente" in released:
-        released = released[released["Cliente"].fillna("").astype(str).str.contains(str(client_text), case=False, na=False)]
+    if client_text and client_column in released:
+        released = released[released[client_column].fillna("").astype(str).str.contains(str(client_text), case=False, na=False)]
     product_text = filters.get("product_text")
     if product_text and "Produto" in released:
         released = released[released["Produto"].fillna("").astype(str).str.contains(str(product_text), case=False, na=False)]
@@ -1136,14 +1233,15 @@ def _orders_actual_view(frame, start_date, end_date, brl, show_chart, show_table
     last_month=pd.Timestamp(end_date).to_period("M").start_time
     view=view[view["Competência"].between(first_month,last_month)].copy()
     filters=(view_filters or {}).get("order_actual_filters",{})
-    for column,key in (("Vendedor","sellers"),("Grupo Produto","groups"),("Segmento Cliente","segments"),("Tipologia Cliente","tipologies"),("UF","uf"),("Município","municipalities"),("Cluster PIVOT","clusters")):
+    for column,key in (("Vendedor","sellers"),("Vendedor Painel","seller_panels"),("Grupo Produto","groups"),("Segmento Cliente","segments"),("Tipologia Cliente","tipologies"),("UF","uf"),("Município","municipalities"),("Cluster PIVOT","clusters")):
         values=filters.get(key)
         if values and column in view:
             view=view[view[column].astype(str).isin([str(value) for value in values])]
     client=filters.get("client")
-    if client and "Cliente" in view:
-        view=view[view["Cliente"].astype(str).eq(str(client))]
-    for key,column in (("client_text","Cliente"),("product_text","Produto")):
+    client_column="Cliente Painel" if "Cliente Painel" in view else "Cliente"
+    if client and client_column in view:
+        view=view[view[client_column].astype(str).eq(str(client))]
+    for key,column in (("client_text",client_column),("product_text","Produto")):
         term=filters.get(key)
         if term and column in view:
             view=view[view[column].fillna("").astype(str).str.contains(str(term),case=False,na=False)]
@@ -1221,9 +1319,10 @@ def _filter_order_actual(frame, filters=None):
         if values and column in result:
             result = result[result[column].astype(str).isin([str(value) for value in values])]
     client = filters.get("client")
-    if client and "Cliente" in result:
-        result = result[result["Cliente"].astype(str).eq(str(client))]
-    for key, column in (("client_text", "Cliente"), ("product_text", "Produto")):
+    client_column = "Cliente Painel" if "Cliente Painel" in result else "Cliente"
+    if client and client_column in result:
+        result = result[result[client_column].astype(str).eq(str(client))]
+    for key, column in (("client_text", client_column), ("product_text", "Produto")):
         term = filters.get(key)
         if term and column in result:
             result = result[result[column].fillna("").astype(str).str.contains(str(term), case=False, na=False)]
@@ -1239,7 +1338,35 @@ def _sum_released_orders(frame, start_date, end_date, measure):
     return float(selected[measure].sum()) if not selected.empty else 0.0
 
 
-def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None, order_actual=None):
+def _command_target_totals(targets, start_date, end_date, filters=None):
+    """Soma as metas das competências abrangidas e dos filtros comerciais ativos."""
+    if targets is None or not isinstance(targets, pd.DataFrame) or targets.empty:
+        return None
+    required = {"Competência", "Meta R$", "Meta KG"}
+    if not required.issubset(targets.columns):
+        return None
+    scoped = target_scope(
+        targets, start_date, end_date,
+        sellers=(filters or {}).get("sellers"),
+        groups=(filters or {}).get("groups"),
+    )
+    # O relatório oficial de metas usa vendedor e grupo de produto. Quando há
+    # filtros adicionais de painel/grupo econômico, aplicamos apenas se a base
+    # de metas contém a dimensão correspondente.
+    for column, key in (("Vendedor Painel", "seller_panels"), ("Grupo Vendedor", "seller_groups")):
+        selected = (filters or {}).get(key)
+        if selected and column in scoped.columns:
+            selected_keys = {str(value).strip().casefold() for value in selected}
+            scoped = scoped[scoped[column].astype(str).str.strip().str.casefold().isin(selected_keys)]
+    if scoped.empty:
+        return None
+    return {
+        "revenue": float(pd.to_numeric(scoped["Meta R$"], errors="coerce").fillna(0).sum()),
+        "weight": float(pd.to_numeric(scoped["Meta KG"], errors="coerce").fillna(0).sum()),
+    }
+
+
+def _command_center(data, history, start_date, end_date, last_load, brl, brl2, pct, show_chart, show_table, flow_events=None, can_export=False, view_filters=None, order_actual=None, targets=None, target_filters=None):
     st.subheader("Command Center", help=PANEL_HELP["overview"])
     st.caption(
         f"Visão central do METALFORTE 360 • {pd.Timestamp(start_date).strftime('%d/%m/%Y')} a {pd.Timestamp(end_date).strftime('%d/%m/%Y')} • "
@@ -1326,12 +1453,47 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             ("Mês ant.", f"{_quantity(month_order_kg)} kg", _relative(current_order_kg, month_order_kg), False),
             ("Ano ant.", f"{_quantity(year_order_kg)} kg", _relative(current_order_kg, year_order_kg), False),
         ]))
+    target_filters = target_filters or {}
+    target_periods = {
+        "current": _command_target_totals(targets, start_date, end_date, target_filters),
+        "month": _command_target_totals(
+            targets, pd.Timestamp(start_date) - pd.DateOffset(months=1),
+            pd.Timestamp(end_date) - pd.DateOffset(months=1), target_filters,
+        ),
+        "year": _command_target_totals(
+            targets, pd.Timestamp(start_date) - pd.DateOffset(years=1),
+            pd.Timestamp(end_date) - pd.DateOffset(years=1), target_filters,
+        ),
+    }
+    for measure, label, formatter in (
+        ("revenue", "Meta R$", brl),
+        ("weight", "Meta KG", lambda value: f"{_quantity(value)} kg"),
+    ):
+        current_target = target_periods["current"]
+        if current_target is None:
+            cards.append((label, "Sem base", [
+                ("Mês ant.", "—", None, False), ("Ano ant.", "—", None, False),
+            ]))
+            continue
+        current_value = current_target[measure]
+        comparisons = []
+        for period_key, period_label in (("month", "Mês ant."), ("year", "Ano ant.")):
+            reference = target_periods[period_key]
+            if reference is None:
+                comparisons.append((period_label, "—", None, False))
+            else:
+                reference_value = reference[measure]
+                comparisons.append((period_label, formatter(reference_value), _relative(current_value, reference_value), False))
+        cards.append((label, formatter(current_value), comparisons))
+
     card_order = [
-        "Faturamento", "Pedidos liberados (R$)", "KG faturado", "Pedidos liberados (kg)",
+        "Faturamento", "Pedidos liberados (R$)", "Meta R$",
+        "KG faturado", "Pedidos liberados (kg)", "Meta KG",
         "Margem %", "Preço médio/kg", "Clientes positivados", "Novos clientes", "Clientes inativos",
     ]
     cards.sort(key=lambda card: card_order.index(card[0]) if card[0] in card_order else len(card_order))
-    _metric_cards(cards)
+    st.caption("Metas somadas por competência mensal no período selecionado; os filtros de vendedor e grupo de produto são aplicados quando disponíveis na base de metas.")
+    _metric_cards(cards, columns=6, grid_class="mf-command-kpi-grid")
 
     st.markdown("### Tendência mensal")
     monthly_start = pd.Timestamp(end_date).to_period("M").start_time - pd.DateOffset(months=11)
@@ -1449,7 +1611,7 @@ def _command_center(data, history, start_date, end_date, last_load, brl, brl2, p
             )
 
     st.markdown("### Detalhamento")
-    dimensions = [column for column in ("Vendedor", "Grupo Produto", "Segmento Cliente", "Cluster PIVOT", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor Painel", "Grupo Produto", "Segmento Cliente", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     dimension = st.selectbox("Analisar por", dimensions, key="executive_breakdown")
     view = _summary(data, dimension, current["revenue"])
     if view.empty:
@@ -1551,12 +1713,24 @@ def _comparison_cards(current, reference, reference_label, brl, brl2, pct):
 def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de clientes", help=PANEL_HELP["clients"])
     st.caption("A classificação comercial combina a variação do período contra o mesmo intervalo do ano anterior com o ritmo dos últimos 3 meses frente aos 3 meses anteriores. Quedas e altas de 20% ou mais recebem alertas; divergências ficam explícitas como recuperação ou reversão.")
-    available = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
+    client_label = "Cliente Painel" if "Cliente Painel" in history else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in history else "Cliente")
+    available = sorted(history[client_label].dropna().astype(str).unique().tolist())
     c1, c2 = st.columns([1.7, 1])
-    selected = c1.selectbox("Cliente", ["Todos os clientes"] + available, key="client_page_scope")
+    selected_group = c1.selectbox("Grupo de clientes", ["Todos os grupos"] + available, key="client_page_scope")
+    selected_entity = None
+    group_current = data if selected_group == "Todos os grupos" else data[data[client_label].astype(str).eq(selected_group)]
+    group_history = history if selected_group == "Todos os grupos" else history[history[client_label].astype(str).eq(selected_group)]
+    if selected_group != "Todos os grupos":
+        with st.expander("Drill-down · razão social / CNPJ", expanded=False):
+            entity_column = "Razão Social" if "Razão Social" in group_history else "Cliente"
+            entities = sorted(group_history[entity_column].dropna().astype(str).unique().tolist())
+            selected_entity = st.selectbox("Empresa do grupo", ["Todas as empresas do grupo"] + entities, key="client_entity_drill")
+            if selected_entity == "Todas as empresas do grupo":
+                selected_entity = None
+    selected = selected_entity if selected_entity else "Todos os clientes"
     mode, reference_label = _reference_selector("client_reference")
-    current = data if selected == "Todos os clientes" else data[data["Cliente"].astype(str) == selected]
-    client_history = history if selected == "Todos os clientes" else history[history["Cliente"].astype(str) == selected]
+    current = group_current if selected_entity is None else group_current[group_current["Cliente"].astype(str).eq(selected_entity)]
+    client_history = group_history if selected_entity is None else group_history[group_history["Cliente"].astype(str).eq(selected_entity)]
     reference, ref_start, ref_end = reference_period(client_history, start_date, end_date, mode)
     st.caption(
         f"Comparação com {reference_label}: {ref_start.strftime('%d/%m/%Y')} a {ref_end.strftime('%d/%m/%Y')}."
@@ -1569,14 +1743,10 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     st.markdown("### Matriz RFMV")
     st.caption(
         "R = relacionamento, F = frequência de pedidos, M = faturamento e V = volume em KG. "
-        "Notas maiores indicam melhor posição relativa na carteira."
+        "Notas maiores indicam melhor posição relativa na carteira filtrada pela barra lateral."
     )
-    rfmv_type_options = sorted(rfmv_all["Tipologia Cliente"].fillna("Não informado").astype(str).unique().tolist())
-    selected_rfmv_types = st.multiselect(
-        "Tipos de cliente", rfmv_type_options, default=rfmv_type_options, key="rfmv_client_types"
-    )
-    st.caption("Indicadores dos últimos 12 meses: ticket médio = faturamento ÷ pedidos; margem % = margem ÷ faturamento. O filtro não recalcula as notas relativas da carteira.")
-    rfmv_view = rfmv_all[rfmv_all["Tipologia Cliente"].astype(str).isin(selected_rfmv_types)]
+    st.caption("A matriz acompanha os filtros principais da barra lateral. Indicadores dos últimos 12 meses: ticket médio = faturamento ÷ pedidos; margem % = margem ÷ faturamento.")
+    rfmv_view = rfmv_all.copy()
     if selected != "Todos os clientes":
         rfmv_view = rfmv_view[rfmv_view["Cliente"].astype(str).eq(selected)]
     if rfmv_view.empty:
@@ -1629,8 +1799,11 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         chart.update_traces(marker_color="#F36A2D")
         show_chart(_polish_chart(chart, x_title="", y_title="Faturamento (R$)"))
 
+    seasonality_history = client_history.copy()
+    if selected_entity is None and "Cliente Painel" in seasonality_history:
+        seasonality_history["Cliente"] = seasonality_history["Cliente Painel"].astype(str)
     matrix, cadence = purchase_seasonality(
-        client_history, end_date, None if selected == "Todos os clientes" else [selected]
+        seasonality_history, end_date, None if selected_entity is None else [selected_entity]
     )
     if not matrix.empty:
         if selected == "Todos os clientes":
@@ -1675,7 +1848,32 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
             "Nota M", "Nota V", "Anos elegíveis", "Pedidos 12m", "Faturamento 12m", "KG 12m",
         ]
         portfolio = portfolio.merge(rfmv_all[rfmv_columns], on="Cliente", how="left")
-    if selected == "Todos os clientes" and not portfolio.empty:
+    if selected_entity is None and not portfolio.empty:
+        if "Cliente Painel" in client_history:
+            group_names = client_history[["Cliente", "Cliente Painel"]].drop_duplicates("Cliente")
+            portfolio = portfolio.merge(group_names, on="Cliente", how="left")
+            portfolio["Cliente"] = portfolio["Cliente Painel"].fillna("Grupo não mapeado")
+            portfolio = portfolio.drop(columns=["Cliente Painel"])
+            sum_columns = [column for column in ("Faturamento atual", "Faturamento referência", "KG atual", "Margem atual", "Margem referência", "Faturamento últimos 3m", "Faturamento 3m anteriores", "Faturamento 12m", "KG 12m", "Pedidos 12m") if column in portfolio]
+            first_columns = [column for column in portfolio.columns if column not in sum_columns and column not in ("Cliente", "Última compra", "Dias sem comprar")]
+            aggregations = {column: "sum" for column in sum_columns}
+            aggregations.update({column: "first" for column in first_columns})
+            if "Última compra" in portfolio:
+                aggregations["Última compra"] = "max"
+            if "Dias sem comprar" in portfolio:
+                aggregations["Dias sem comprar"] = "min"
+            portfolio = portfolio.groupby("Cliente", as_index=False, dropna=False).agg(aggregations)
+            if {"Margem atual", "Faturamento atual"}.issubset(portfolio.columns):
+                portfolio["Margem % atual"] = portfolio["Margem atual"] / portfolio["Faturamento atual"].replace(0, pd.NA)
+            if {"Faturamento atual", "KG atual"}.issubset(portfolio.columns):
+                portfolio["Preço médio atual"] = portfolio["Faturamento atual"] / portfolio["KG atual"].replace(0, pd.NA)
+            if {"Faturamento atual", "Faturamento referência"}.issubset(portfolio.columns):
+                portfolio["Variação faturamento %"] = portfolio["Faturamento atual"] / portfolio["Faturamento referência"].replace(0, pd.NA) - 1
+        if "Vendedor Painel" in client_history and "Vendedor" in portfolio:
+            seller_names = client_history[["Vendedor", "Vendedor Painel"]].drop_duplicates("Vendedor")
+            portfolio = portfolio.merge(seller_names, on="Vendedor", how="left")
+            portfolio["Vendedor"] = portfolio["Vendedor Painel"].fillna(portfolio["Vendedor"])
+            portfolio = portfolio.drop(columns=["Vendedor Painel"])
         columns = [column for column in [
             "Cliente", "Vendedor", "Canal", "Classe RFMV", "Nota RFMV", "Código RFMV",
             "Nota R", "Nota F", "Nota M", "Nota V", "Cluster PIVOT", "UF", "Município",
@@ -1691,9 +1889,9 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         products = entity_comparison(current, reference, "Produto")
         if not products.empty:
             show_table(products, height=500, width="stretch", hide_index=True)
-        detail_columns = [column for column in ["Data", "NF", "Produto", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg"] if column in current]
+        detail_columns = [column for column in ["Data", "Cod Cliente", "Razão Social", "NF", "Produto", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Faturamento", "Peso", "Margem", "Margem %", "Preço Real Kg"] if column in current]
         with st.expander("Ver histórico de compras"):
-            show_table(current[detail_columns].sort_values("Data", ascending=False), height=520, width="stretch", hide_index=True)
+            show_table(current[detail_columns].sort_values("Data", ascending=False), height=520, width="stretch", hide_index=True, raw_detail=True)
     if can_export and not portfolio.empty:
         st.download_button("Exportar carteira", portfolio.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "clientes.csv", "text/csv")
 
@@ -1701,13 +1899,14 @@ def _client_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
 def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Inteligência de produtos", help=PANEL_HELP["products"])
     controls = st.columns([1.2, 1.5, 1])
-    clients = sorted(history["Cliente"].dropna().astype(str).unique().tolist())
+    client_label = "Cliente Painel" if "Cliente Painel" in history else ("Grupo Econômico Cliente" if "Grupo Econômico Cliente" in history else "Cliente")
+    clients = sorted(history[client_label].dropna().astype(str).unique().tolist())
     selected_client = controls[0].selectbox(
-        "Cliente", ["Todos os clientes"] + clients, key="product_client_scope",
-        help="Filtra indicadores, curva, comparação e batalha naval pelo cliente escolhido.",
+        "Grupo de clientes", ["Todos os grupos"] + clients, key="product_client_scope",
+        help="Filtra indicadores, curva, comparação e batalha naval pelo grupo econômico.",
     )
-    client_current = data if selected_client == "Todos os clientes" else data[data["Cliente"].astype(str) == selected_client]
-    client_history = history if selected_client == "Todos os clientes" else history[history["Cliente"].astype(str) == selected_client]
+    client_current = data if selected_client == "Todos os grupos" else data[data[client_label].astype(str) == selected_client]
+    client_history = history if selected_client == "Todos os grupos" else history[history[client_label].astype(str) == selected_client]
     available = sorted(client_history["Produto"].dropna().astype(str).unique().tolist())
     selected = controls[1].selectbox("Produto", ["Todos os produtos"] + available, key="product_page_scope")
     options = {"Período anterior": "period", "Mês anterior": "month", "Ano anterior": "year"}
@@ -1722,7 +1921,7 @@ def _product_view(data, history, start_date, end_date, brl, brl2, pct, show_char
     st.markdown("### Batalha naval de produtos")
     st.caption(
         "Cada célula representa o desempenho mensal de um produto"
-        + (f" para {selected_client}." if selected_client != "Todos os clientes" else ". Selecione um cliente acima para analisar seu mix isoladamente.")
+        + (f" para {selected_client}." if selected_client != "Todos os grupos" else ". Selecione um grupo acima para analisar seu mix consolidado.")
     )
     heat_controls = st.columns([1.4, 1, 1])
     heat_metric = heat_controls[0].segmented_control(
@@ -1815,7 +2014,7 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
                 with st.popover("Contato do cliente"):
                     clients=sorted(frame["Cliente"].dropna().astype(str).unique().tolist())
                     selected_contact=st.selectbox(
-                        "Cliente da oportunidade",clients,key=f"insight_contact_client_{insight_key}",
+                        "Drill-down · razão social do cliente",clients,key=f"insight_contact_client_{insight_key}",
                     )
                     contact=frame.loc[frame["Cliente"].astype(str).eq(selected_contact)].iloc[0]
                     def _contact_value(column):
@@ -1826,11 +2025,12 @@ def _insights_view(data, history, start_date, end_date, brl, show_table, can_exp
                     st.write(f"**Código do cliente:** {_contact_value('Cod Cliente')}")
                     st.write(f"**Telefone:** {_contact_value('Telefone')}")
                     st.write(f"**E-mail:** {_contact_value('E-mail')}")
-                visible = [column for column in columns if column in frame]
-                show_table(frame[visible], height=560, width="stretch", hide_index=True)
+                visible_frame = _panel_names(frame, history)
+                visible = [column for column in columns if column in visible_frame]
+                show_table(visible_frame[visible], height=560, width="stretch", hide_index=True)
                 if can_export:
                     file_name = f"insights_{insight_key}.csv"
-                    st.download_button("Exportar lista", frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_insights_{insight_key}")
+                    st.download_button("Exportar lista", visible_frame[visible].to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), file_name, "text/csv", key=f"export_insights_{insight_key}")
 
 
 def _commercial_direction_view(data, history, start_date, end_date, brl, pct, show_table, can_export):
@@ -1978,7 +2178,9 @@ def _commercial_direction_view(data, history, start_date, end_date, brl, pct, sh
             if inactive_now.empty: st.success("Nenhum cliente inativo neste recorte.")
             else:
                 show_table(inactive_now[visible],height=520,width="stretch",hide_index=True)
-                if can_export: st.download_button("Exportar fila BDR",inactive_now[visible].to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"bdr_clientes_inativos.csv","text/csv",key="export_direction_bdr_inactive")
+                if can_export:
+                    inactive_export = _panel_names(inactive_now[visible], history)
+                    st.download_button("Exportar fila BDR", inactive_export.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "bdr_clientes_inativos.csv", "text/csv", key="export_direction_bdr_inactive")
         with bdr_tabs[1]:
             st.caption("Clientes sem compra há mais de 90 dias e até o limite de inatividade.")
             visible=[column for column in bdr_columns if column in warm_now]
@@ -2020,20 +2222,18 @@ def _commercial_direction_view(data, history, start_date, end_date, brl, pct, sh
         if decline_queue.empty: st.success("Nenhuma queda potencial identificada neste recorte.")
         else: show_table(decline_queue[visible],height=520,width="stretch",hide_index=True)
         if can_export and not decline_queue.empty:
-            st.download_button("Exportar quedas",decline_queue[visible].to_csv(index=False,sep=";",decimal=",").encode("utf-8-sig"),"direcionador_quedas.csv","text/csv",key="export_direction_declines")
+            decline_export = _panel_names(decline_queue[visible], history)
+            st.download_button("Exportar quedas", decline_export.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"), "direcionador_quedas.csv", "text/csv", key="export_direction_declines")
 
 
 def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export):
     st.subheader("Painel de indicadores por vendedor", help=PANEL_HELP["sellers"])
-    seller_dimensions = ["Vendedor"]
-    if "Vendedor Painel" in history.columns:
-        seller_dimensions.append("Vendedor Painel")
-    if "Grupo Vendedor" in history.columns:
-        seller_dimensions.append("Grupo Vendedor")
+    seller_dimension = "Vendedor Painel" if "Vendedor Painel" in history.columns else "Vendedor"
+    seller_dimensions = [seller_dimension]
     c_scope, c_dimension = st.columns([1.4, 1])
     selected_dimension = c_dimension.selectbox(
         "Agrupar vendedores por", seller_dimensions,
-        format_func=lambda value: {"Vendedor": "Vendedor cadastrado", "Vendedor Painel": "Vendedor consolidado", "Grupo Vendedor": "Classificação"}.get(value, value),
+        format_func=lambda value: "Vendedor Painel" if value == "Vendedor Painel" else "Vendedor",
         key="seller_page_dimension",
     )
     available = sorted(history[selected_dimension].dropna().astype(str).unique().tolist())
@@ -2050,6 +2250,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     if selected != "Todos" and "Cliente" in portfolio_export:
         clients_in_scope = set(seller_history["Cliente"].dropna().astype(str).unique())
         portfolio_export = portfolio_export[portfolio_export["Cliente"].astype(str).isin(clients_in_scope)].copy()
+    portfolio_export = _panel_names(portfolio_export, seller_history)
     if not portfolio_export.empty:
         portfolio_export["Situação (90 dias)"] = np.where(
             portfolio_export["Dias sem comprar"].le(90), "Ativo", "Inativo",
@@ -2097,7 +2298,7 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
     if health_summary.empty:
         st.info("Sem histórico positivo suficiente para calcular a saúde da carteira.")
     else:
-        if selected_dimension == "Vendedor" and selected != "Todos":
+        if selected != "Todos":
             row = health_summary.iloc[0]
             health_cards = st.columns(4)
             health_cards[0].metric("Carteira total", int(row["Carteira total"]))
@@ -2116,11 +2317,12 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         if action_queue.empty:
             st.success("Nenhum cliente encontrado para esta fila.")
         else:
-            show_table(action_queue, height=460, width="stretch", hide_index=True)
+            action_queue_display = _panel_names(action_queue, seller_history)
+            show_table(action_queue_display, height=460, width="stretch", hide_index=True)
             if can_export:
                 st.download_button(
                     "Exportar saúde da carteira",
-                    action_queue.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+                    action_queue_display.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
                     "saude_carteira.csv", "text/csv", key="export_seller_portfolio_health",
                 )
     view = entity_comparison(current, reference, selected_dimension)
@@ -2143,10 +2345,10 @@ def _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart
         )
         _daily_sales_detail(current, _selected_plotly_date(event), show_table)
     st.markdown("### Comparação da equipe")
-    show_table(view, height=520, width="stretch", hide_index=True)
+    show_table(_panel_names(view, seller_history), height=520, width="stretch", hide_index=True)
     if can_export:
         st.download_button(
-            "Exportar vendedores", view.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+            "Exportar vendedores", _panel_names(view, seller_history).to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
             "performance_vendedores.csv", "text/csv", width="stretch",
         )
 
@@ -2297,7 +2499,7 @@ def _margin_volume_view(data, brl, brl2, pct, show_chart, show_table, can_export
 
 def _pivot(data, show_table, can_export):
     st.subheader("Tabela dinâmica", help=PANEL_HELP["pivot"])
-    dimensions = [column for column in ("Vendedor", "Vendedor Painel", "Grupo Vendedor", "Cliente", "Grupo Econômico Cliente", "Segmento Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "Cluster PIVOT", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor Painel", "Cliente Painel", "Grupo Econômico Cliente", "Segmento Cliente", "Grupo Produto", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Produto", "Filial", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     c1, c2 = st.columns(2)
     rows = c1.multiselect("Linhas", dimensions, default=dimensions[:1])
     selected_metrics = c2.multiselect("Métricas", ["Faturamento", "Peso", "Margem", "Clientes"], default=["Faturamento", "Margem"])
@@ -2378,9 +2580,13 @@ def _unified_view(data, targets, flow_events, indicators, start_date, end_date, 
     source_options = unified["Fonte"].dropna().unique().tolist()
     selected_sources = st.multiselect("Fontes incluídas", source_options, default=source_options, key="unified_sources")
     result = unified[unified["Fonte"].isin(selected_sources)].copy()
+    if "Cliente Painel" in result and "Cliente" in result:
+        result["Cliente"] = result["Cliente Painel"]
+    if "Vendedor Painel" in result and "Vendedor" in result:
+        result["Vendedor"] = result["Vendedor Painel"]
     core = [
         "Fonte", "Tipo de registro", "Data de referência", "Data faturamento", "Competência",
-        "Pedido", "NF", "OP", "Vendedor", "Cliente", "Segmento Cliente", "Cluster PIVOT", "UF", "Município", "Grupo Produto", "Produto",
+        "Pedido", "NF", "OP", "Vendedor Painel", "Cliente Painel", "Segmento Cliente", "Cluster PIVOT", "UF", "Município", "Grupo Produto", "Produto",
         "Faturamento", "Peso faturado (kg)", "Margem (R$)", "Margem faturamento %",
         "Meta (R$)", "Meta (kg)", "Valor funil (R$)", "Peso funil (kg)", "Métrica", "Indicador (R$)", "Indicador (kg)",
     ]
@@ -2402,7 +2608,7 @@ def _unified_view(data, targets, flow_events, indicators, start_date, end_date, 
 
 def _yoy(data, history, start_date, end_date, show_chart, show_table):
     st.subheader("Comparativo com o ano anterior", help=PANEL_HELP["yoy"])
-    dimensions = [column for column in ("Vendedor", "Cliente", "Grupo Produto", "Cluster PIVOT", "UF", "Município") if column in data.columns]
+    dimensions = [column for column in ("Vendedor Painel", "Cliente Painel", "Grupo Produto", "Cluster PIVOT", "UF", "Município") if column in data.columns]
     dimension = st.selectbox("Analisar por", dimensions, key="yoy_dimension")
     previous = _shifted_period(history, start_date, end_date, years=1)
     current_view = _summary(data, dimension, data["Faturamento"].sum()).set_index(dimension)
@@ -2513,10 +2719,10 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
     st.caption(f"Competência: {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
     controls = st.columns(2)
-    target_dimensions = [column for column in ("Vendedor", "Vendedor Painel", "Grupo Vendedor", "Grupo Produto") if column in scoped.columns]
+    target_dimensions = [column for column in ("Vendedor Painel", "Grupo Vendedor", "Grupo Produto") if column in scoped.columns]
     dimension = controls[0].segmented_control(
         "Detalhar por", target_dimensions,
-        default="Vendedor", key="target_dimension",
+        default="Vendedor Painel" if "Vendedor Painel" in target_dimensions else target_dimensions[0], key="target_dimension",
     )
     measure = controls[1].segmented_control(
         "Medida da meta", ["Faturamento (R$)", "Peso (kg)"],
@@ -3697,6 +3903,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         pages.append(("Performance diária", "view_daily"))
     if "view_sellers" in permissions:
         pages.append(("Vendedores", "view_sellers"))
+    if {"view_clients", "view_sellers"}.issubset(permissions):
+        pages.append(("Validação DE/PARA", "view_dimension_validation"))
     if "view_pricing" in permissions:
         pages.append(("Preços", "view_pricing"))
     if "view_margin_volume" in permissions:
@@ -3743,7 +3951,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _command_center(
             data, history, start_date, end_date, last_load, brl, brl2, pct,
             show_chart, show_table, flow_events, can_export, view_filters,
-            resolve_lazy(order_actual),
+            resolve_lazy(order_actual), resolve_lazy(targets), target_filters,
         )
     elif permission == "view_order_actual":
         _orders_actual_view(resolve_lazy(order_actual), start_date, end_date, brl, show_chart, show_table, can_export, view_filters)
@@ -3759,6 +3967,8 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         _daily(data, history, end_date, brl, brl2, pct, show_chart, show_table)
     elif permission == "view_sellers":
         _seller_view(data, history, start_date, end_date, brl, brl2, pct, show_chart, show_table, can_export)
+    elif permission == "view_dimension_validation":
+        _dimension_validation_view(history, show_table, can_export)
     elif permission == "view_pricing":
         _pricing_view(history, end_date, brl, brl2, pct, show_chart, show_table, can_export)
     elif permission == "view_margin_volume":
