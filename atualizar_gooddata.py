@@ -468,8 +468,8 @@ def main():
     # Métricas indisponíveis ficam ausentes na fotografia desta carga.
     required_indicators=set()
     for name,report_id in INDICATOR_REPORTS.items():
-        if name == 'meta_peso':
-            logging.info('Meta KG vem da planilha privada do Supabase; indicador GoodData ignorado.')
+        if name in {'meta_peso', 'meta_valor'}:
+            logging.info('Meta %s não é mais consultada no GoodData; a fonte oficial é o Excel privado do Supabase.', name)
             continue
         logging.info('Baixando indicador %s (%s)',name,report_id)
         try:
@@ -542,7 +542,7 @@ def main():
     # Os cartões 043/045 de peso já são exportados em kg. O multiplicador de
     # tonelada para kg aplica-se somente ao detalhamento da meta (relatório 044).
     weight_multiplier=float(os.getenv('TOTVS_INDICATOR_WEIGHT_MULTIPLIER','1'))
-    for name in ('meta_peso','pedidos_nao_faturados_peso','pedidos_liberados_peso'):
+    for name in ('pedidos_nao_faturados_peso','pedidos_liberados_peso'):
         if name in indicators: indicators[name]=round(indicators[name]*weight_multiplier,4)
     detail_frames={}
     for name,report_id in DETAIL_REPORTS.items():
@@ -612,16 +612,31 @@ def main():
                 except Exception as legacy_exc:
                     if getattr(getattr(legacy_exc,'response',None),'status_code',None) != 404:
                         logging.warning('Histórico legado de metas não pôde ser lido (%s).',type(legacy_exc).__name__)
-                workbook_payload=targets_workbook_bytes(previous_targets) if not previous_targets.empty else empty_targets_workbook_bytes()
-                try:
-                    target_cloud_updated=upload_bytes(
-                        workbook_payload,object_path=target_path,
-                        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    )
-                    if target_cloud_updated:
-                        logging.info('Workbook de metas Excel criado no Supabase: %s',target_path)
-                except Exception as upload_exc:
-                    logging.warning('Migração do workbook de metas não concluiu (%s).',type(upload_exc).__name__,exc_info=True)
+                if previous_targets.empty:
+                    # Migração única: se não existir nem XLSX nem snapshot legado,
+                    # captura a cobertura atual da fonte GoodData e a grava no Excel.
+                    # Depois que o objeto Excel existir, execuções agendadas não
+                    # consultam nem sobrescrevem metas no GoodData.
+                    try:
+                        current_detail=parse_raw(con.raw_report(DETAIL_REPORTS['meta_kg_vendedor_grupo'],offset_from=0,offset_to=0))
+                        current_value=parse_raw(con.raw_report(INDICATOR_REPORTS['meta_valor'],offset_from=0,offset_to=0),allow_single_column=True)
+                        previous_targets=collect_target_periods(con,current_detail,current_value)
+                        logging.info('Migração inicial GoodData → Excel: %s linhas.',len(previous_targets))
+                    except Exception as migration_exc:
+                        logging.warning('Não foi possível migrar as metas iniciais do GoodData (%s); nenhum arquivo vazio será publicado.',type(migration_exc).__name__,exc_info=True)
+                if not previous_targets.empty:
+                    workbook_payload=targets_workbook_bytes(previous_targets)
+                    try:
+                        target_cloud_updated=upload_bytes(
+                            workbook_payload,object_path=target_path,
+                            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        )
+                        if target_cloud_updated:
+                            logging.info('Workbook de metas Excel migrado para o Supabase: %s',target_path)
+                    except Exception as upload_exc:
+                        logging.warning('Migração do workbook de metas não concluiu (%s).',type(upload_exc).__name__,exc_info=True)
+                else:
+                    logging.error('Metas não foram migradas: arquivo Excel ausente e nenhum histórico legado disponível. Não publicar arquivo vazio.')
     elif LEGACY_TARGETS.exists():
         try:
             previous_targets=pd.read_csv(LEGACY_TARGETS,compression='gzip',low_memory=False)
