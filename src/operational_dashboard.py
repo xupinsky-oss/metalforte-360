@@ -2689,10 +2689,10 @@ def _yoy(data, history, start_date, end_date, show_chart, show_table):
 
 def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_chart, show_table, filters, can_export, indicators=None, order_actual=None):
     st.subheader("Metas e orçamento", help=PANEL_HELP["targets"])
-    st.caption("ⓘ A competência da meta é independente do calendário de faturamento. Para meses futuros, o realizado permanece zerado até ocorrer faturamento.")
+    st.caption("ⓘ Metas vêm da planilha Excel privada no Supabase. Edite metalforte_metas.xlsx no bucket metalforte-private; competências são mensais e independentes do calendário de faturamento.")
     targets = targets.copy() if targets is not None else pd.DataFrame()
     if targets.empty or "Competência" not in targets:
-        st.info("A meta oficial ainda não foi publicada. Execute primeiro a atualização em homologação.")
+        st.info("A planilha de metas ainda não foi carregada no Supabase Storage. O administrador deve publicar metalforte_metas.xlsx no bucket privado.")
         return
     targets["Competência"] = pd.to_datetime(targets["Competência"], errors="coerce").dt.to_period("M").dt.start_time
     available = sorted(pd.Timestamp(value) for value in targets["Competência"].dropna().unique())
@@ -2716,13 +2716,17 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     scoped = target_scope(
         targets, target_start, target_end,
         sellers=(filters or {}).get("sellers"), groups=(filters or {}).get("groups"),
+        client_group=(filters or {}).get("client_group"),
+        client=(filters or {}).get("client"),
+        client_text=(filters or {}).get("client_text", ""),
+        product_text=(filters or {}).get("product_text", ""),
     )
     for column, key in (("Vendedor Painel", "seller_panels"), ("Grupo Vendedor", "seller_groups")):
         selected_values = (filters or {}).get(key)
         if selected_values and column in scoped:
             scoped = scoped[scoped[column].astype(str).isin([str(value) for value in selected_values])]
     if scoped.empty:
-        st.info("A meta oficial ainda não foi publicada para o período e escopo selecionados. Execute primeiro a atualização em homologação.")
+        st.info("Não há metas para a competência e os filtros selecionados na planilha do Supabase.")
         return
 
     previous_count = sum(value < current_month for value in available)
@@ -2753,7 +2757,7 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
             orders_source = orders_source[
                 orders_source["Competência"].between(target_start, target_end)
             ].copy()
-            for column, key in (("Vendedor", "sellers"), ("Vendedor Painel", "seller_panels"), ("Grupo Vendedor", "seller_groups"), ("Grupo Produto", "groups")):
+            for column, key in (("Vendedor", "sellers"), ("Vendedor Painel", "seller_panels"), ("Grupo Vendedor", "seller_groups"), ("Grupo Produto", "groups"), ("Grupo Econômico Cliente", "client_group")):
                 selected_values = (filters or {}).get(key)
                 if selected_values is not None and len(selected_values) > 0 and column in orders_source:
                     orders_source = orders_source[orders_source[column].astype(str).isin([str(value) for value in selected_values])]
@@ -2773,10 +2777,18 @@ def _targets_view(data, history, targets, start_date, end_date, brl, pct, show_c
     weight_cards[2].metric("Realizado faturado (kg)", f"{_quantity(actual_kg)} kg", f"Atingimento da meta {pct(kg_attainment)}")
 
     competence = scoped["Competência"].dropna().sort_values().dt.strftime("%m/%Y").unique().tolist()
-    st.caption(f"Competência: {', '.join(competence)} • Fontes: Rel.044 (KG) e Rel.045 (R$).")
+    st.caption(f"Competência: {', '.join(competence)} • Fonte: planilha de metas editável no Supabase Storage.")
     controls = st.columns(2)
     seller_dimension = "Vendedor Painel" if "Vendedor Painel" in scoped.columns else "Vendedor"
-    target_dimensions = [column for column in (seller_dimension, "Grupo Vendedor", "Grupo Produto") if column in scoped.columns]
+    candidate_dimensions = (
+        seller_dimension, "Vendedor", "Grupo Vendedor", "Grupo Produto",
+        "Grupo Econômico Cliente", "Cliente Painel", "Cliente",
+        "Segmento Cliente", "Produto",
+    )
+    target_dimensions = list(dict.fromkeys(
+        column for column in candidate_dimensions
+        if column in scoped.columns and scoped[column].fillna("").astype(str).str.strip().ne("").any()
+    ))
     dimension = controls[0].segmented_control(
         "Detalhar por", target_dimensions,
         default="Vendedor Painel" if "Vendedor Painel" in target_dimensions else target_dimensions[0], key="target_dimension",
