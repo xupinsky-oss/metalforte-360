@@ -35,13 +35,9 @@ load_targets = _data_module.load_targets
 apply_filters = _data_module.apply_filters
 try:
     depara_available = _data_module.depara_available
-    prepare_depara_upload = _data_module.prepare_depara_upload
-    publish_depara = _data_module.publish_depara
     clear_depara_cache = _data_module.clear_depara_cache
 except (ImportError, AttributeError):
     def depara_available(): return False
-    def prepare_depara_upload(payload): raise RuntimeError("A versão do aplicativo ainda não oferece importação do DE/PARA.")
-    publish_depara = prepare_depara_upload
     def clear_depara_cache(): pass
 normalize_seller = _load_src_module("src.dimensions").normalize_seller
 try:
@@ -674,9 +670,10 @@ if chart_filter:
     monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
 f=apply_filters(monitor_scope,start_date=start_date,end_date=end_date)
 def target_history_loader():
-    # O realizado acompanha os filtros da carteira quando a planilha contém meta nessa granularidade.
-    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
-    return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
+    # A visão de metas decide quais dimensões filtrar depois de ler o Excel:
+    # se a planilha não tiver aquele grão, compara com o total corporativo.
+    # Isso evita comparar meta agregada com realizado recortado por cliente/SKU.
+    return df
 
 def inventory_history_loader():
     # Estoque é corporativo; filtros de cliente e vendedor não recortam o saldo.
@@ -691,6 +688,10 @@ target_filters={
     "client_group": grupo_economico,
     "client_text": ct,
     "product_text": pt,
+    "canal": canal, "tipologia": tipologia, "filial": filial, "uf": uf,
+    "municipio": city, "clusters": cidade_pivot, "subgroups": subgrupo,
+    "product_types": tipo, "spec": espec, "sub_spec": sub_espec,
+    "thickness": esp,
 }
 
 if f.empty:
