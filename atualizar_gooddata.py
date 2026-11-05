@@ -7,14 +7,14 @@ from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REP
 from src.inventory import prepare_stock
 from src.dimensions import normalize_dimensions
 from src.secure_credentials import load_credential
-from src.cloud_storage import download_bytes,is_configured,upload_file,upload_status
-from src.targets import TARGET_COLUMNS,consolidate_targets,merge_target_history
+from src.cloud_storage import download_bytes,is_configured,upload_file,upload_bytes,upload_status
+from src.targets import TARGET_COLUMNS,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
 from src.product_groups import normalize_product_group
 
 ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'data'; RAW=DATA/'raw'; BACKUP=DATA/'backup'; LOGS=ROOT/'logs'
 ACTIVE=DATA/'metalforte_base.csv.gz'; CREDENTIAL=ROOT/'.streamlit'/'gooddata_credential.bin'
-ACTIVE_TARGETS=DATA/'metalforte_metas.csv.gz'; ACTIVE_FLOW=DATA/'metalforte_fluxo.csv.gz'
+ACTIVE_TARGETS=DATA/'metalforte_metas.xlsx'; LEGACY_TARGETS=DATA/'metalforte_metas.csv.gz'; ACTIVE_FLOW=DATA/'metalforte_fluxo.csv.gz'
 ACTIVE_STOCK=DATA/'metalforte_estoque.csv.gz'
 ACTIVE_PEDIDOS_REALIZADO=DATA/'metalforte_pedidos_realizado.csv.gz'
 INDICATORS=DATA/'indicadores_comerciais.json'
@@ -468,6 +468,9 @@ def main():
     # Métricas indisponíveis ficam ausentes na fotografia desta carga.
     required_indicators=set()
     for name,report_id in INDICATOR_REPORTS.items():
+        if name == 'meta_peso':
+            logging.info('Meta KG vem da planilha privada do Supabase; indicador GoodData ignorado.')
+            continue
         logging.info('Baixando indicador %s (%s)',name,report_id)
         try:
             content=con.raw_report(report_id,offset_from=0,offset_to=0)
@@ -543,6 +546,9 @@ def main():
         if name in indicators: indicators[name]=round(indicators[name]*weight_multiplier,4)
     detail_frames={}
     for name,report_id in DETAIL_REPORTS.items():
+        if name in {'meta_kg_vendedor_grupo','meta_valor'}:
+            logging.info('Fonte GoodData de metas ignorada; metas são mantidas no Excel privado do Supabase.')
+            continue
         logging.info('Baixando detalhamento %s (%s)',name,report_id)
         try:
             content=con.raw_report(report_id,offset_from=0,offset_to=0)
@@ -586,18 +592,47 @@ def main():
                 order_actual[column]=order_actual[column].fillna('Não mapeado').astype(str)
         order_actual=normalize_dimensions(order_actual)
     previous_targets=pd.DataFrame()
-    try:
-        if ACTIVE_TARGETS.exists(): previous_targets=pd.read_csv(ACTIVE_TARGETS,compression='gzip',low_memory=False)
-        elif is_configured(): previous_targets=pd.read_csv(io.BytesIO(download_bytes(object_path=dataset_path('targets'))),compression='gzip',low_memory=False)
-    except Exception as exc:
-        logging.warning('Histórico anterior de metas indisponível: %s',type(exc).__name__)
-    current_targets=collect_target_periods(
-        con,
-        detail_frames.get('meta_kg_vendedor_grupo',pd.DataFrame()),
-        indicator_frames.get('meta_valor',pd.DataFrame()),
-        existing_targets=previous_targets,
-    )
-    target_df=merge_target_history(previous_targets,current_targets)
+    target_cloud_updated=False
+    target_path=dataset_path('targets')
+    if is_configured():
+        try:
+            target_payload=download_bytes(object_path=target_path)
+            previous_targets=read_targets_workbook(target_payload)
+            logging.info('Metas carregadas do workbook privado do Supabase: %s linhas',len(previous_targets))
+        except Exception as exc:
+            status=getattr(getattr(exc,'response',None),'status_code',None)
+            if status != 404:
+                logging.warning('Workbook de metas indisponível ou inválido (%s); mantendo carga comercial independente.',type(exc).__name__)
+            else:
+                legacy_path=os.getenv('SUPABASE_TARGET_LEGACY_PATH','bases/metalforte_metas.csv.gz')
+                try:
+                    legacy_payload=download_bytes(object_path=legacy_path)
+                    previous_targets=pd.read_csv(io.BytesIO(legacy_payload),compression='gzip',low_memory=False)
+                    logging.info('Migrando histórico legado de metas (%s linhas) para Excel.',len(previous_targets))
+                except Exception as legacy_exc:
+                    if getattr(getattr(legacy_exc,'response',None),'status_code',None) != 404:
+                        logging.warning('Histórico legado de metas não pôde ser lido (%s).',type(legacy_exc).__name__)
+                workbook_payload=targets_workbook_bytes(previous_targets) if not previous_targets.empty else empty_targets_workbook_bytes()
+                try:
+                    target_cloud_updated=upload_bytes(
+                        workbook_payload,object_path=target_path,
+                        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    )
+                    if target_cloud_updated:
+                        logging.info('Workbook de metas Excel criado no Supabase: %s',target_path)
+                except Exception as upload_exc:
+                    logging.warning('Migração do workbook de metas não concluiu (%s).',type(upload_exc).__name__,exc_info=True)
+    elif LEGACY_TARGETS.exists():
+        try:
+            previous_targets=pd.read_csv(LEGACY_TARGETS,compression='gzip',low_memory=False)
+        except Exception as exc:
+            logging.warning('Arquivo local legado de metas indisponível (%s).',type(exc).__name__)
+    elif ACTIVE_TARGETS.exists():
+        try:
+            previous_targets=read_targets_workbook(ACTIVE_TARGETS.read_bytes())
+        except Exception as exc:
+            logging.warning('Workbook local de metas indisponível (%s).',type(exc).__name__)
+    target_df=previous_targets.copy()
     if len(main_df)<300000: raise ValueError(f'Base consolidada abaixo do mínimo de segurança: {len(main_df):,} linhas')
     if main_df['Data'].notna().mean()<.99: raise ValueError('Cobertura de datas abaixo de 99%.')
     source_total=pd.to_numeric(downloaded['faturamento'].iloc[:,9],errors='coerce').sum(); final_total=main_df['Faturamento'].sum()
@@ -613,19 +648,11 @@ def main():
     tmp=DATA/'metalforte_base.nova.csv.gz'; main_df.to_csv(tmp,index=False,compression='gzip')
     cloud_updated=upload_file(tmp)
     tmp.replace(ACTIVE)
-    target_cloud_updated=False
-    if not target_df.empty:
-        target_tmp=DATA/'metalforte_metas.nova.csv.gz'; target_df.to_csv(target_tmp,index=False,compression='gzip')
-        target_path=dataset_path('targets')
-        try:
-            target_cloud_updated=upload_file(target_tmp,object_path=target_path)
-            if target_cloud_updated or not is_configured(): target_tmp.replace(ACTIVE_TARGETS)
-            else: target_tmp.unlink(missing_ok=True)
-        except Exception as exc:
-            logging.warning('Publicação de metas indisponível; mantendo a última base válida: %s',type(exc).__name__,exc_info=True)
-            target_tmp.unlink(missing_ok=True)
-    else:
-        logging.warning('Sem metas válidas locais ou no GoodData; nenhum arquivo de metas será sobrescrito.')
+    if not is_configured() and not target_df.empty:
+        target_tmp=DATA/'metalforte_metas.novo.xlsx'
+        target_tmp.write_bytes(targets_workbook_bytes(target_df))
+        target_tmp.replace(ACTIVE_TARGETS)
+    logging.info('Metas preservadas da planilha editável; nenhuma meta é sobrescrita pelo GoodData.')
     stock_df=stock_frames.get('estoque_atual')
     stock_cloud_updated=False
     if stock_df is not None:
