@@ -19,12 +19,14 @@ TARGET_COLUMNS = [
 ]
 TARGET_OPTIONAL_DIMENSIONS = [
     "Vendedor Painel", "Grupo Vendedor", "Grupo Econômico Cliente",
-    "Cliente Painel", "Cliente", "Segmento Cliente", "Produto", "Produto Codigo",
+    "Cliente Painel", "Cliente", "Segmento Cliente", "Canal", "Tipologia Cliente",
+    "Filial", "UF", "Município", "Cluster PIVOT", "Subgrupo Produto", "Tipo Produto",
+    "ESPEC.", "Sub Espec.", "Espessura", "Produto", "Produto Codigo",
 ]
 TARGET_WORKBOOK_COLUMNS = [
     "Competência", "Vendedor", "Vendedor Painel", "Grupo Vendedor",
     "Grupo Produto", "Grupo Econômico Cliente", "Cliente Painel", "Cliente",
-    "Segmento Cliente", "Produto", "Produto Codigo", "Meta R$", "Meta KG",
+    "Segmento Cliente", "Canal", "Tipologia Cliente", "Filial", "UF", "Município", "Cluster PIVOT", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Espessura", "Produto", "Produto Codigo", "Meta R$", "Meta KG",
     "Observação",
 ]
 
@@ -68,10 +70,21 @@ def targets_workbook_bytes(frame):
             "Nome consolidado exibido no painel, se a meta estiver nessa granularidade.",
             "Grupo do vendedor, se aplicável.",
             "Grupo de produto conforme a nomenclatura do painel.",
-            "Grupo econômico do cliente, conforme o DE/PARA interno.",
+            "Grupo econômico do cliente, conforme o DE/PARA interno no Supabase.",
             "Nome consolidado do cliente, se a meta estiver nessa granularidade.",
             "Razão social ou nome do cliente, se a meta estiver nessa granularidade.",
-            "Segmento do cliente, se a meta estiver nessa granularidade.",
+            "Segmento comercial do cliente, se a meta estiver nessa granularidade.",
+            "Canal/segmento comercial do cliente.",
+            "Tipologia/classificação do cliente.",
+            "Filial responsável.",
+            "UF do cliente.",
+            "Município do cliente.",
+            "Cluster PIVOT da cidade.",
+            "Subgrupo do produto.",
+            "Tipo do produto.",
+            "Especificação do produto.",
+            "Subespecificação do produto.",
+            "Espessura do produto.",
             "Produto/SKU, se a meta estiver nessa granularidade.",
             "Código do produto, se a meta estiver nessa granularidade.",
             "Meta em reais. Pode ficar vazia se a meta for definida somente em KG.",
@@ -183,7 +196,7 @@ def merge_target_history(existing, current):
     ).agg(aggregations).sort_values(["Competência", "Vendedor", "Grupo Produto"])
 
 
-def target_scope(targets, start_date, end_date, sellers=None, groups=None, client_group=None, client=None, client_text='', product_text=''):
+def target_scope(targets, start_date, end_date, sellers=None, groups=None, client_group=None, client=None, client_text='', product_text='', dimension_filters=None):
     """Aplica período e escopo comercial sem multiplicar a meta."""
     if targets is None or targets.empty:
         return pd.DataFrame(columns=TARGET_COLUMNS)
@@ -194,10 +207,10 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None, clien
     first = pd.Timestamp(start_date).to_period("M").start_time
     last = pd.Timestamp(end_date).to_period("M").start_time
     scoped = scoped[scoped["Competência"].between(first, last)]
-    if sellers:
+    if sellers and "Vendedor" in scoped and _has_dimension_values(scoped["Vendedor"]).any():
         normalized_sellers = {normalize_seller(seller) for seller in sellers}
         scoped = scoped[scoped["Vendedor"].astype(str).isin(normalized_sellers)]
-    if groups:
+    if groups and "Grupo Produto" in scoped and _has_dimension_values(scoped["Grupo Produto"]).any():
         normalized_groups = {normalize_product_group(group) for group in groups}
         scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
     if client_group and "Grupo Econômico Cliente" in scoped and _has_dimension_values(scoped["Grupo Econômico Cliente"]).any():
@@ -214,8 +227,25 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None, clien
             for column in client_columns:
                 selected |= scoped[column].fillna("").astype(str).str.contains(client_text, case=False, na=False)
             scoped = scoped[selected]
-    if product_text and "Produto" in scoped and _has_dimension_values(scoped["Produto"]).any():
-        scoped = scoped[scoped["Produto"].fillna("").astype(str).str.contains(product_text, case=False, na=False)]
+    if product_text:
+        product_columns = [column for column in ("Produto", "Produto Codigo") if column in scoped and _has_dimension_values(scoped[column]).any()]
+        if product_columns:
+            selected = pd.Series(False, index=scoped.index)
+            for column in product_columns:
+                selected |= scoped[column].fillna("").astype(str).str.contains(product_text, case=False, na=False)
+            scoped = scoped[selected]
+    dimension_filters = dimension_filters or {}
+    for column, values in dimension_filters.items():
+        if not values or column not in scoped or not _has_dimension_values(scoped[column]).any():
+            continue
+        if column in {"Vendedor", "Vendedor Painel", "Grupo Vendedor"}:
+            wanted = {normalize_seller(value) for value in values}
+            scoped = scoped[scoped[column].map(normalize_seller).isin(wanted)]
+        elif column == "Grupo Produto":
+            wanted = {normalize_product_group(value) for value in values}
+            scoped = scoped[scoped[column].map(normalize_product_group).isin(wanted)]
+        else:
+            scoped = scoped[scoped[column].astype(str).isin({str(value) for value in values})]
     return scoped
 
 
