@@ -1364,10 +1364,12 @@ def _command_target_totals(targets, start_date, end_date, filters=None, history=
         targets, start_date, end_date,
         sellers=(filters or {}).get("sellers"),
         groups=(filters or {}).get("groups"),
+        client_group=(filters or {}).get("client_group"),
+        client=(filters or {}).get("client"),
+        client_text=(filters or {}).get("client_text", ""),
+        product_text=(filters or {}).get("product_text", ""),
     )
-    # O relatório oficial de metas usa vendedor e grupo de produto. Quando há
-    # filtros adicionais de painel/grupo econômico, aplicamos apenas se a base
-    # de metas contém a dimensão correspondente.
+    # Filtros são aplicados somente quando a planilha contém a dimensão.
     for column, key in (("Vendedor Painel", "seller_panels"), ("Grupo Vendedor", "seller_groups")):
         selected = (filters or {}).get(key)
         if selected and column in scoped.columns:
