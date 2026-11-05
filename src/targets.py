@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
+import io
 
 import pandas as pd
 
@@ -16,6 +17,83 @@ TARGET_COLUMNS = [
     "Competência", "Vendedor", "Grupo Produto", "Meta KG", "Meta R$",
     "Fonte Meta KG", "Fonte Meta R$", "Metodologia R$",
 ]
+TARGET_OPTIONAL_DIMENSIONS = [
+    "Vendedor Painel", "Grupo Vendedor", "Grupo Econômico Cliente",
+    "Cliente Painel", "Cliente", "Segmento Cliente", "Produto", "Produto Codigo",
+]
+TARGET_WORKBOOK_COLUMNS = [
+    "Competência", "Vendedor", "Vendedor Painel", "Grupo Vendedor",
+    "Grupo Produto", "Grupo Econômico Cliente", "Cliente Painel", "Cliente",
+    "Segmento Cliente", "Produto", "Produto Codigo", "Meta R$", "Meta KG",
+    "Observação",
+]
+
+
+def read_targets_workbook(payload):
+    """Lê o arquivo de metas editável, aceitando a aba Metas ou a primeira aba."""
+    workbook = pd.ExcelFile(io.BytesIO(payload))
+    sheet = next((name for name in workbook.sheet_names if _plain(name) == "metas"), workbook.sheet_names[0])
+    frame = pd.read_excel(workbook, sheet_name=sheet)
+    frame.columns = [str(column).strip() for column in frame.columns]
+    if frame.empty:
+        return pd.DataFrame(columns=[*TARGET_WORKBOOK_COLUMNS, "Fonte Meta KG", "Fonte Meta R$", "Metodologia R$"])
+    if "Competência" not in frame.columns:
+        raise ValueError("A planilha de metas precisa da coluna Competência.")
+    for column in ("Meta KG", "Meta R$"):
+        if column not in frame.columns:
+            frame[column] = pd.NA
+        frame[column] = _number(frame[column]).fillna(0)
+    for column in TARGET_OPTIONAL_DIMENSIONS:
+        if column not in frame.columns:
+            frame[column] = ""
+        frame[column] = frame[column].fillna("").astype(str).str.strip()
+    frame["Competência"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+    frame = frame.dropna(subset=["Competência"])
+    return frame
+
+
+def targets_workbook_bytes(frame):
+    """Serializa metas em workbook Excel com instruções e dimensões opcionais."""
+    data = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    for column in TARGET_WORKBOOK_COLUMNS:
+        if column not in data.columns:
+            data[column] = ""
+    data = data[[*TARGET_WORKBOOK_COLUMNS, *[c for c in data.columns if c not in TARGET_WORKBOOK_COLUMNS]]]
+    output = io.BytesIO()
+    instructions = pd.DataFrame({
+        "Campo": TARGET_WORKBOOK_COLUMNS,
+        "Como preencher": [
+            "Mês da meta, preferencialmente como data no primeiro dia do mês.",
+            "Vendedor responsável. Deixe vazio apenas quando a meta não for atribuída a vendedor.",
+            "Nome consolidado exibido no painel, se a meta estiver nessa granularidade.",
+            "Grupo do vendedor, se aplicável.",
+            "Grupo de produto conforme a nomenclatura do painel.",
+            "Grupo econômico do cliente, conforme o DE/PARA interno.",
+            "Nome consolidado do cliente, se a meta estiver nessa granularidade.",
+            "Razão social ou nome do cliente, se a meta estiver nessa granularidade.",
+            "Segmento do cliente, se a meta estiver nessa granularidade.",
+            "Produto/SKU, se a meta estiver nessa granularidade.",
+            "Código do produto, se a meta estiver nessa granularidade.",
+            "Meta em reais. Pode ficar vazia se a meta for definida somente em KG.",
+            "Meta em quilogramas. Pode ficar vazia se a meta for definida somente em R$.",
+            "Observação livre para auditoria.",
+        ],
+    })
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        data.to_excel(writer, sheet_name="Metas", index=False)
+        instructions.to_excel(writer, sheet_name="Instruções", index=False)
+        for sheet_name in ("Metas", "Instruções"):
+            ws = writer.book[sheet_name]
+            ws.freeze_panes = "A2"
+            ws.auto_filter.ref = ws.dimensions
+            for column_cells in ws.columns:
+                width = min(max(max(len(str(cell.value or "")) for cell in column_cells) + 2, 14), 42)
+                ws.column_dimensions[column_cells[0].column_letter].width = width
+    return output.getvalue()
+
+
+def empty_targets_workbook_bytes():
+    return targets_workbook_bytes(pd.DataFrame(columns=TARGET_WORKBOOK_COLUMNS))
 
 
 def _plain(value):
@@ -131,11 +209,25 @@ def allocate_target(targets, history, dimension):
         history["Grupo Produto"] = history["Grupo Produto"].map(normalize_product_group)
     if dimension in ("Vendedor", "Grupo Produto"):
         return targets.groupby(dimension, as_index=False)[["Meta R$", "Meta KG"]].sum(), {"Meta R$": 0.0, "Meta KG": 0.0}
-    if dimension not in history:
+    if dimension not in history and dimension not in targets:
         return pd.DataFrame(), {"Meta R$": float(targets["Meta R$"].sum()), "Meta KG": float(targets["Meta KG"].sum())}
 
     allocations = []
     unallocated = {"Meta R$": 0.0, "Meta KG": 0.0}
+    if dimension in targets.columns:
+        explicit = targets[targets[dimension].fillna("").astype(str).str.strip().ne("")]
+        if not explicit.empty:
+            allocations.append(explicit.groupby(dimension, dropna=False, as_index=False)[["Meta R$", "Meta KG"]].sum())
+        targets = targets[targets[dimension].fillna("").astype(str).str.strip().eq("")]
+    if targets.empty:
+        if not allocations:
+            return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), unallocated
+        combined = pd.concat(allocations, ignore_index=True).groupby(dimension, dropna=False, as_index=False)[["Meta R$", "Meta KG"]].sum()
+        return combined.sort_values("Meta R$", ascending=False), unallocated
+    if dimension not in history:
+        return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), {
+            "Meta R$": float(targets["Meta R$"].sum()), "Meta KG": float(targets["Meta KG"].sum())
+        }
     for competence, monthly_target in targets.groupby("Competência"):
         # Três meses-calendário completos imediatamente anteriores à competência.
         start = competence - pd.DateOffset(months=3)
