@@ -356,16 +356,22 @@ def _read_dataset(dataset, path=None, *, required=False):
             source = Path(path)
             if not source.exists():
                 raise FileNotFoundError("Arquivo de desenvolvimento não encontrado.")
-            compression = "infer"
+            payload = source.read_bytes()
         elif is_configured():
-            source = io.BytesIO(download_bytes(object_path=dataset_path(dataset)))
-            compression = "gzip"
+            payload = download_bytes(object_path=dataset_path(dataset))
         else:
             source = local_path(dataset)
             if not source.exists():
                 raise FileNotFoundError("Base não encontrada. Configure o Supabase ou a base de desenvolvimento.")
-            compression = "infer"
-        return pd.read_csv(source, low_memory=False, compression=compression)
+            payload = source.read_bytes()
+
+        if dataset == "targets" and payload[:2] == b"PK":
+            from src.targets import read_targets_workbook
+            return read_targets_workbook(payload)
+        if payload[:2] == b"PK":
+            return pd.read_excel(io.BytesIO(payload))
+        compression = "gzip" if payload.startswith(bytes((31, 139))) else "infer"
+        return pd.read_csv(io.BytesIO(payload), low_memory=False, compression=compression)
     except Exception as error:
         logging.getLogger(__name__).warning("Base %s indisponível (%s)", dataset, type(error).__name__)
         if required:
@@ -406,7 +412,8 @@ def load_targets(path=None):
     result=apply_depara(result)
     if "Grupo Produto" in result: result["Grupo Produto"]=result["Grupo Produto"].map(normalize_product_group)
     for column in ("Meta KG","Meta R$"):
-        if column in result: result[column]=pd.to_numeric(result[column],errors="coerce")
+        if column not in result: result[column]=0.0
+        result[column]=pd.to_numeric(result[column],errors="coerce").fillna(0)
     return result
 
 def load_flow(path=None):
