@@ -600,13 +600,9 @@ with st.sidebar:
         label=f"Grupo · {value}" if value in group_values else f"Cliente sem grupo · {value}"
         option_to_value[label]=value
         option_labels.append(label)
-    if mapping_available:
-        st.caption(f"DE/PARA ativo · {len(group_values):,} grupo(s) econômico(s) disponíveis.".replace(",", "."))
-    else:
-        st.warning("A lista mostra razões sociais individuais enquanto a referência de grupos estiver indisponível. A administração dos grupos é feita diretamente no Supabase.")
     client_scope=st.selectbox(
         "Grupo de clientes", ["Todos os grupos"] + option_labels, index=0,
-        help="Grupos econômicos vêm do DE/PARA privado. Clientes sem grupo aparecem identificados pela razão social. A razão social dos membros do grupo fica disponível no drill-down da aba Clientes.",
+        help="Clientes vinculados ao mesmo grupo econômico aparecem juntos. Clientes sem grupo são identificados pela razão social. A razão social dos membros fica disponível no drill-down da aba Clientes.",
     )
     selected_client=option_to_value[client_scope]
     st.subheader("Mais filtros")
