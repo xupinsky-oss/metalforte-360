@@ -1,4 +1,11 @@
-# METALFORTE 360 v2.27.27
+# METALFORTE 360 v2.27.28
+
+## Verificação automática dos painéis — v2.27.28
+
+- O GitHub executa a suíte de testes e verifica a sintaxe a cada pull request, publicação na `main` ou execução manual.
+- Os testes abrem as páginas comerciais e operacionais com dados de exemplo para encontrar falhas de renderização antes da publicação.
+- A inicialização repete importações de módulos do painel quando o Streamlit está atualizando os arquivos, reduzindo falhas transitórias durante a troca de versão.
+- O teste local atual passou: 84 testes, incluindo abertura das páginas de pedidos, estoque, validação DE/PARA, direcionador comercial e fechamento.
 
 ## DE/PARA editável no Supabase — v2.27.27
 

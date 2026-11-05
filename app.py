@@ -11,21 +11,25 @@ import time
 from pathlib import Path
 
 
-def _load_data_module():
-    """Retry transient import-cache races while Streamlit refreshes source files."""
-    for attempt in range(4):
+def _load_src_module(module_name, attempts=5):
+    """Retry transient src.* import races while Streamlit refreshes source files."""
+    for attempt in range(attempts):
         try:
-            return importlib.import_module("src.data")
-        except KeyError as error:
-            # Python can raise KeyError from sys.modules if a hot reload removes
-            # a dependency while another Streamlit session is importing it.
-            if not error.args or not (str(error.args[0]) == "src" or str(error.args[0]).startswith("src.")) or attempt == 3:
+            return importlib.import_module(module_name)
+        except (KeyError, ModuleNotFoundError) as error:
+            missing = getattr(error, "name", None)
+            if missing is None and error.args:
+                missing = str(error.args[0])
+            is_project_import = bool(missing) and (
+                missing == "src" or missing.startswith("src.")
+            )
+            if not is_project_import or attempt + 1 >= attempts:
                 raise
             importlib.invalidate_caches()
             time.sleep(0.15 * (attempt + 1))
 
 
-_data_module = _load_data_module()
+_data_module = _load_src_module("src.data")
 load_data = _data_module.load_data
 load_targets = _data_module.load_targets
 apply_filters = _data_module.apply_filters
@@ -39,23 +43,42 @@ except (ImportError, AttributeError):
     def prepare_depara_upload(payload): raise RuntimeError("A versão do aplicativo ainda não oferece importação do DE/PARA.")
     publish_depara = prepare_depara_upload
     def clear_depara_cache(): pass
-from src.dimensions import normalize_seller
+normalize_seller = _load_src_module("src.dimensions").normalize_seller
 try:
     # Evita indisponibilidade durante a troca de versão no Streamlit Cloud,
     # quando app.py pode reiniciar antes de src/data.py ser recarregado.
-    from src.data import load_stock, load_pedidos_realizado
+    load_stock = _load_src_module("src.data").load_stock
+    load_pedidos_realizado = _load_src_module("src.data").load_pedidos_realizado
 except ImportError:
     def load_stock():
         return pd.DataFrame()
     def load_pedidos_realizado():
         return pd.DataFrame()
-from src.analytics import metrics,group_metrics,client_classification,quick_insights,forecast_year,price_analysis,build_opportunities,monitoring_snapshot,compare_periods,commercial_command_center,market_watch
-from src.assistant import answer
-from src.cloud_storage import download_status, upload_bytes, is_configured, object_version
-from src.data_catalog import object_path as dataset_path
-from src.operational_dashboard import render as render_operational_dashboard
-from src.auth import require_login, logout, ROLE_LABELS
-from src.version import APP_RELEASE
+_analytics = _load_src_module("src.analytics")
+metrics = _analytics.metrics
+group_metrics = _analytics.group_metrics
+client_classification = _analytics.client_classification
+quick_insights = _analytics.quick_insights
+forecast_year = _analytics.forecast_year
+price_analysis = _analytics.price_analysis
+build_opportunities = _analytics.build_opportunities
+monitoring_snapshot = _analytics.monitoring_snapshot
+compare_periods = _analytics.compare_periods
+commercial_command_center = _analytics.commercial_command_center
+market_watch = _analytics.market_watch
+answer = _load_src_module("src.assistant").answer
+_cloud_storage = _load_src_module("src.cloud_storage")
+download_status = _cloud_storage.download_status
+upload_bytes = _cloud_storage.upload_bytes
+is_configured = _cloud_storage.is_configured
+object_version = _cloud_storage.object_version
+dataset_path = _load_src_module("src.data_catalog").object_path
+render_operational_dashboard = _load_src_module("src.operational_dashboard").render
+_auth = _load_src_module("src.auth")
+require_login = _auth.require_login
+logout = _auth.logout
+ROLE_LABELS = _auth.ROLE_LABELS
+APP_RELEASE = _load_src_module("src.version").APP_RELEASE
 
 st.set_page_config(page_title="Metalforte 360",layout="wide",page_icon=str(Path(__file__).parent / "LOGO_METALFORTE.jpg"))
 px.defaults.template="plotly_white"
