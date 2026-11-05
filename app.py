@@ -572,15 +572,6 @@ with st.sidebar:
         get_stock.clear()
         get_pedidos_realizado.clear()
         st.rerun()
-    if access["role"] == "admin":
-        with st.expander("DE/PARA de clientes e vendedores"):
-            if reference_version.startswith("db:") and depara_available():
-                st.success("Agrupamentos conectados às tabelas do Supabase.")
-            else:
-                st.warning("A referência central ainda não está disponível nesta sessão.")
-            st.caption("Edite grupo_economico em depara_clientes; vendedor_painel e classificacao em depara_vendedores. Clientes sem grupo usam a razão social. Preserve códigos, loja e nomes de cadastro para manter os vínculos com as vendas.")
-            st.link_button("Editar DE/PARA no Supabase", "https://supabase.com/dashboard/project/uaqekqgnwxpbfetqxmnb/editor", width="stretch")
-            st.caption("Após salvar, use Atualizar visualização. A versão também é consultada no próximo uso do painel, com cache de até 60 segundos.")
     with st.container(key="period_filter"):
         st.subheader("Período")
         with st.form("period_form",border=False):
@@ -616,7 +607,7 @@ with st.sidebar:
     if mapping_available:
         st.caption(f"DE/PARA ativo · {len(group_values):,} grupo(s) econômico(s) disponíveis.".replace(",", "."))
     else:
-        st.warning("DE/PARA de clientes indisponível. A lista abaixo mostra razões sociais individuais; os grupos econômicos só aparecem após carregar o arquivo DE/PARA na seção acima.")
+        st.warning("A lista mostra razões sociais individuais enquanto a referência de grupos estiver indisponível. A administração dos grupos é feita diretamente no Supabase.")
     client_scope=st.selectbox(
         "Grupo de clientes", ["Todos os grupos"] + option_labels, index=0,
         help="Grupos econômicos vêm do DE/PARA privado. Clientes sem grupo aparecem identificados pela razão social. A razão social dos membros do grupo fica disponível no drill-down da aba Clientes.",
@@ -698,6 +689,7 @@ target_filters={
     "seller_groups": grupo_vendedor,
     "groups": grupo,
     "client": selected_client,
+    "client_group": grupo_economico,
     "client_text": ct,
     "product_text": pt,
 }
