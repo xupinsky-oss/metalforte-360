@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
+import io
 
 import pandas as pd
 
@@ -16,11 +17,108 @@ TARGET_COLUMNS = [
     "Competência", "Vendedor", "Grupo Produto", "Meta KG", "Meta R$",
     "Fonte Meta KG", "Fonte Meta R$", "Metodologia R$",
 ]
+TARGET_OPTIONAL_DIMENSIONS = [
+    "Vendedor Painel", "Grupo Vendedor", "Grupo Econômico Cliente",
+    "Cliente Painel", "Cliente", "Segmento Cliente", "Canal", "Tipologia Cliente",
+    "Filial", "UF", "Município", "Cluster PIVOT", "Subgrupo Produto", "Tipo Produto",
+    "ESPEC.", "Sub Espec.", "Espessura", "Produto", "Produto Codigo",
+]
+TARGET_WORKBOOK_COLUMNS = [
+    "Competência", "Vendedor", "Vendedor Painel", "Grupo Vendedor",
+    "Grupo Produto", "Grupo Econômico Cliente", "Cliente Painel", "Cliente",
+    "Segmento Cliente", "Canal", "Tipologia Cliente", "Filial", "UF", "Município", "Cluster PIVOT", "Subgrupo Produto", "Tipo Produto", "ESPEC.", "Sub Espec.", "Espessura", "Produto", "Produto Codigo", "Meta R$", "Meta KG",
+    "Observação",
+]
+
+
+def read_targets_workbook(payload):
+    """Lê o arquivo de metas editável, aceitando a aba Metas ou a primeira aba."""
+    workbook = pd.ExcelFile(io.BytesIO(payload))
+    sheet = next((name for name in workbook.sheet_names if _plain(name) == "metas"), workbook.sheet_names[0])
+    frame = pd.read_excel(workbook, sheet_name=sheet)
+    frame.columns = [str(column).strip() for column in frame.columns]
+    if frame.empty:
+        return pd.DataFrame(columns=[*TARGET_WORKBOOK_COLUMNS, "Fonte Meta KG", "Fonte Meta R$", "Metodologia R$"])
+    if "Competência" not in frame.columns:
+        raise ValueError("A planilha de metas precisa da coluna Competência.")
+    for column in ("Meta KG", "Meta R$"):
+        if column not in frame.columns:
+            frame[column] = pd.NA
+        frame[column] = _number(frame[column]).fillna(0)
+    for column in TARGET_OPTIONAL_DIMENSIONS:
+        if column not in frame.columns:
+            frame[column] = ""
+        frame[column] = frame[column].fillna("").astype(str).str.strip()
+    frame["Competência"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").dt.start_time
+    frame = frame.dropna(subset=["Competência"])
+    return frame
+
+
+def targets_workbook_bytes(frame):
+    """Serializa metas em workbook Excel com instruções e dimensões opcionais."""
+    data = frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    for column in TARGET_WORKBOOK_COLUMNS:
+        if column not in data.columns:
+            data[column] = ""
+    data = data[[*TARGET_WORKBOOK_COLUMNS, *[c for c in data.columns if c not in TARGET_WORKBOOK_COLUMNS]]]
+    output = io.BytesIO()
+    instructions = pd.DataFrame({
+        "Campo": TARGET_WORKBOOK_COLUMNS,
+        "Como preencher": [
+            "Mês da meta, preferencialmente como data no primeiro dia do mês.",
+            "Vendedor responsável. Deixe vazio apenas quando a meta não for atribuída a vendedor.",
+            "Nome consolidado exibido no painel, se a meta estiver nessa granularidade.",
+            "Grupo do vendedor, se aplicável.",
+            "Grupo de produto conforme a nomenclatura do painel.",
+            "Grupo econômico do cliente, conforme o DE/PARA interno no Supabase.",
+            "Nome consolidado do cliente, se a meta estiver nessa granularidade.",
+            "Razão social ou nome do cliente, se a meta estiver nessa granularidade.",
+            "Segmento comercial do cliente, se a meta estiver nessa granularidade.",
+            "Canal/segmento comercial do cliente.",
+            "Tipologia/classificação do cliente.",
+            "Filial responsável.",
+            "UF do cliente.",
+            "Município do cliente.",
+            "Cluster PIVOT da cidade.",
+            "Subgrupo do produto.",
+            "Tipo do produto.",
+            "Especificação do produto.",
+            "Subespecificação do produto.",
+            "Espessura do produto.",
+            "Produto/SKU, se a meta estiver nessa granularidade.",
+            "Código do produto, se a meta estiver nessa granularidade.",
+            "Meta em reais. Pode ficar vazia se a meta for definida somente em KG.",
+            "Meta em quilogramas. Pode ficar vazia se a meta for definida somente em R$.",
+            "Observação livre para auditoria.",
+        ],
+    })
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        data.to_excel(writer, sheet_name="Metas", index=False)
+        instructions.to_excel(writer, sheet_name="Instruções", index=False)
+        for sheet_name in ("Metas", "Instruções"):
+            ws = writer.book[sheet_name]
+            ws.freeze_panes = "A2"
+            ws.auto_filter.ref = ws.dimensions
+            for column_cells in ws.columns:
+                width = min(max(max(len(str(cell.value or "")) for cell in column_cells) + 2, 14), 42)
+                ws.column_dimensions[column_cells[0].column_letter].width = width
+    return output.getvalue()
+
+
+def empty_targets_workbook_bytes():
+    return targets_workbook_bytes(pd.DataFrame(columns=TARGET_WORKBOOK_COLUMNS))
 
 
 def _plain(value):
     text = unicodedata.normalize("NFKD", str(value))
     return re.sub(r"[^a-z0-9]+", " ", "".join(ch for ch in text if not unicodedata.combining(ch)).lower()).strip()
+
+
+def _has_dimension_values(series):
+    """Ignora vazios e rótulos sentinela ao detectar uma dimensão preenchida."""
+    return series.fillna("").astype(str).str.strip().map(
+        lambda value: bool(value) and _plain(value) not in {"naomapeado", "naoinformado", "naclassificado"}
+    )
 
 
 def _number(series):
@@ -98,7 +196,7 @@ def merge_target_history(existing, current):
     ).agg(aggregations).sort_values(["Competência", "Vendedor", "Grupo Produto"])
 
 
-def target_scope(targets, start_date, end_date, sellers=None, groups=None):
+def target_scope(targets, start_date, end_date, sellers=None, groups=None, client_group=None, client=None, client_text='', product_text='', dimension_filters=None):
     """Aplica período e escopo comercial sem multiplicar a meta."""
     if targets is None or targets.empty:
         return pd.DataFrame(columns=TARGET_COLUMNS)
@@ -109,12 +207,45 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     first = pd.Timestamp(start_date).to_period("M").start_time
     last = pd.Timestamp(end_date).to_period("M").start_time
     scoped = scoped[scoped["Competência"].between(first, last)]
-    if sellers:
+    if sellers and "Vendedor" in scoped and _has_dimension_values(scoped["Vendedor"]).any():
         normalized_sellers = {normalize_seller(seller) for seller in sellers}
         scoped = scoped[scoped["Vendedor"].astype(str).isin(normalized_sellers)]
-    if groups:
+    if groups and "Grupo Produto" in scoped and _has_dimension_values(scoped["Grupo Produto"]).any():
         normalized_groups = {normalize_product_group(group) for group in groups}
         scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
+    if client_group and "Grupo Econômico Cliente" in scoped and _has_dimension_values(scoped["Grupo Econômico Cliente"]).any():
+        scoped = scoped[scoped["Grupo Econômico Cliente"].astype(str).isin([str(value) for value in client_group])]
+    if client and client != "Todos os grupos":
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped and _has_dimension_values(scoped[column]).any()]
+        if client_columns:
+            selected = scoped[client_columns].fillna("").astype(str).eq(str(client)).any(axis=1)
+            scoped = scoped[selected]
+    if client_text:
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped and _has_dimension_values(scoped[column]).any()]
+        if client_columns:
+            selected = pd.Series(False, index=scoped.index)
+            for column in client_columns:
+                selected |= scoped[column].fillna("").astype(str).str.contains(client_text, case=False, na=False)
+            scoped = scoped[selected]
+    if product_text:
+        product_columns = [column for column in ("Produto", "Produto Codigo") if column in scoped and _has_dimension_values(scoped[column]).any()]
+        if product_columns:
+            selected = pd.Series(False, index=scoped.index)
+            for column in product_columns:
+                selected |= scoped[column].fillna("").astype(str).str.contains(product_text, case=False, na=False)
+            scoped = scoped[selected]
+    dimension_filters = dimension_filters or {}
+    for column, values in dimension_filters.items():
+        if not values or column not in scoped or not _has_dimension_values(scoped[column]).any():
+            continue
+        if column in {"Vendedor", "Vendedor Painel", "Grupo Vendedor"}:
+            wanted = {normalize_seller(value) for value in values}
+            scoped = scoped[scoped[column].map(normalize_seller).isin(wanted)]
+        elif column == "Grupo Produto":
+            wanted = {normalize_product_group(value) for value in values}
+            scoped = scoped[scoped[column].map(normalize_product_group).isin(wanted)]
+        else:
+            scoped = scoped[scoped[column].astype(str).isin({str(value) for value in values})]
     return scoped
 
 
@@ -131,11 +262,26 @@ def allocate_target(targets, history, dimension):
         history["Grupo Produto"] = history["Grupo Produto"].map(normalize_product_group)
     if dimension in ("Vendedor", "Grupo Produto"):
         return targets.groupby(dimension, as_index=False)[["Meta R$", "Meta KG"]].sum(), {"Meta R$": 0.0, "Meta KG": 0.0}
-    if dimension not in history:
+    if dimension not in history and dimension not in targets:
         return pd.DataFrame(), {"Meta R$": float(targets["Meta R$"].sum()), "Meta KG": float(targets["Meta KG"].sum())}
 
     allocations = []
     unallocated = {"Meta R$": 0.0, "Meta KG": 0.0}
+    if dimension in targets.columns:
+        explicit_mask = _has_dimension_values(targets[dimension])
+        explicit = targets[explicit_mask]
+        if not explicit.empty:
+            allocations.append(explicit.groupby(dimension, dropna=False, as_index=False)[["Meta R$", "Meta KG"]].sum())
+        targets = targets[~explicit_mask]
+    if targets.empty:
+        if not allocations:
+            return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), unallocated
+        combined = pd.concat(allocations, ignore_index=True).groupby(dimension, dropna=False, as_index=False)[["Meta R$", "Meta KG"]].sum()
+        return combined.sort_values("Meta R$", ascending=False), unallocated
+    if dimension not in history:
+        return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), {
+            "Meta R$": float(targets["Meta R$"].sum()), "Meta KG": float(targets["Meta KG"].sum())
+        }
     for competence, monthly_target in targets.groupby("Competência"):
         # Três meses-calendário completos imediatamente anteriores à competência.
         start = competence - pd.DateOffset(months=3)

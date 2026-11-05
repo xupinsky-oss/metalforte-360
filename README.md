@@ -1,4 +1,13 @@
-# METALFORTE 360 v2.27.28
+# METALFORTE 360 v2.27.29
+
+## Metas editáveis no Supabase — v2.27.29
+
+- A meta deixa de ser consultada nas cargas horárias do GoodData. O arquivo oficial é `bases/metalforte_metas.xlsx`, no bucket privado `metalforte-private`.
+- Na primeira carga após a publicação, se o XLSX ainda não existir, o ETL migra o snapshot anterior ou faz uma migração única do histórico GoodData para o Excel. Não publica arquivo vazio se a migração falhar.
+- Depois da migração, a carga horária preserva o XLSX; as alterações feitas nele não são substituídas pelo ETL.
+- A planilha aceita meta por vendedor, grupo de produto, cliente, SKU, segmento e demais dimensões opcionais. As comparações filtram o realizado apenas nas dimensões preenchidas na planilha, evitando comparar meta detalhada com faturamento cortado em outro grão.
+- Instruções de edição: `docs/METAS_NO_SUPABASE.md`.
+- O painel não oferece upload nem edição do DE/PARA. O arquivo e as tabelas de DE/PARA continuam sob administração interna no Supabase e são aplicados pelo backend.
 
 ## Verificação automática dos painéis — v2.27.28
 
@@ -100,7 +109,7 @@ Todos os indicadores respeitam os filtros globais da barra lateral.
 
 ## Metas e orçamento
 
-A aba **Metas** compara os resultados às metas oficiais mensais. Vendedor e grupo de produto preservam o grão oficial. Cliente e produto são alocações gerenciais identificadas, calculadas pela participação no peso faturado dos 3 meses-calendário anteriores à competência, com saldo sem histórico mantido como não alocado.
+A aba **Metas** lê a planilha privada `bases/metalforte_metas.xlsx` no Supabase. O detalhamento e a responsabilidade por editar valores ficam no Excel, com competências mensais. As granularidades preenchidas na planilha determinam como faturamento e pedidos serão cruzados; dimensões vazias permanecem agregadas. Consulte `docs/METAS_NO_SUPABASE.md`.
 
 ## Gestão de acessos
 
