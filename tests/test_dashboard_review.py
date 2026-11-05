@@ -55,7 +55,8 @@ class DashboardLogicReviewTests(unittest.TestCase):
 
 class DashboardPageSmokeTests(unittest.TestCase):
     @staticmethod
-    def _script(permission):
+    def _script(permission, *, extra_permissions=()):
+        permissions = {permission, *extra_permissions}
         return f'''
 import pandas as pd
 import streamlit as st
@@ -103,7 +104,7 @@ render(
     current, history, "2026-09-01", "2026-09-30", "23/09/2026 às 07:00",
     brl, brl, pct, lambda value: f"{{value:+.2f}} p.p.",
     lambda fig: st.plotly_chart(fig), lambda frame, **kwargs: st.dataframe(frame),
-    permissions=set([{permission!r}]), current_user={{}}, targets=targets, target_history=history,
+    permissions={permissions!r}, current_user={{}}, targets=targets, target_history=history,
     target_filters={{}}, commercial_indicators={{
         "orcamentos_abertos_valor": 1000.0, "pedidos_pendentes_valor": 800.0,
         "aguardando_os_peso": 100.0, "aguardando_faturamento_peso": 50.0,
@@ -122,6 +123,43 @@ render(
         for permission in permissions:
             with self.subTest(permission=permission):
                 app = AppTest.from_string(self._script(permission)).run(timeout=30)
+                self.assertEqual(list(app.exception), [])
+
+    def test_operational_pages_open_without_runtime_error(self):
+        cases = [
+            (
+                "Pedidos × faturado",
+                "view_overview",
+                {"view_order_actual"},
+            ),
+            (
+                "Estoque",
+                "view_overview",
+                {"view_stock"},
+            ),
+            (
+                "Validação DE/PARA",
+                "view_overview",
+                {"view_clients", "view_sellers"},
+            ),
+            (
+                "Direcionador comercial",
+                "view_insights",
+                set(),
+            ),
+            (
+                "Fechamento e exportação",
+                "view_overview",
+                {"export_data"},
+            ),
+        ]
+        for page, permission, extra_permissions in cases:
+            with self.subTest(page=page):
+                app = AppTest.from_string(
+                    self._script(permission, extra_permissions=extra_permissions)
+                ).run(timeout=30)
+                app.segmented_control(key="mf_page").set_value(page)
+                app.run(timeout=30)
                 self.assertEqual(list(app.exception), [])
 
     def test_navigation_no_longer_exposes_funnel(self):
