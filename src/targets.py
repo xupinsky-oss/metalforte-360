@@ -176,7 +176,7 @@ def merge_target_history(existing, current):
     ).agg(aggregations).sort_values(["Competência", "Vendedor", "Grupo Produto"])
 
 
-def target_scope(targets, start_date, end_date, sellers=None, groups=None):
+def target_scope(targets, start_date, end_date, sellers=None, groups=None, client_group=None, client=None, client_text='', product_text=''):
     """Aplica período e escopo comercial sem multiplicar a meta."""
     if targets is None or targets.empty:
         return pd.DataFrame(columns=TARGET_COLUMNS)
@@ -193,6 +193,22 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None):
     if groups:
         normalized_groups = {normalize_product_group(group) for group in groups}
         scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
+    if client_group and "Grupo Econômico Cliente" in scoped:
+        scoped = scoped[scoped["Grupo Econômico Cliente"].astype(str).isin([str(value) for value in client_group])]
+    if client and client != "Todos os grupos":
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped]
+        if client_columns:
+            selected = scoped[client_columns].fillna("").astype(str).eq(str(client)).any(axis=1)
+            scoped = scoped[selected]
+    if client_text:
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped]
+        if client_columns:
+            selected = pd.Series(False, index=scoped.index)
+            for column in client_columns:
+                selected |= scoped[column].fillna("").astype(str).str.contains(client_text, case=False, na=False)
+            scoped = scoped[selected]
+    if product_text and "Produto" in scoped:
+        scoped = scoped[scoped["Produto"].fillna("").astype(str).str.contains(product_text, case=False, na=False)]
     return scoped
 
 
