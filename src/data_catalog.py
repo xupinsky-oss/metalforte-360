@@ -5,7 +5,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[1]
 DATASETS = {
     "sales": ("SUPABASE_DATA_PATH", "metalforte_base.csv.gz"),
-    "targets": ("SUPABASE_TARGET_PATH", "metalforte_metas.csv.gz"),
+    "targets": ("SUPABASE_TARGET_XLSX_PATH", "metalforte_metas.xlsx"),
     "stock": ("SUPABASE_STOCK_PATH", "metalforte_estoque.csv.gz"),
     "flow": ("SUPABASE_FLOW_PATH", "metalforte_fluxo.csv.gz"),
     "orders": ("SUPABASE_ORDERS_ACTUAL_PATH", "metalforte_pedidos_realizado.csv.gz"),
