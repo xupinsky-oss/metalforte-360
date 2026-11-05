@@ -674,9 +674,8 @@ if chart_filter:
     monitor_scope=_filter_chart_dimension(monitor_scope,*chart_filter)
 f=apply_filters(monitor_scope,start_date=start_date,end_date=end_date)
 def target_history_loader():
-    # Metas não têm grão de cliente; o filtro de grupo econômico não reduz o
-    # realizado isoladamente para evitar comparar meta integral com cliente parcial.
-    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp)
+    # O realizado acompanha os filtros da carteira quando a planilha contém meta nessa granularidade.
+    result=apply_filters(df,filial=filial,uf=uf,municipio=city,cidade_pivot=cidade_pivot,vendedor=vend,vendedor_painel=vendedor_painel,grupo_vendedor=grupo_vendedor,grupo_economico=grupo_economico,canal=canal,tipologia=tipologia,grupo=grupo,subgrupo=subgrupo,tipo=tipo,espec=espec,sub_espec=sub_espec,espessura=esp,cliente=selected_client,cliente_text=ct,produto_text=pt)
     return _filter_chart_dimension(result,*chart_filter) if chart_filter else result
 
 def inventory_history_loader():
