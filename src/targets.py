@@ -101,6 +101,13 @@ def _plain(value):
     return re.sub(r"[^a-z0-9]+", " ", "".join(ch for ch in text if not unicodedata.combining(ch)).lower()).strip()
 
 
+def _has_dimension_values(series):
+    """Ignora vazios e rótulos sentinela ao detectar uma dimensão preenchida."""
+    return series.fillna("").astype(str).str.strip().map(
+        lambda value: bool(value) and _plain(value) not in {"naomapeado", "naoinformado", "naclassificado"}
+    )
+
+
 def _number(series):
     if pd.api.types.is_numeric_dtype(series):
         return pd.to_numeric(series, errors="coerce")
@@ -193,21 +200,21 @@ def target_scope(targets, start_date, end_date, sellers=None, groups=None, clien
     if groups:
         normalized_groups = {normalize_product_group(group) for group in groups}
         scoped = scoped[scoped["Grupo Produto"].isin(normalized_groups)]
-    if client_group and "Grupo Econômico Cliente" in scoped:
+    if client_group and "Grupo Econômico Cliente" in scoped and _has_dimension_values(scoped["Grupo Econômico Cliente"]).any():
         scoped = scoped[scoped["Grupo Econômico Cliente"].astype(str).isin([str(value) for value in client_group])]
     if client and client != "Todos os grupos":
-        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped]
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped and _has_dimension_values(scoped[column]).any()]
         if client_columns:
             selected = scoped[client_columns].fillna("").astype(str).eq(str(client)).any(axis=1)
             scoped = scoped[selected]
     if client_text:
-        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped]
+        client_columns = [column for column in ("Cliente Painel", "Grupo Econômico Cliente", "Cliente") if column in scoped and _has_dimension_values(scoped[column]).any()]
         if client_columns:
             selected = pd.Series(False, index=scoped.index)
             for column in client_columns:
                 selected |= scoped[column].fillna("").astype(str).str.contains(client_text, case=False, na=False)
             scoped = scoped[selected]
-    if product_text and "Produto" in scoped:
+    if product_text and "Produto" in scoped and _has_dimension_values(scoped["Produto"]).any():
         scoped = scoped[scoped["Produto"].fillna("").astype(str).str.contains(product_text, case=False, na=False)]
     return scoped
 
@@ -231,10 +238,11 @@ def allocate_target(targets, history, dimension):
     allocations = []
     unallocated = {"Meta R$": 0.0, "Meta KG": 0.0}
     if dimension in targets.columns:
-        explicit = targets[targets[dimension].fillna("").astype(str).str.strip().ne("")]
+        explicit_mask = _has_dimension_values(targets[dimension])
+        explicit = targets[explicit_mask]
         if not explicit.empty:
             allocations.append(explicit.groupby(dimension, dropna=False, as_index=False)[["Meta R$", "Meta KG"]].sum())
-        targets = targets[targets[dimension].fillna("").astype(str).str.strip().eq("")]
+        targets = targets[~explicit_mask]
     if targets.empty:
         if not allocations:
             return pd.DataFrame(columns=[dimension, "Meta R$", "Meta KG"]), unallocated
