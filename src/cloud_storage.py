@@ -58,6 +58,21 @@ def object_version(object_path, timeout=10):
     return response.headers.get("ETag") or response.headers.get("Last-Modified") or "unversioned"
 
 
+def depara_rpc(name, timeout=60):
+    """Leitura server-side das referências; a chave administrativa não sai do servidor."""
+    if name not in {"metalforte_depara_version", "metalforte_depara_snapshot"}:
+        raise ValueError("Consulta de referência não permitida.")
+    if not is_configured():
+        raise RuntimeError("Supabase não configurado.")
+    base_url, _, _, _ = _settings()
+    response = requests.post(
+        f"{base_url}/rest/v1/rpc/{name}", headers=_headers("application/json"),
+        json={}, timeout=timeout,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def download_status(timeout=30):
     """Retorna os metadados da última carga publicada junto com a base."""
     if not is_configured():

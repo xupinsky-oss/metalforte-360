@@ -1,3 +1,3 @@
 """Identificação visível da versão publicada do painel."""
 
-APP_RELEASE = "2.27.26"
+APP_RELEASE = "2.27.27"

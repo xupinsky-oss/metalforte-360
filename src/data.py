@@ -5,10 +5,11 @@ import unicodedata
 import time
 import logging
 import hashlib
+import requests
 from functools import lru_cache
 from pathlib import Path
 import pandas as pd
-from src.cloud_storage import download_bytes, is_configured, upload_bytes
+from src.cloud_storage import download_bytes, is_configured, upload_bytes, object_version, depara_rpc
 from src.dimensions import normalize_dimensions
 from src.product_groups import normalize_product_group
 from src.data_catalog import object_path as dataset_path, local_path
@@ -30,7 +31,27 @@ def set_depara_version(version):
 
 
 def _depara_cache_key():
-    return _DEPARA_VERSION if _DEPARA_VERSION is not None else int(time.time() // 60)
+    if _DEPARA_VERSION is not None:
+        return _DEPARA_VERSION
+    try:
+        return depara_reference_version()
+    except Exception:
+        return "unavailable"
+
+
+def depara_reference_version():
+    """Tabelas são a fonte principal; Excel só atende instalações ainda não migradas."""
+    if not is_configured():
+        return "local"
+    try:
+        meta = depara_rpc("metalforte_depara_version", timeout=10)
+        if meta and meta.get("ready"):
+            return f"db:{meta['version']}"
+        return "database-loading"
+    except requests.HTTPError as error:
+        if error.response is None or error.response.status_code != 404:
+            raise
+    return object_version(dataset_path("depara"))
 
 
 def _location_key(value):
@@ -71,75 +92,89 @@ def _cached_depara(object_path, version_window=0):
     if not is_configured():
         return None
     try:
-        payload = download_bytes(object_path=object_path)
-        workbook = pd.ExcelFile(io.BytesIO(payload), engine="openpyxl")
-        seller_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparavendedor"), None)
-        client_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparacliente"), None)
-        if not seller_sheet or not client_sheet:
-            return None
-        sellers = _read_mapping_sheet(workbook, seller_sheet)
-        clients = _read_mapping_sheet(workbook, client_sheet)
-
-        seller_source = _first_column(sellers, ("VENDEDOR CADASTRO",))
-        seller_panel = _first_column(sellers, ("VENDEDOR PAINEL",))
-        seller_group = _first_column(sellers, ("CLASSIFICAÇÃO", "CLASSIFICACAO"))
-        customer_code = _first_column(clients, ("Cód. Cliente", "Cod. Cliente", "Código Cliente", "Cod Cliente"))
-        customer_branch = _first_column(clients, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
-        customer_name = _first_column(clients, ("Cliente", "Nome Cliente"))
-        economic_group = _first_column(clients, ("GRUPO ECONOMICO", "Grupo Econômico", "Grupo Economico"))
-        if not all((seller_source, seller_panel, seller_group, customer_code, customer_name, economic_group)):
-            return None
-
-        seller_map = sellers[[seller_source, seller_panel, seller_group]].copy()
-        seller_map.columns = ["_source", "Vendedor Painel", "Grupo Vendedor"]
-        seller_map = seller_map.dropna(subset=["_source"])
-        seller_map["_key"] = seller_map["_source"].map(_dimension_key)
-        seller_known = set(seller_map.loc[seller_map["_key"].ne(""), "_key"])
-        seller_map = seller_map.dropna(subset=["Vendedor Painel"])
-        seller_map["Grupo Vendedor"] = seller_map["Grupo Vendedor"].fillna("Não classificado")
-        seller_map = seller_map[seller_map["_key"].ne("")].drop_duplicates("_key", keep="last")
-
-        client_cols = [customer_code, customer_name, economic_group]
-        if customer_branch:
-            client_cols.insert(1, customer_branch)
-        client_map = clients[client_cols].copy()
-        renamed = {customer_code: "_code", customer_name: "_name", economic_group: "Grupo Econômico Cliente"}
-        if customer_branch:
-            renamed[customer_branch] = "_branch"
-        client_map = client_map.rename(columns=renamed)
-        client_map["_code_key"] = client_map["_code"].map(_code_key)
-        client_map["_name_key"] = client_map["_name"].map(_dimension_key)
-        if "_branch" in client_map:
-            client_map["_branch_key"] = client_map["_branch"].map(_code_key)
-            client_map["_composite_key"] = client_map["_code_key"] + "|" + client_map["_branch_key"]
+        if version_window in {"unavailable", "database-loading"}:
+            raise RuntimeError("A referência central está indisponível.")
+        if isinstance(version_window, str) and version_window.startswith("db:"):
+            snapshot = depara_rpc("metalforte_depara_snapshot")
+            if not snapshot or not snapshot.get("ready"):
+                raise RuntimeError("DE/PARA central ainda não está pronto.")
+            sellers = pd.DataFrame(snapshot["sellers"], columns=["VENDEDOR CADASTRO", "VENDEDOR PAINEL", "CLASSIFICAÇÃO"])
+            clients = pd.DataFrame(snapshot["customers"], columns=["Cód. Cliente", "Lj Cliente", "Cliente", "GRUPO ECONOMICO"])
         else:
-            client_map["_composite_key"] = ""
-        client_map["Grupo Econômico Cliente"] = client_map["Grupo Econômico Cliente"].fillna("").astype(str).str.strip()
+            payload = download_bytes(object_path=object_path)
+            workbook = pd.ExcelFile(io.BytesIO(payload), engine="openpyxl")
+            seller_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparavendedor"), None)
+            client_sheet = next((name for name in workbook.sheet_names if _dimension_key(name) == "deparacliente"), None)
+            if not seller_sheet or not client_sheet:
+                return None
+            sellers = _read_mapping_sheet(workbook, seller_sheet)
+            clients = _read_mapping_sheet(workbook, client_sheet)
 
-        def unique_lookup(key_column):
-            pairs = client_map.loc[client_map[key_column].ne("") & client_map["Grupo Econômico Cliente"].ne(""), [key_column, "Grupo Econômico Cliente"]].drop_duplicates()
-            counts = pairs.groupby(key_column)["Grupo Econômico Cliente"].nunique()
-            valid = counts[counts.eq(1)].index
-            return pairs[pairs[key_column].isin(valid)].drop_duplicates(key_column).set_index(key_column)["Grupo Econômico Cliente"].to_dict()
-
-        def known_lookup(key_column):
-            return set(client_map.loc[client_map[key_column].ne(""), key_column].dropna().astype(str))
-
-        return {
-            "sellers": seller_map.set_index("_key")[["Vendedor Painel", "Grupo Vendedor"]].to_dict("index"),
-            "seller_known": seller_known,
-            "customer_composite": unique_lookup("_composite_key"),
-            "customer_code": unique_lookup("_code_key"),
-            "customer_name": unique_lookup("_name_key"),
-            "customer_known_composite": known_lookup("_composite_key"),
-            "customer_known_code": known_lookup("_code_key"),
-            "customer_known_name": known_lookup("_name_key"),
-        }
+        return _mapping_from_frames(sellers, clients)
     except Exception as error:
         logging.getLogger(__name__).warning("DE/PARA indisponível (%s)", type(error).__name__)
         # DE/PARA ausente ou temporariamente indisponível não impede a leitura
         # das vendas publicadas; a interface permanece funcional sem agrupamento.
         return None
+
+
+
+def _mapping_from_frames(sellers, clients):
+    seller_source = _first_column(sellers, ("VENDEDOR CADASTRO",))
+    seller_panel = _first_column(sellers, ("VENDEDOR PAINEL",))
+    seller_group = _first_column(sellers, ("CLASSIFICAÇÃO", "CLASSIFICACAO"))
+    customer_code = _first_column(clients, ("Cód. Cliente", "Cod. Cliente", "Código Cliente", "Cod Cliente"))
+    customer_branch = _first_column(clients, ("Lj Cliente", "Loja Cliente", "Filial Cliente"))
+    customer_name = _first_column(clients, ("Cliente", "Nome Cliente"))
+    economic_group = _first_column(clients, ("GRUPO ECONOMICO", "Grupo Econômico", "Grupo Economico"))
+    if not all((seller_source, seller_panel, seller_group, customer_code, customer_name, economic_group)):
+        return None
+
+    seller_map = sellers[[seller_source, seller_panel, seller_group]].copy()
+    seller_map.columns = ["_source", "Vendedor Painel", "Grupo Vendedor"]
+    seller_map = seller_map.dropna(subset=["_source"])
+    seller_map["_key"] = seller_map["_source"].map(_dimension_key)
+    seller_known = set(seller_map.loc[seller_map["_key"].ne(""), "_key"])
+    seller_map = seller_map.dropna(subset=["Vendedor Painel"])
+    seller_map["Grupo Vendedor"] = seller_map["Grupo Vendedor"].fillna("Não classificado")
+    seller_map = seller_map[seller_map["_key"].ne("")].drop_duplicates("_key", keep="last")
+
+    client_cols = [customer_code, customer_name, economic_group]
+    if customer_branch:
+        client_cols.insert(1, customer_branch)
+    client_map = clients[client_cols].copy()
+    renamed = {customer_code: "_code", customer_name: "_name", economic_group: "Grupo Econômico Cliente"}
+    if customer_branch:
+        renamed[customer_branch] = "_branch"
+    client_map = client_map.rename(columns=renamed)
+    client_map["_code_key"] = client_map["_code"].map(_code_key)
+    client_map["_name_key"] = client_map["_name"].map(_dimension_key)
+    if "_branch" in client_map:
+        client_map["_branch_key"] = client_map["_branch"].map(_code_key)
+        client_map["_composite_key"] = client_map["_code_key"] + "|" + client_map["_branch_key"]
+    else:
+        client_map["_composite_key"] = ""
+    client_map["Grupo Econômico Cliente"] = client_map["Grupo Econômico Cliente"].fillna("").astype(str).str.strip()
+
+    def unique_lookup(key_column):
+        pairs = client_map.loc[client_map[key_column].ne("") & client_map["Grupo Econômico Cliente"].ne(""), [key_column, "Grupo Econômico Cliente"]].drop_duplicates()
+        counts = pairs.groupby(key_column)["Grupo Econômico Cliente"].nunique()
+        valid = counts[counts.eq(1)].index
+        return pairs[pairs[key_column].isin(valid)].drop_duplicates(key_column).set_index(key_column)["Grupo Econômico Cliente"].to_dict()
+
+    def known_lookup(key_column):
+        return set(client_map.loc[client_map[key_column].ne(""), key_column].dropna().astype(str))
+
+    return {
+        "sellers": seller_map.set_index("_key")[["Vendedor Painel", "Grupo Vendedor"]].to_dict("index"),
+        "seller_known": seller_known,
+        "customer_composite": unique_lookup("_composite_key"),
+        "customer_code": unique_lookup("_code_key"),
+        "customer_name": unique_lookup("_name_key"),
+        "customer_known_composite": known_lookup("_composite_key"),
+        "customer_known_code": known_lookup("_code_key"),
+        "customer_known_name": known_lookup("_name_key"),
+    }
 
 
 def apply_depara(frame):
@@ -271,6 +306,8 @@ def clear_depara_cache():
 
 def publish_depara(payload):
     """Validação e publicação usadas tanto pela tela administrativa quanto pelo CLI."""
+    if depara_reference_version().startswith("db:"):
+        raise RuntimeError("O DE/PARA é gerenciado nas tabelas depara_clientes e depara_vendedores do Supabase. Edite as tabelas diretamente.")
     normalized, counts = prepare_depara_upload(payload)
     destination = dataset_path("depara")
     if not upload_bytes(normalized, destination, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):

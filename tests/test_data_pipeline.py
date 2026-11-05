@@ -24,6 +24,9 @@ def mapping_file():
 
 
 class DataPipelineTests(unittest.TestCase):
+    def setUp(self):
+        data.set_depara_version("legacy")
+
     def tearDown(self):
         data.clear_depara_cache();data.set_depara_version(None)
 
@@ -65,6 +68,32 @@ class DataPipelineTests(unittest.TestCase):
         with patch.object(data,"upload_bytes",return_value=True),patch.object(data,"download_bytes",return_value=b"different"):
             with self.assertRaisesRegex(RuntimeError,"integridade"):
                 data.publish_depara(mapping_file())
+
+    def test_database_is_preferred_without_downloading_excel(self):
+        snapshot={"ready":True,"sellers":[["ANA","EQUIPE ANA","INTERNO"]],"customers":[["000001","01","EMPRESA UM","GRUPO UM"]]}
+        data.set_depara_version("db:12")
+        with patch.object(data,"is_configured",return_value=True),patch.object(data,"depara_rpc",return_value=snapshot),patch.object(data,"download_bytes") as file:
+            source=pd.DataFrame({"Cod Cliente":[1],"Cliente":["EMPRESA UM"],"Vendedor":["ANA"]})
+            result=data.apply_depara(source)
+            self.assertEqual(result["Cliente Painel"].tolist(),["GRUPO UM"])
+            self.assertEqual(result["Vendedor Painel"].tolist(),["EQUIPE ANA"])
+            file.assert_not_called()
+
+    def test_database_revision_is_the_cache_key(self):
+        with patch.object(data,"is_configured",return_value=True),patch.object(data,"depara_rpc",return_value={"ready":True,"version":24}):
+            self.assertEqual(data.depara_reference_version(),"db:24")
+
+    def test_unavailable_database_never_falls_back_to_stale_excel(self):
+        data.set_depara_version("db:12")
+        with patch.object(data,"is_configured",return_value=True),patch.object(data,"depara_rpc",side_effect=OSError()),patch.object(data,"download_bytes") as file:
+            self.assertFalse(data.depara_available())
+            file.assert_not_called()
+
+    def test_legacy_upload_cannot_override_active_database(self):
+        with patch.object(data,"depara_reference_version",return_value="db:12"),patch.object(data,"upload_bytes") as upload:
+            with self.assertRaisesRegex(RuntimeError,"tabelas"):
+                data.publish_depara(mapping_file())
+            upload.assert_not_called()
 
 if __name__=="__main__":
     unittest.main()

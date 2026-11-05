@@ -1,4 +1,12 @@
-# METALFORTE 360 v2.27.26
+# METALFORTE 360 v2.27.27
+
+## DE/PARA editável no Supabase — v2.27.27
+
+- Grupos de clientes e vendedores são lidos das tabelas privadas `depara_clientes` e `depara_vendedores`.
+- Edições no Table Editor incrementam a revisão e invalidam os agrupamentos no próximo uso do painel, com consulta de versão em cache por até 60 segundos.
+- O app usa uma única consulta para carregar a referência completa, sem paginação da carteira.
+- A importação antiga de planilhas fica bloqueada quando as tabelas estão ativas, para preservar as edições feitas no Supabase.
+- Instruções: `docs/DEPARA_NO_SUPABASE.md`.
 
 ## DE/PARA e carregamento centralizado — v2.27.26
 
