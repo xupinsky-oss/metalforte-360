@@ -19,7 +19,7 @@ def _load_data_module():
         except KeyError as error:
             # Python can raise KeyError from sys.modules if a hot reload removes
             # a dependency while another Streamlit session is importing it.
-            if not error.args or not str(error.args[0]).startswith("src.") or attempt == 3:
+            if not error.args or not (str(error.args[0]) == "src" or str(error.args[0]).startswith("src.")) or attempt == 3:
                 raise
             importlib.invalidate_caches()
             time.sleep(0.15 * (attempt + 1))
@@ -82,7 +82,7 @@ def get_load_status():
 @st.cache_data(ttl=60,show_spinner=False)
 def get_reference_version():
     try:
-        return object_version(dataset_path("depara"))
+        return _data_module.depara_reference_version()
     except Exception:
         return "unavailable"
 
@@ -423,13 +423,13 @@ getattr(_data_module,"set_depara_version",lambda version: None)(reference_versio
 load_version=str(load_status.get("atualizado_em") or "sem-versao-publicada")+"|depara:"+reference_version
 df=get_data(load_version)
 @st.cache_data(ttl=7200,show_spinner=False)
-def get_display_names(version):
-    source=get_data(version)
+def get_display_names(version, _source):
+    source=_source
     customers=source[["Cliente","Cliente Painel"]].drop_duplicates("Cliente") if {"Cliente","Cliente Painel"}.issubset(source.columns) else pd.DataFrame()
     sellers=source[["Vendedor","Vendedor Painel"]].drop_duplicates("Vendedor") if {"Vendedor","Vendedor Painel"}.issubset(source.columns) else pd.DataFrame()
     return (dict(zip(customers["Cliente"],customers["Cliente Painel"])) if not customers.empty else {},
             dict(zip(sellers["Vendedor"],sellers["Vendedor Painel"])) if not sellers.empty else {})
-DISPLAY_CUSTOMER_GROUPS,DISPLAY_SELLER_NAMES=get_display_names(load_version)
+DISPLAY_CUSTOMER_GROUPS,DISPLAY_SELLER_NAMES=get_display_names(load_version, df)
 if access["role"] == "seller":
     seller_scope = normalize_seller(access.get("seller_scope", ""))
     if not seller_scope:
@@ -551,29 +551,13 @@ with st.sidebar:
         st.rerun()
     if access["role"] == "admin":
         with st.expander("DE/PARA de clientes e vendedores"):
-            if depara_available():
-                st.success("Agrupamentos privados carregados.")
+            if reference_version.startswith("db:") and depara_available():
+                st.success("Agrupamentos conectados às tabelas do Supabase.")
             else:
-                st.warning("Ainda não há um DE/PARA disponível no armazenamento privado.")
-            if is_configured():
-                mapping_file = st.file_uploader(
-                    "Importar arquivo DE/PARA (.xlsx)", type=["xlsx"], key="depara_upload_file",
-                    help="O aplicativo mantém somente código/loja/cliente/grupo econômico e vendedor/classificação/nome consolidado. Contatos e demais colunas não são enviados.",
-                )
-                if st.button("Validar e carregar DE/PARA", key="depara_upload_button", width="stretch", disabled=mapping_file is None):
-                    try:
-                        counts = publish_depara(mapping_file.getvalue())
-                        get_reference_version.clear()
-                        clear_depara_cache()
-                        get_data.clear()
-                        get_targets.clear()
-                        get_pedidos_realizado.clear()
-                        st.success(f"DE/PARA carregado: {counts['clientes']:,} clientes e {counts['vendedores']:,} vendedores.")
-                        st.rerun()
-                    except Exception as exc:
-                        st.error(f"Não foi possível carregar o DE/PARA: {exc}")
-            else:
-                st.info("O armazenamento privado do Supabase precisa estar configurado para receber o arquivo.")
+                st.warning("A referência central ainda não está disponível nesta sessão.")
+            st.caption("Edite grupo_economico em depara_clientes; vendedor_painel e classificacao em depara_vendedores. Clientes sem grupo usam a razão social. Preserve códigos, loja e nomes de cadastro para manter os vínculos com as vendas.")
+            st.link_button("Editar DE/PARA no Supabase", "https://supabase.com/dashboard/project/uaqekqgnwxpbfetqxmnb/editor", width="stretch")
+            st.caption("Após salvar, use Atualizar visualização. A versão também é consultada no próximo uso do painel, com cache de até 60 segundos.")
     with st.container(key="period_filter"):
         st.subheader("Período")
         with st.form("period_form",border=False):
