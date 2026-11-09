@@ -35,7 +35,11 @@ PEOPLE = [
 
 @st.cache_data(ttl=1800, show_spinner="Lendo as bases conectadas do METALFORTE 360…")
 def read_sources(refresh_key):
-    return load_data(), load_targets(), load_stock(), load_flow(), download_status()
+    try:
+        status = download_status()
+    except Exception:
+        status = {}
+    return load_data(), load_targets(), load_stock(), load_flow(), status
 
 def money(value):
     return f"R$ {float(value or 0):,.0f}".replace(",", ".")
@@ -189,6 +193,9 @@ def report_breno():
 def main():
     access = require_login()
     role = access.get("role")
+    if role not in {"admin", "manager", "analyst"}:
+        st.error("O Escritório está disponível para os perfis de administração, gestão e análise.")
+        st.stop()
     user = access.get("user", {})
     with st.sidebar:
         logo = Path(__file__).parent / "LOGO_METALFORTE.jpg"
