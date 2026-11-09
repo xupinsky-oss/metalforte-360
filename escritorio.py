@@ -274,7 +274,7 @@ def report_uandson(sales, stock, flow):
         st.warning("A fotografia de estoque não está disponível na base conectada.")
     if flow is not None and not flow.empty:
         st.markdown("**Fluxo de pedidos**")
-        st.caption(f"{len(flow):,} registros na base de fluxo. Consulte os campos de processo abaixo; a base é exibida sem reinterpretar etapas.")
+        st.caption(f"{number(len(flow))} registros na base de fluxo. Consulte os campos de processo abaixo; a base é exibida sem reinterpretar etapas.")
         preferred = [c for c in ("Pedido","Cliente Painel","Vendedor Painel","Produto","Peso","Valor","Status","Etapa","Data Pedido","Data Liberação","Data Entrega") if c in flow]
         show_table(flow[preferred].head(30) if preferred else flow.head(30), hide_index=True)
     else:
