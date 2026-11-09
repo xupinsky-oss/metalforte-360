@@ -75,7 +75,7 @@ def show_table(frame, **kwargs):
         if any(term in name for term in ("p.p.", "pontos percentuais")):
             display[column] = values.map(lambda value: f"{value:.2f} p.p.".replace(".", ",") if pd.notna(value) else "—")
         elif "%" in name or "atingimento" in name or "margem percentual" in name:
-            scale = 100 if values.dropna().abs().max() <= 1.5 else 1
+            scale = 100
             display[column] = values.map(lambda value: f"{value * scale:.2f}%".replace(".", ",") if pd.notna(value) else "—")
         elif any(term in name for term in ("preço médio", "preco medio", "preço/kg", "preco/kg", "ticket médio", "ticket medio")):
             display[column] = values.map(price)
@@ -121,7 +121,7 @@ def format_delivery_data(value, key=""):
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         name = str(key).casefold()
         if any(term in name for term in ("atingimento","attainment","percentual","margem %","variacao %","variação %","pct")):
-            return percentage(value if abs(value) <= 1.5 else value / 100)
+            return percentage(value)
         if any(term in name for term in ("preço médio","preco medio","preço/kg","preco/kg")):
             return price(value)
         if any(term in name for term in ("r$","_rs","faturamento","receita","valor","margem","custo","meta","sell_in")):
