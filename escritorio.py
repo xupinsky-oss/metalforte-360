@@ -109,6 +109,31 @@ def top_table(frame, dimension, measure, limit=10):
     return (frame.groupby(dimension, dropna=False)[measure].sum().sort_values(ascending=False)
             .head(limit).rename(measure).reset_index())
 
+def show_chart(figure, **kwargs):
+    figure.update_yaxes(tickformat=",.0f")
+    return show_chart(figure, use_container_width=True, **kwargs)
+
+def format_delivery_data(value, key=""):
+    if isinstance(value, dict):
+        return {name: format_delivery_data(item, name) for name, item in value.items()}
+    if isinstance(value, list):
+        return [format_delivery_data(item, key) for item in value]
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        name = str(key).casefold()
+        if any(term in name for term in ("atingimento","percentual","margem %","variacao %","variação %","pct")):
+            return percentage(value if abs(value) <= 1.5 else value / 100)
+        if any(term in name for term in ("preço médio","preco medio","preço/kg","preco/kg")):
+            return price(value)
+        if any(term in name for term in ("r$","faturamento","receita","valor","margem","custo","meta","sell_in")):
+            return money(value)
+        if "kg" in name or "peso" in name:
+            return f"{number(value)} kg"
+        return number(value)
+    return value
+
+def show_delivery_data(value):
+    st.json(format_delivery_data(value), expanded=False)
+
 def kpi(label, value, note="Base conectada"):
     st.metric(label, value, help=note)
 
@@ -233,7 +258,7 @@ def report_bruno(sales):
     table = top_table(current, seller, "Faturamento", 12)
     if not table.empty:
         st.markdown("**Performance por vendedor**")
-        st.dataframe(table, hide_index=True, use_container_width=True)
+        show_table(table, hide_index=True)
 
 def report_uandson(sales, stock, flow):
     if stock is not None and not stock.empty:
@@ -400,7 +425,7 @@ def show_delivery_history():
     try:
         payload = json.loads(download_bytes(object_path=path).decode("utf-8"))
         st.caption(f"Execução registrada em {payload.get('data_execucao', 'horário indisponível')} · competência {payload.get('competencia', '—')}")
-        st.json(payload.get("entregas", {}), expanded=False)
+        show_delivery_data(payload.get("entregas", {}))
     except Exception:
         st.caption("Ainda não há entrega salva nessa data.")
 
@@ -424,7 +449,7 @@ def main():
         st.divider()
         st.markdown("**Fonte**  \nBases oficiais do METALFORTE 360 no Supabase")
     try:
-        sales, targets, stock, flow, status = read_sources(str(datetime.now().date()))
+        sales, targets, stock, flow, status = read_sources(str(datetime.now(ZoneInfo("America/Sao_Paulo")).date()))
     except Exception as exc:
         st.error(f"Não foi possível carregar a base principal ({type(exc).__name__}).")
         st.caption("Confira os mesmos Secrets do Streamlit usados pelo METALFORTE 360: SUPABASE_URL e SUPABASE_SERVICE_KEY.")
@@ -457,7 +482,7 @@ def main():
             try:
                 path, snapshot = save_daily_delivery(sales, targets, stock, period, routines)
                 st.success(f"Entrega inicial registrada: {path}")
-                st.json(snapshot["entregas"], expanded=False)
+                show_delivery_data(snapshot["entregas"])
             except Exception as exc:
                 st.error(f"Não foi possível registrar as entregas ({type(exc).__name__}).")
         show_delivery_history()
