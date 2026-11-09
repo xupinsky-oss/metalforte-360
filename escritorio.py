@@ -527,27 +527,83 @@ def main():
             except Exception as exc:
                 st.error(f"Não foi possível registrar as entregas ({type(exc).__name__}).")
         show_delivery_history()
-    st.subheader("Salas e colaboradores")
-    columns = st.columns(4)
+    st.markdown("""
+    <style>
+    .office-room{min-height:218px;border:2px solid #d8cfbf;border-radius:19px;background:#fffdf9;padding:13px;box-shadow:0 5px 0 #e7dece;transition:all .18s ease}
+    .office-room.selected{border-color:#e2572b;box-shadow:0 6px 0 #efc6ad,0 0 0 2px #e2572b1c}
+    .office-room-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8b8578}
+    .office-room-title{font-size:14px;font-weight:800;color:#17233c;margin:3px 0 9px}
+    .office-interior{position:relative;height:112px;border:1px solid #ece4d7;border-radius:13px;background:var(--wall);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .office-window{position:absolute;right:10px;top:9px;width:30px;height:13px;border:1px solid #b8c8d8;border-radius:3px;background:#eef4f8}
+    .office-plant{position:absolute;left:10px;top:8px;font-size:15px}
+    .office-desk{position:absolute;left:13px;bottom:8px;width:38px;height:12px;border:1px solid #c4a77c;border-radius:5px 5px 2px 2px;background:#d9bf98}
+    .office-person{display:flex;align-items:center;gap:9px;max-width:90%;padding:8px 11px;border:1px solid #e6ded1;border-radius:12px;background:#fffdf9ed;box-shadow:0 2px 6px #17233c12}
+    .office-avatar{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;background:#ffffffb5;font-size:22px}
+    .office-name{font-size:13px;font-weight:800;color:#17233c}.office-role{font-size:10px;color:#7d8798}
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown("### 🏢 Escritório · mapa das salas")
+    st.caption("Escolha uma sala para abrir os relatórios e análises do responsável. As rotinas e frequências ficam visíveis em cada mesa.")
+    st.markdown(
+        "<div style='padding:8px 12px;margin-bottom:12px;border:1px solid #ded4c4;border-radius:12px;background:#fffdf9;color:#8b8578;font-size:11px;font-weight:800'>🚪 ENTRADA PRINCIPAL <span style='float:right;font-weight:600'>Corredor central · salas por especialidade</span></div>",
+        unsafe_allow_html=True,
+    )
+    room_meta = {
+        "Jeandro": ("Sala de Planejamento", "#f7e8d2"),
+        "Nayane": ("Estúdio de Marcas", "#f8e2de"),
+        "Lucas": ("Sala de Trade", "#e5eee5"),
+        "Bruno": ("Administração Comercial", "#e3eaf6"),
+        "Uandson": ("Sala de S&OP", "#e8e4f4"),
+        "Wilton": ("Núcleo Territorial", "#e4edf0"),
+        "Breno": ("Estúdio Criativo", "#f3e7d8"),
+    }
+    st.session_state.setdefault("office_selected_person", PEOPLE[0]["name"])
+    room_columns = st.columns(3)
     for index, person in enumerate(PEOPLE):
-        with columns[index % 4]:
-            st.markdown(f"**{person['icon']} {person['area']}**  \n{person['name']} · {person['role']}")
-            routine = routines[person["name"]]
-            state = "ativa" if routine["enabled"] else "pausada"
-            st.caption(f"{routine['frequency']} · {routine['time']} · {state}: {routine['task']}")
+        sala, parede = room_meta[person["name"]]
+        routine = routines[person["name"]]
+        is_selected = st.session_state["office_selected_person"] == person["name"]
+        state = "Ativa" if routine["enabled"] else "Pausada"
+        with room_columns[index % 3]:
+            with st.container(border=True):
+                st.markdown(
+                    f"<div class='office-room {'selected' if is_selected else ''}' style='--wall:{parede}'>"
+                    f"<div class='office-room-label'>{person['area']}</div>"
+                    f"<div class='office-room-title'>{sala}</div>"
+                    f"<div class='office-interior' style='--wall:{parede}'>"
+                    "<span class='office-plant'>🪴</span><span class='office-window'></span>"
+                    f"<div class='office-person'><span class='office-avatar'>{person['icon']}</span>"
+                    f"<span><span class='office-name'>{person['name']}</span><br>"
+                    f"<span class='office-role'>{person['role']}</span></span></div>"
+                    "<span class='office-desk'></span></div></div>",
+                    unsafe_allow_html=True,
+                )
+                st.caption(f"🕒 {routine['frequency']} · {routine['time']} · {state}")
+                st.caption(routine["task"])
+                if st.button(
+                    "✅ Mesa selecionada" if is_selected else "Abrir esta sala",
+                    key=f"open_office_room_{person['name']}",
+                    use_container_width=True,
+                    type="primary" if is_selected else "secondary",
+                ):
+                    st.session_state["office_selected_person"] = person["name"]
+                    st.rerun()
+    selected_person = next(
+        (person for person in PEOPLE if person["name"] == st.session_state["office_selected_person"]),
+        PEOPLE[0],
+    )
+    selected_render = {
+        "Jeandro": lambda: report_jeandro(sales, targets, period),
+        "Nayane": lambda: report_nayane(sales, period),
+        "Lucas": lambda: report_lucas(sales),
+        "Bruno": lambda: report_bruno(sales),
+        "Uandson": lambda: report_uandson(sales, stock, flow),
+        "Wilton": lambda: report_wilton(sales),
+        "Breno": report_breno,
+    }
     st.divider()
-    tabs = st.tabs([f"{p['icon']} {p['name']}" for p in PEOPLE])
-    renderers = [report_jeandro, report_nayane, report_lucas, report_bruno, report_uandson, report_wilton, report_breno]
-    for person, tab, render in zip(PEOPLE, tabs, renderers):
-        with tab:
-            heading(person, period_label, routines[person["name"]])
-            if person["name"] == "Jeandro": render(sales, targets, period)
-            elif person["name"] == "Nayane": render(sales, period)
-            elif person["name"] == "Lucas": render(sales)
-            elif person["name"] == "Bruno": render(sales)
-            elif person["name"] == "Uandson": render(sales, stock, flow)
-            elif person["name"] == "Wilton": render(sales)
-            else: render()
+    heading(selected_person, period_label, routines[selected_person["name"]])
+    selected_render[selected_person["name"]]()
 
 if __name__ == "__main__":
     main()
