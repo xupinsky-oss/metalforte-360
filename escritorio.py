@@ -6,6 +6,7 @@ Execute no Streamlit apontando o arquivo principal para escritorio.py.
 from __future__ import annotations
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 import json
 import re
@@ -259,7 +260,7 @@ def build_delivery_snapshot(sales, targets, stock, period, routines):
             "produtos_aguardando_estoque": int((analysis["Aguardando estoque (kg)"] > 0).sum()),
         })
     return {
-        "data_execucao": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "data_execucao": datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(timespec="seconds"),
         "competencia": str(period),
         "rotinas": routines,
         "entregas": outputs,
@@ -296,7 +297,7 @@ def save_daily_delivery(sales, targets, stock, period, routines):
 
 def show_delivery_history():
     st.markdown("**Entregas registradas**")
-    delivery_day = st.date_input("Data da entrega", value=datetime.now().date(), key="delivery_history_date")
+    delivery_day = st.date_input("Data da entrega", value=datetime.now(ZoneInfo("America/Sao_Paulo")).date(), key="delivery_history_date")
     path = f"escritorio/entregas/{delivery_day.strftime('%Y-%m-%d')}.json"
     try:
         payload = json.loads(download_bytes(object_path=path).decode("utf-8"))
