@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+import json
 import re
 import uuid
 
@@ -16,7 +17,7 @@ import streamlit as st
 
 from src.auth import require_login, logout
 from src.data import load_data, load_targets, load_stock, load_flow
-from src.cloud_storage import upload_bytes, download_status
+from src.cloud_storage import upload_bytes, download_bytes, download_status
 from src.inventory import build_inventory_analysis
 
 st.set_page_config(page_title="Escritório METALFORTE 360", layout="wide", page_icon="🏢")
@@ -72,9 +73,9 @@ def top_table(frame, dimension, measure, limit=10):
 def kpi(label, value, note="Base conectada"):
     st.metric(label, value, help=note)
 
-def heading(person, period):
+def heading(person, period, routine):
     st.subheader(f"{person['icon']} {person['name']} · {person['area']}")
-    st.caption(f"{person['role']}  |  Rotina diária: {person['task']}  |  Referência dos dados: {period}")
+    st.caption(f"{person['role']}  |  Frequência: {routine['frequency']} às {routine['time']}  |  {routine['task']}  |  Referência: {period}")
 
 def report_jeandro(sales, targets, period):
     actual = month_slice(sales, period)
@@ -190,6 +191,121 @@ def report_breno():
                 st.error(f"Não foi possível salvar o arquivo ({type(exc).__name__}).")
     st.caption("A prévia não acessa referências externas; use os anexos para fornecer identidade visual, briefing e modelos aprovados.")
 
+
+OFFICE_CONFIG_PATH = "escritorio/configuracao.json"
+
+def default_routines():
+    return {
+        person["name"]: {
+            "frequency": "Diária",
+            "time": "08:30",
+            "task": person["task"],
+            "enabled": True,
+        }
+        for person in PEOPLE
+    }
+
+def load_routines():
+    try:
+        saved = json.loads(download_bytes(object_path=OFFICE_CONFIG_PATH).decode("utf-8"))
+        defaults = default_routines()
+        for name, routine in saved.items():
+            if name in defaults and isinstance(routine, dict):
+                defaults[name].update(routine)
+        return defaults
+    except Exception:
+        return default_routines()
+
+def save_routines(routines):
+    payload = json.dumps(routines, ensure_ascii=False, indent=2).encode("utf-8")
+    upload_bytes(payload, OFFICE_CONFIG_PATH, "application/json; charset=utf-8")
+
+def build_delivery_snapshot(sales, targets, stock, period, routines):
+    month = month_slice(sales, period)
+    target = targets.copy()
+    if not target.empty and "Competência" in target:
+        target = target[pd.to_datetime(target["Competência"], errors="coerce").dt.to_period("M").eq(period)]
+    customer = "Cliente Painel" if "Cliente Painel" in month else "Cliente"
+    product = "Grupo Produto" if "Grupo Produto" in month else "Produto"
+    region = "UF" if "UF" in month else "Município"
+    sellers = "Vendedor Painel" if "Vendedor Painel" in month else "Vendedor"
+    outputs = {
+        "Jeandro": {
+            "realizado_rs": total(month, "Faturamento"),
+            "meta_rs": total(target, "Meta R$"),
+            "realizado_kg": total(month, "Peso"),
+            "meta_kg": total(target, "Meta KG"),
+        },
+        "Nayane": {"portfolio_top": top_table(month, product, "Faturamento", 5).to_dict("records")},
+        "Lucas": {
+            "sell_in_top": top_table(month, customer, "Faturamento", 5).to_dict("records"),
+            "observacao": "A base disponível mede sell-in; não há medição de sell-out.",
+        },
+        "Bruno": {
+            "faturamento_rs": total(month, "Faturamento"),
+            "faturamento_kg": total(month, "Peso"),
+            "pedidos": int(month["Pedido"].nunique()) if "Pedido" in month else 0,
+            "vendedores_top": top_table(month, sellers, "Faturamento", 5).to_dict("records"),
+        },
+        "Uandson": {"status_estoque": "Base disponível" if stock is not None and not stock.empty else "Base não carregada"},
+        "Wilton": {"territorios_top": top_table(month, region, "Faturamento", 5).to_dict("records")},
+        "Breno": {"status": "Aguardando briefing ou arquivo auxiliar"},
+    }
+    if stock is not None and not stock.empty:
+        analysis = build_inventory_analysis(stock, sales, months=3)
+        risk = analysis[analysis["Cobertura"].isin(["Ruptura", "Baixo (≤30 dias)"])]
+        outputs["Uandson"].update({
+            "produtos_em_risco": int(len(risk)),
+            "produtos_aguardando_estoque": int((analysis["Aguardando estoque (kg)"] > 0).sum()),
+        })
+    return {
+        "data_execucao": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "competencia": str(period),
+        "rotinas": routines,
+        "entregas": outputs,
+    }
+
+def show_routine_controls(routines, role):
+    if role != "admin":
+        st.info("As rotinas são definidas pelo administrador do app.")
+        return routines
+    with st.expander("⚙️ Configurar rotinas e frequências", expanded=False):
+        person_name = st.selectbox("Colaborador", [p["name"] for p in PEOPLE], key="routine_person")
+        current = routines[person_name]
+        with st.form("routine_config_form"):
+            frequency = st.selectbox("Frequência", ["Diária", "Semanal", "Mensal"], index=["Diária", "Semanal", "Mensal"].index(current["frequency"]) if current["frequency"] in ["Diária", "Semanal", "Mensal"] else 0)
+            run_time = st.time_input("Horário local", value=datetime.strptime(current["time"], "%H:%M").time())
+            task = st.text_area("Rotina e entrega esperada", value=current["task"], height=100)
+            enabled = st.checkbox("Rotina ativa", value=bool(current["enabled"]))
+            save = st.form_submit_button("Salvar no Supabase", type="primary")
+        if save:
+            routines[person_name] = {"frequency": frequency, "time": run_time.strftime("%H:%M"), "task": task.strip(), "enabled": enabled}
+            try:
+                save_routines(routines)
+                st.success("Rotina salva no armazenamento privado do Supabase.")
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Não foi possível salvar a rotina ({type(exc).__name__}).")
+    return routines
+
+def save_daily_delivery(sales, targets, stock, period, routines):
+    path = f"escritorio/entregas/{datetime.now().strftime('%Y-%m-%d')}.json"
+    snapshot = build_delivery_snapshot(sales, targets, stock, period, routines)
+    upload_bytes(json.dumps(snapshot, ensure_ascii=False, default=str, indent=2).encode("utf-8"), path, "application/json; charset=utf-8")
+    return path, snapshot
+
+def show_delivery_history():
+    st.markdown("**Entregas registradas**")
+    delivery_day = st.date_input("Data da entrega", value=datetime.now().date(), key="delivery_history_date")
+    path = f"escritorio/entregas/{delivery_day.strftime('%Y-%m-%d')}.json"
+    try:
+        payload = json.loads(download_bytes(object_path=path).decode("utf-8"))
+        st.caption(f"Execução registrada em {payload.get('data_execucao', 'horário indisponível')} · competência {payload.get('competencia', '—')}")
+        st.json(payload.get("entregas", {}), expanded=False)
+    except Exception:
+        st.caption("Ainda não há entrega salva nessa data.")
+
+
 def main():
     access = require_login()
     role = access.get("role")
@@ -223,6 +339,7 @@ def main():
             st.stop()
     period = latest_period(sales)
     period_label = period.strftime("%m/%Y")
+    routines = load_routines()
     load_time = status.get("atualizado_em", "horário da carga indisponível") if isinstance(status, dict) else "horário da carga indisponível"
     st.markdown("<div class='hero'><span>🏢 ESCRITÓRIO METALFORTE 360</span><h1>Rotinas que transformam dados em ação</h1><p>Sete áreas, uma fonte de dados oficial e entregas transparentes.</p></div>", unsafe_allow_html=True)
     st.caption(f"Base de vendas atualizada: {load_time} · Período analítico mais recente: {period_label}")
@@ -234,18 +351,31 @@ def main():
     [data-testid="stMetric"]{background:white;padding:1rem;border:1px solid #DFE6EF;border-radius:14px;box-shadow:0 3px 12px #14243b0b}
     </style>
     """, unsafe_allow_html=True)
+    routines = show_routine_controls(routines, role)
+    with st.expander("▶️ Executar rotina inicial e salvar entrega de hoje", expanded=True):
+        st.caption("A execução usa a última competência existente nas bases oficiais e registra os indicadores no Supabase para consulta posterior.")
+        if st.button("Gerar entregas iniciais dos 7 colaboradores", type="primary"):
+            try:
+                path, snapshot = save_daily_delivery(sales, targets, stock, period, routines)
+                st.success(f"Entrega inicial registrada: {path}")
+                st.json(snapshot["entregas"], expanded=False)
+            except Exception as exc:
+                st.error(f"Não foi possível registrar as entregas ({type(exc).__name__}).")
+        show_delivery_history()
     st.subheader("Salas e colaboradores")
     columns = st.columns(4)
     for index, person in enumerate(PEOPLE):
         with columns[index % 4]:
             st.markdown(f"**{person['icon']} {person['area']}**  \n{person['name']} · {person['role']}")
-            st.caption(f"Rotina diária: {person['task']}")
+            routine = routines[person["name"]]
+            state = "ativa" if routine["enabled"] else "pausada"
+            st.caption(f"{routine['frequency']} · {routine['time']} · {state}: {routine['task']}")
     st.divider()
     tabs = st.tabs([f"{p['icon']} {p['name']}" for p in PEOPLE])
     renderers = [report_jeandro, report_nayane, report_lucas, report_bruno, report_uandson, report_wilton, report_breno]
     for person, tab, render in zip(PEOPLE, tabs, renderers):
         with tab:
-            heading(person, period_label)
+            heading(person, period_label, routines[person["name"]])
             if person["name"] == "Jeandro": render(sales, targets, period)
             elif person["name"] == "Nayane": render(sales, period)
             elif person["name"] == "Lucas": render(sales)
