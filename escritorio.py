@@ -111,7 +111,8 @@ def top_table(frame, dimension, measure, limit=10):
 
 def show_chart(figure, **kwargs):
     figure.update_yaxes(tickformat=",.0f")
-    return show_chart(figure, use_container_width=True, **kwargs)
+    kwargs.setdefault("use_container_width", True)
+    return st.plotly_chart(figure, **kwargs)
 
 def format_delivery_data(value, key=""):
     if isinstance(value, dict):
@@ -159,7 +160,7 @@ def report_jeandro(sales, targets, period):
         show_chart(px.line(history, x="Mês", y="Faturamento realizado (R$)", markers=True,
             title="Faturamento mensal histórico"), use_container_width=True)
     with right:
-        st.plotly_chart(px.line(history, x="Mês", y="Volume realizado (kg)", markers=True,
+        show_chart(px.line(history, x="Mês", y="Volume realizado (kg)", markers=True,
             title="Volume mensal histórico"), use_container_width=True)
     revenue_forecast = forecast_year(base, method="hybrid", scenario="base")
     forecast_revenue = revenue_forecast["months"].copy()
