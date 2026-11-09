@@ -156,15 +156,16 @@ def report_jeandro(sales, targets, period):
     st.markdown("**Histórico mensal · últimos 24 meses disponíveis**")
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(px.line(history, x="Mês", y="Faturamento realizado (R$)", markers=True,
+        show_chart(px.line(history, x="Mês", y="Faturamento realizado (R$)", markers=True,
             title="Faturamento mensal histórico"), use_container_width=True)
     with right:
         st.plotly_chart(px.line(history, x="Mês", y="Volume realizado (kg)", markers=True,
             title="Volume mensal histórico"), use_container_width=True)
-    forecast_revenue = forecast_year(base, method="hybrid", scenario="base")["months"].copy()
+    revenue_forecast = forecast_year(base, method="hybrid", scenario="base")
+    forecast_revenue = revenue_forecast["months"].copy()
     forecast_kg_source = base.assign(Faturamento=pd.to_numeric(base["Peso"], errors="coerce").fillna(0))
     forecast_kg = forecast_year(forecast_kg_source, method="hybrid", scenario="base")["months"].copy()
-    year = int(forecast_year(base, method="hybrid", scenario="base")["year"])
+    year = int(revenue_forecast["year"])
     forecast_revenue["Projeção R$"] = forecast_revenue["forecast"]
     forecast_kg["Projeção KG"] = forecast_kg["forecast"]
     month_map = forecast_revenue[["mes","actual","Projeção R$","status"]].merge(
@@ -184,8 +185,8 @@ def report_jeandro(sales, targets, period):
         month_map["Meta R$"] = 0
         month_map["Meta KG"] = 0
     month_map[["Meta R$","Meta KG"]] = month_map[["Meta R$","Meta KG"]].fillna(0)
-    month_map["Atingimento projetado R$"] = month_map["Projeção R$"].div(month_map["Meta R$"].replace(0, pd.NA))
-    month_map["Atingimento projetado KG"] = month_map["Projeção KG"].div(month_map["Meta KG"].replace(0, pd.NA))
+    month_map["Atingimento projetado R$"] = month_map["Projeção R$"].div(month_map["Meta R$"]).where(month_map["Meta R$"].ne(0))
+    month_map["Atingimento projetado KG"] = month_map["Projeção KG"].div(month_map["Meta KG"]).where(month_map["Meta KG"].ne(0))
     display_columns = ["Mês","Situação","Realizado R$","Projeção R$","Meta R$","Atingimento projetado R$",
                        "Realizado KG","Projeção KG","Meta KG","Atingimento projetado KG"]
     month_map = month_map[display_columns]
