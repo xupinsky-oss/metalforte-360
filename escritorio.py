@@ -20,18 +20,19 @@ from src.auth import require_login, logout
 from src.data import load_data, load_targets, load_stock, load_flow
 from src.cloud_storage import upload_bytes, download_bytes, download_status
 from src.inventory import build_inventory_analysis
+from src.analytics import forecast_year
 
 st.set_page_config(page_title="Escritório METALFORTE 360", layout="wide", page_icon="🏢")
 px.defaults.template = "plotly_white"
 px.defaults.color_discrete_sequence = ["#F36A2D", "#2F8FD8", "#34B27B", "#F2B84B", "#A78BFA"]
 
 PEOPLE = [
-    {"name":"Jeandro","area":"Planejamento","role":"Analista de Business Plan","icon":"📈","task":"Pulso de realizado x orçado e plano de metas"},
+    {"name":"Jeandro","area":"Planejamento","role":"Analista de Business Plan","icon":"📈","task":"Histórico mensal, comparação com orçamento e projeção por mês"},
     {"name":"Nayane","area":"Marcas & Marketing","role":"Analista de Marcas e Marketing","icon":"🎯","task":"Radar de portfólio, demanda e calendário de ações"},
     {"name":"Lucas","area":"Trade","role":"Analista de Trade","icon":"🤝","task":"Performance de revendas e plano de sell-out"},
-    {"name":"Bruno","area":"Administração de Vendas","role":"Analista de Administração de Vendas","icon":"💼","task":"Ritmo diário, previsão e performance comercial"},
+    {"name":"Bruno","area":"Administração de Vendas","role":"Analista de Administração de Vendas","icon":"💼","task":"Ritmo diário, fechamento e previsão de vendas"},
     {"name":"Uandson","area":"S&OP","role":"Analista de S&OP","icon":"📦","task":"Pedidos pendentes, estoque e risco de ruptura"},
-    {"name":"Wilton","area":"Expansão Territorial","role":"Analista de Expansão Territorial","icon":"🗺️","task":"Desempenho comercial por região"},
+    {"name":"Wilton","area":"Expansão Territorial","role":"Analista de Expansão Territorial","icon":"🗺️","task":"Desempenho territorial por Cidade PIVOT"},
     {"name":"Breno","area":"Design","role":"Analista de Design","icon":"🎨","task":"Fila de campanhas, peças e materiais auxiliares"},
 ]
 
@@ -47,7 +48,44 @@ def money(value):
     return f"R$ {float(value or 0):,.0f}".replace(",", ".")
 
 def number(value):
+    if pd.isna(value):
+        return "—"
     return f"{float(value or 0):,.0f}".replace(",", ".")
+
+def price(value):
+    if pd.isna(value):
+        return "—"
+    return f"R$ {float(value or 0):,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+def percentage(value):
+    if pd.isna(value):
+        return "—"
+    return f"{float(value):.2%}".replace(".", ",")
+
+def show_table(frame, **kwargs):
+    """Mostra tabelas com inteiros sem casas; preço médio e percentuais mantêm precisão."""
+    if frame is None or frame.empty:
+        return st.dataframe(frame, use_container_width=True, **kwargs)
+    display = frame.copy()
+    for column in display.columns:
+        if not pd.api.types.is_numeric_dtype(display[column]):
+            continue
+        name = str(column).casefold()
+        values = pd.to_numeric(display[column], errors="coerce")
+        if any(term in name for term in ("p.p.", "pontos percentuais")):
+            display[column] = values.map(lambda value: f"{value:.2f} p.p.".replace(".", ",") if pd.notna(value) else "—")
+        elif "%" in name or "atingimento" in name or "margem percentual" in name:
+            scale = 100 if values.dropna().abs().max() <= 1.5 else 1
+            display[column] = values.map(lambda value: f"{value * scale:.2f}%".replace(".", ",") if pd.notna(value) else "—")
+        elif any(term in name for term in ("preço médio", "preco medio", "preço/kg", "preco/kg", "ticket médio", "ticket medio")):
+            display[column] = values.map(price)
+        elif any(term in name for term in ("r$", "faturamento", "receita", "valor", "margem", "custo", "sell-in", "meta")):
+            display[column] = values.map(money)
+        elif any(term in name for term in ("peso", " kg", "(kg)", "volume")):
+            display[column] = values.map(lambda value: f"{number(value)} kg" if pd.notna(value) else "—")
+        else:
+            display[column] = values.map(number)
+    return st.dataframe(display, use_container_width=True, **kwargs)
 
 def total(frame, column):
     return float(pd.to_numeric(frame.get(column, pd.Series(dtype=float)), errors="coerce").fillna(0).sum())
@@ -79,24 +117,75 @@ def heading(person, period, routine):
     st.caption(f"{person['role']}  |  Frequência: {routine['frequency']} às {routine['time']}  |  {routine['task']}  |  Referência: {period}")
 
 def report_jeandro(sales, targets, period):
-    actual = month_slice(sales, period)
+    if sales.empty or "Data" not in sales:
+        st.info("Não há histórico de vendas para construir a visão mensal.")
+        return
+    base = sales.copy()
+    base["Data"] = pd.to_datetime(base["Data"], errors="coerce")
+    base = base.dropna(subset=["Data"])
+    base["_Mes"] = base["Data"].dt.to_period("M").dt.to_timestamp()
+    history = base.groupby("_Mes").agg(
+        **{"Faturamento realizado (R$)":("Faturamento","sum"),"Volume realizado (kg)":("Peso","sum")}
+    ).reset_index().rename(columns={"_Mes":"Mês"})
+    history = history.tail(24)
+    st.markdown("**Histórico mensal · últimos 24 meses disponíveis**")
+    left, right = st.columns(2)
+    with left:
+        st.plotly_chart(px.line(history, x="Mês", y="Faturamento realizado (R$)", markers=True,
+            title="Faturamento mensal histórico"), use_container_width=True)
+    with right:
+        st.plotly_chart(px.line(history, x="Mês", y="Volume realizado (kg)", markers=True,
+            title="Volume mensal histórico"), use_container_width=True)
+    forecast_revenue = forecast_year(base, method="hybrid", scenario="base")["months"].copy()
+    forecast_kg_source = base.assign(Faturamento=pd.to_numeric(base["Peso"], errors="coerce").fillna(0))
+    forecast_kg = forecast_year(forecast_kg_source, method="hybrid", scenario="base")["months"].copy()
+    year = int(forecast_year(base, method="hybrid", scenario="base")["year"])
+    forecast_revenue["Projeção R$"] = forecast_revenue["forecast"]
+    forecast_kg["Projeção KG"] = forecast_kg["forecast"]
+    month_map = forecast_revenue[["mes","actual","Projeção R$","status"]].merge(
+        forecast_kg[["mes","actual","Projeção KG"]].rename(columns={"actual":"Realizado KG"}), on="mes", how="left"
+    )
+    month_map["Mês"] = month_map["mes"].map(lambda month: f"{int(month):02d}/{year}")
+    month_map = month_map.rename(columns={"actual":"Realizado R$","status":"Situação"})
     target = targets.copy()
     if not target.empty and "Competência" in target:
-        target = target[pd.to_datetime(target["Competência"], errors="coerce").dt.to_period("M").eq(period)]
-    target_revenue, target_kg = total(target, "Meta R$"), total(target, "Meta KG")
-    revenue, kg = total(actual, "Faturamento"), total(actual, "Peso")
-    a, b, c = st.columns(3)
-    with a: kpi("Realizado", money(revenue), "Faturamento do mês de referência")
-    with b: kpi("Meta R$", money(target_revenue), "Metas granulares conectadas")
-    with c: kpi("Atingimento", f"{revenue/target_revenue:.1%}" if target_revenue else "Sem meta", "Realizado ÷ meta")
-    d, e = st.columns(2)
-    with d: kpi("Realizado KG", f"{number(kg)} kg")
-    with e: kpi("Meta KG", f"{number(target_kg)} kg")
-    if target.empty:
+        target["Competência"] = pd.to_datetime(target["Competência"], errors="coerce")
+        target = target[target["Competência"].dt.year.eq(year)]
+        target_month = target.groupby(target["Competência"].dt.month).agg(
+            **{"Meta R$":("Meta R$","sum"),"Meta KG":("Meta KG","sum")}
+        ).reset_index(names="mes")
+        month_map = month_map.merge(target_month, on="mes", how="left")
+    else:
+        month_map["Meta R$"] = 0
+        month_map["Meta KG"] = 0
+    month_map[["Meta R$","Meta KG"]] = month_map[["Meta R$","Meta KG"]].fillna(0)
+    month_map["Atingimento projetado R$"] = month_map["Projeção R$"].div(month_map["Meta R$"].replace(0, pd.NA))
+    month_map["Atingimento projetado KG"] = month_map["Projeção KG"].div(month_map["Meta KG"].replace(0, pd.NA))
+    display_columns = ["Mês","Situação","Realizado R$","Projeção R$","Meta R$","Atingimento projetado R$",
+                       "Realizado KG","Projeção KG","Meta KG","Atingimento projetado KG"]
+    month_map = month_map[display_columns]
+    st.markdown(f"**Realizado e projeção mês a mês · {year}**")
+    st.caption("Projeção híbrida do METALFORTE 360: combina sazonalidade histórica, comparação com o ano anterior e ritmo realizado no ano. Meses futuros são estimativas, não metas.")
+    st.plotly_chart(px.line(month_map, x="Mês", y=["Realizado R$","Projeção R$","Meta R$"],
+        markers=True, title=f"Faturamento · realizado, projeção e meta {year}"), use_container_width=True)
+    show_table(month_map, hide_index=True)
+    current = month_slice(base, period)
+    target_current = targets.copy()
+    if not target_current.empty and "Competência" in target_current:
+        target_current = target_current[pd.to_datetime(target_current["Competência"], errors="coerce").dt.to_period("M").eq(period)]
+    actual_rs, meta_rs = total(current, "Faturamento"), total(target_current, "Meta R$")
+    actual_kg, meta_kg = total(current, "Peso"), total(target_current, "Meta KG")
+    avg_price = actual_rs / actual_kg if actual_kg else 0
+    a,b,c,d = st.columns(4)
+    with a: kpi("Realizado do mês", money(actual_rs))
+    with b: kpi("Meta R$", money(meta_rs))
+    with c: kpi("Atingimento", percentage(actual_rs / meta_rs) if meta_rs else "Sem meta")
+    with d: kpi("Preço médio", price(avg_price))
+    e,f = st.columns(2)
+    with e: kpi("Volume realizado", f"{number(actual_kg)} kg")
+    with f: kpi("Meta KG", f"{number(meta_kg)} kg")
+    if target_current.empty:
         st.warning("A base de metas não trouxe linhas para este mês. O painel não estima metas ausentes.")
-    if not actual.empty and "Data" in actual:
-        daily = actual.groupby(pd.to_datetime(actual["Data"]).dt.date)["Faturamento"].sum().rename("Faturamento").reset_index()
-        st.plotly_chart(px.line(daily, x="Data", y="Faturamento", markers=True, title="Realizado diário no mês"), use_container_width=True)
 
 def report_nayane(sales, period):
     current, previous = month_slice(sales, period), previous_month_slice(sales, period)
@@ -110,9 +199,9 @@ def report_nayane(sales, period):
         before = before.rename(columns={"Faturamento":"Faturamento mês anterior"})
         merged = now.merge(before, on=dimension, how="left").fillna({"Faturamento mês anterior":0})
         merged["Variação R$"] = merged["Faturamento mês atual"] - merged["Faturamento mês anterior"]
-        st.dataframe(merged, hide_index=True, use_container_width=True)
+        show_table(merged, hide_index=True)
     else:
-        st.dataframe(now, hide_index=True, use_container_width=True)
+        show_table(now, hide_index=True)
     st.caption("Leitura interna do portfólio vendido. A base conectada não contém pesquisa externa de mercado nem calendário de mídia.")
 
 def report_lucas(sales):
@@ -124,7 +213,7 @@ def report_lucas(sales):
     table = top_table(current, customer, "Faturamento", 15)
     if not table.empty:
         table = table.rename(columns={customer:"Revenda / grupo", "Faturamento":"Sell-in (R$)"})
-        st.dataframe(table, hide_index=True, use_container_width=True)
+        show_table(table, hide_index=True)
     else:
         st.info("A base não contém dados suficientes para o ranking de clientes.")
 
@@ -155,27 +244,36 @@ def report_uandson(sales, stock, flow):
         with b: kpi("Aguardando estoque", f"{number(total(analysis, 'Aguardando estoque (kg)'))} kg")
         with c: kpi("Excesso potencial", f"{number(total(analysis, 'Excesso potencial (kg)'))} kg")
         if not risk.empty:
-            st.dataframe(risk[["Produto Codigo","Produto","Cobertura","Estoque disponível (kg)","Venda média diária (kg)","Dias de estoque"]].head(20), hide_index=True, use_container_width=True)
+            show_table(risk[["Produto Codigo","Produto","Cobertura","Estoque disponível (kg)","Venda média diária (kg)","Dias de estoque"]].head(20), hide_index=True)
     else:
         st.warning("A fotografia de estoque não está disponível na base conectada.")
     if flow is not None and not flow.empty:
         st.markdown("**Fluxo de pedidos**")
         st.caption(f"{len(flow):,} registros na base de fluxo. Consulte os campos de processo abaixo; a base é exibida sem reinterpretar etapas.")
         preferred = [c for c in ("Pedido","Cliente Painel","Vendedor Painel","Produto","Peso","Valor","Status","Etapa","Data Pedido","Data Liberação","Data Entrega") if c in flow]
-        st.dataframe(flow[preferred].head(30) if preferred else flow.head(30), hide_index=True, use_container_width=True)
+        show_table(flow[preferred].head(30) if preferred else flow.head(30), hide_index=True)
     else:
         st.info("A base de fluxo de pedidos não retornou registros.")
 
 def report_wilton(sales):
     current = month_slice(sales, latest_period(sales))
-    dimension = "UF" if "UF" in current else "Município"
-    table = top_table(current, dimension, "Faturamento", 20)
+    if "Cidade PIVOT" in current:
+        dimension = "Cidade PIVOT"
+    elif "Cluster PIVOT" in current:
+        dimension = "Cluster PIVOT"
+    else:
+        dimension = "Município"
+    if dimension not in current:
+        st.warning("A base não contém Cidade PIVOT nem município para esta visualização.")
+        return
+    table = top_table(current, dimension, "Faturamento", 30)
     if table.empty:
-        st.info("A base não trouxe localização para o período.")
+        st.info("A base não trouxe vendas agrupáveis por Cidade PIVOT no período.")
         return
     table = table.rename(columns={"Faturamento":"Faturamento (R$)"})
-    st.dataframe(table, hide_index=True, use_container_width=True)
-    st.plotly_chart(px.bar(table.head(12), x=dimension, y="Faturamento (R$)", title="Faturamento por território"), use_container_width=True)
+    st.markdown(f"**Faturamento por {dimension} · mês mais recente**")
+    show_table(table, hide_index=True)
+    st.plotly_chart(px.bar(table.head(15), x=dimension, y="Faturamento (R$)", title=f"Faturamento por {dimension}"), use_container_width=True)
 
 def report_breno():
     st.markdown("Central de materiais auxiliares para briefing e entregas de design.")
@@ -290,7 +388,7 @@ def show_routine_controls(routines, role):
     return routines
 
 def save_daily_delivery(sales, targets, stock, period, routines):
-    path = f"escritorio/entregas/{datetime.now().strftime('%Y-%m-%d')}.json"
+    path = f"escritorio/entregas/{datetime.now(ZoneInfo('America/Sao_Paulo')).strftime('%Y-%m-%d')}.json"
     snapshot = build_delivery_snapshot(sales, targets, stock, period, routines)
     upload_bytes(json.dumps(snapshot, ensure_ascii=False, default=str, indent=2).encode("utf-8"), path, "application/json; charset=utf-8")
     return path, snapshot
