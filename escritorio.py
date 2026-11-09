@@ -193,7 +193,7 @@ def report_jeandro(sales, targets, period):
     month_map = month_map[display_columns]
     st.markdown(f"**Realizado e projeção mês a mês · {year}**")
     st.caption("Projeção híbrida do METALFORTE 360: combina sazonalidade histórica, comparação com o ano anterior e ritmo realizado no ano. Meses futuros são estimativas, não metas.")
-    st.plotly_chart(px.line(month_map, x="Mês", y=["Realizado R$","Projeção R$","Meta R$"],
+    show_chart(px.line(month_map, x="Mês", y=["Realizado R$","Projeção R$","Meta R$"],
         markers=True, title=f"Faturamento · realizado, projeção e meta {year}"), use_container_width=True)
     show_table(month_map, hide_index=True)
     current = month_slice(base, period)
@@ -255,7 +255,7 @@ def report_bruno(sales):
     with c3: kpi("Pedidos", number(current["Pedido"].nunique()) if "Pedido" in current else "—")
     if "Data" in current:
         daily = current.groupby(pd.to_datetime(current["Data"]).dt.date)["Faturamento"].sum().rename("Faturamento").reset_index()
-        st.plotly_chart(px.bar(daily, x="Data", y="Faturamento", title="Ritmo diário de faturamento"), use_container_width=True)
+        show_chart(px.bar(daily, x="Data", y="Faturamento", title="Ritmo diário de faturamento"), use_container_width=True)
     seller = "Vendedor Painel" if "Vendedor Painel" in current else "Vendedor"
     table = top_table(current, seller, "Faturamento", 12)
     if not table.empty:
@@ -300,7 +300,7 @@ def report_wilton(sales):
     table = table.rename(columns={"Faturamento":"Faturamento (R$)"})
     st.markdown(f"**Faturamento por {dimension} · mês mais recente**")
     show_table(table, hide_index=True)
-    st.plotly_chart(px.bar(table.head(15), x=dimension, y="Faturamento (R$)", title=f"Faturamento por {dimension}"), use_container_width=True)
+    show_chart(px.bar(table.head(15), x=dimension, y="Faturamento (R$)", title=f"Faturamento por {dimension}"), use_container_width=True)
 
 def report_breno():
     st.markdown("Central de materiais auxiliares para briefing e entregas de design.")
