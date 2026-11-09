@@ -120,11 +120,11 @@ def format_delivery_data(value, key=""):
         return [format_delivery_data(item, key) for item in value]
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         name = str(key).casefold()
-        if any(term in name for term in ("atingimento","percentual","margem %","variacao %","variação %","pct")):
+        if any(term in name for term in ("atingimento","attainment","percentual","margem %","variacao %","variação %","pct")):
             return percentage(value if abs(value) <= 1.5 else value / 100)
         if any(term in name for term in ("preço médio","preco medio","preço/kg","preco/kg")):
             return price(value)
-        if any(term in name for term in ("r$","faturamento","receita","valor","margem","custo","meta","sell_in")):
+        if any(term in name for term in ("r$","_rs","faturamento","receita","valor","margem","custo","meta","sell_in")):
             return money(value)
         if "kg" in name or "peso" in name:
             return f"{number(value)} kg"
@@ -348,17 +348,56 @@ def build_delivery_snapshot(sales, targets, stock, period, routines):
     month = month_slice(sales, period)
     target = targets.copy()
     if not target.empty and "Competência" in target:
-        target = target[pd.to_datetime(target["Competência"], errors="coerce").dt.to_period("M").eq(period)]
+        target["Competência"] = pd.to_datetime(target["Competência"], errors="coerce")
+        target = target[target["Competência"].dt.to_period("M").eq(period)]
     customer = "Cliente Painel" if "Cliente Painel" in month else "Cliente"
     product = "Grupo Produto" if "Grupo Produto" in month else "Produto"
-    region = "UF" if "UF" in month else "Município"
+    region = "Cidade PIVOT" if "Cidade PIVOT" in month else ("Cluster PIVOT" if "Cluster PIVOT" in month else "Município")
     sellers = "Vendedor Painel" if "Vendedor Painel" in month else "Vendedor"
+    forecast_rs = forecast_year(sales, method="hybrid", scenario="base")
+    forecast_kg = forecast_year(sales.assign(Faturamento=pd.to_numeric(sales["Peso"], errors="coerce").fillna(0)), method="hybrid", scenario="base")
+    forecast_rows = forecast_rs["months"].merge(
+        forecast_kg["months"][["mes","actual","forecast"]].rename(columns={"actual":"realizado_kg","forecast":"projecao_kg"}),
+        on="mes", how="left"
+    )
+    target_monthly = {}
+    if not targets.empty and "Competência" in targets:
+        target_year = targets.copy()
+        target_year["Competência"] = pd.to_datetime(target_year["Competência"], errors="coerce")
+        target_year = target_year[target_year["Competência"].dt.year.eq(int(forecast_rs["year"]))]
+        if not target_year.empty:
+            grouped_targets = target_year.groupby(target_year["Competência"].dt.month).agg({"Meta R$":"sum","Meta KG":"sum"})
+            target_monthly = grouped_targets.to_dict("index")
+    monthly_projection = []
+    for row in forecast_rows.to_dict("records"):
+        month_target = target_monthly.get(int(row["mes"]), {})
+        meta_rs = float(month_target.get("Meta R$", 0) or 0)
+        meta_kg = float(month_target.get("Meta KG", 0) or 0)
+        proj_rs = float(row["forecast"] or 0)
+        proj_kg = float(row["projecao_kg"] or 0)
+        monthly_projection.append({
+            "mes": f"{int(row['mes']):02d}/{forecast_rs['year']}",
+            "situacao": row["status"],
+            "realizado_rs": float(row["actual"] or 0),
+            "projecao_rs": proj_rs,
+            "meta_rs": meta_rs,
+            "atingimento_rs": proj_rs / meta_rs if meta_rs else None,
+            "realizado_kg": float(row["realizado_kg"] or 0),
+            "projecao_kg": proj_kg,
+            "meta_kg": meta_kg,
+            "atingimento_kg": proj_kg / meta_kg if meta_kg else None,
+        })
+    history_rows = sales.copy()
+    history_rows["Data"] = pd.to_datetime(history_rows["Data"], errors="coerce")
+    history_rows["_Mes"] = history_rows["Data"].dt.to_period("M").dt.to_timestamp()
+    monthly_history = history_rows.groupby("_Mes").agg(
+        faturamento_rs=("Faturamento","sum"), volume_kg=("Peso","sum")
+    ).tail(24).reset_index().rename(columns={"_Mes":"mes"}).to_dict("records")
     outputs = {
         "Jeandro": {
-            "realizado_rs": total(month, "Faturamento"),
-            "meta_rs": total(target, "Meta R$"),
-            "realizado_kg": total(month, "Peso"),
-            "meta_kg": total(target, "Meta KG"),
+            "historico_mensal_24m": monthly_history,
+            "projecao_mensal": monthly_projection,
+            "metodologia": "Projeção híbrida por mês: sazonalidade histórica, ano anterior e ritmo realizado.",
         },
         "Nayane": {"portfolio_top": top_table(month, product, "Faturamento", 5).to_dict("records")},
         "Lucas": {
@@ -372,7 +411,7 @@ def build_delivery_snapshot(sales, targets, stock, period, routines):
             "vendedores_top": top_table(month, sellers, "Faturamento", 5).to_dict("records"),
         },
         "Uandson": {"status_estoque": "Base disponível" if stock is not None and not stock.empty else "Base não carregada"},
-        "Wilton": {"territorios_top": top_table(month, region, "Faturamento", 5).to_dict("records")},
+        "Wilton": {"cidades_pivot_top": top_table(month, region, "Faturamento", 10).to_dict("records")},
         "Breno": {"status": "Aguardando briefing ou arquivo auxiliar"},
     }
     if stock is not None and not stock.empty:
