@@ -377,6 +377,9 @@ def build_payload(data, stock=None):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
     month_start = last_date.replace(day=1)
+    history_start = pd.Timestamp("2024-01-01")
+    history_months = max(1, (last_date.year - 2024) * 12 + last_date.month)
+    customer_months = max(1, (last_date.year - 2025) * 12 + last_date.month)
     current = data[(data["Data"] >= month_start) & (data["Data"] <= last_date)]
     previous_start = month_start - pd.DateOffset(years=1)
     previous_end = last_date - pd.DateOffset(years=1)
