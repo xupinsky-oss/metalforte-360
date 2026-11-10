@@ -13,14 +13,14 @@ Permitir que a equipe comercial identifique rapidamente os clientes mais consoli
 
 F, M e V são transformados em notas de 1 a 5 pela posição relativa do cliente na carteira filtrada. Empates recebem a mesma posição média. A Nota RFMV é a soma das quatro notas e pode chegar a 20 pontos.
 
-## Classes
+A nota 10 aparece na sobreposição original entre B e C; para manter faixas exclusivas, ela é atribuída à classe B.\n\n## Classes
 
 | Classe | Score médio |
 | --- | ---: |
 | A | de 16 a 20 |
-| B | de 11 a 15 |
-| C | de 6 a 10 |
-| D | de 0 a 5 |
+| B | de 10 a 15 |
+| C | de 6 a 9 |
+| D | de 1 a 5 |
 
 ## Uso no painel
 
