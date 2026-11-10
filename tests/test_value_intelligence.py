@@ -73,8 +73,8 @@ class ValueIntelligenceTests(unittest.TestCase):
         self.assertTrue(result["Nota RFMV"].between(4, 20).all())
 
     def test_rfmv_class_uses_requested_total_score_bands(self):
-        classes = rfmv_class([0, 5, 6, 10, 11, 15, 16, 20]).tolist()
-        self.assertEqual(classes, ["D", "D", "C", "C", "B", "B", "A", "A"])
+        classes = rfmv_class([0, 5, 6, 9, 10, 11, 15, 16, 20]).tolist()
+        self.assertEqual(classes, ["D", "D", "C", "C", "B", "B", "B", "A", "A"])
 
     def test_price_matrix_excludes_unreliable_weight_products(self):
         rows = []
