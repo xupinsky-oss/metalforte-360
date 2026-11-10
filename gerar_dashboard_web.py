@@ -346,8 +346,19 @@ def build_payload(data, stock=None):
         faturamento=("Faturamento", "sum"), peso=("Peso", "sum"), margem=("Margem", "sum")
     )
     monthly["margem_pct"] = monthly["margem"] / monthly["faturamento"].replace(0, pd.NA)
-    monthly_records = [{key: (_number(value) if key != "mes" else value) for key, value in item.items()}
-                       for item in monthly.to_dict(orient="records")]
+    monthly_source = data[data["Data"] >= month_start - pd.DateOffset(months=11)].copy()
+    monthly_source["mes"] = monthly_source["Data"].dt.to_period("M").astype(str)
+    monthly_ids = monthly_source.groupby("mes").agg(
+        clientes_ids=("Cod Cliente", lambda values: sorted(set(values.dropna().astype(str)))),
+        produtos_ids=("Produto Codigo", lambda values: sorted(set(values.dropna().astype(str)))),
+    ).reset_index()
+    monthly = monthly.merge(monthly_ids, on="mes", how="left")
+    monthly_records = []
+    for item in monthly.to_dict(orient="records"):
+        monthly_records.append({
+            key: (value if key in ("mes", "clientes_ids", "produtos_ids") else _number(value))
+            for key, value in item.items()
+        })
     panels = {
         "segmentos": _breakdown(current, "Segmento Cliente"),
         "produtos": _breakdown(current, "Grupo Produto"),
