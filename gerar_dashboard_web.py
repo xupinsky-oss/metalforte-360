@@ -104,8 +104,19 @@ def _customer_payload(history, end_date):
     columns = [
         "Cod Cliente", "Cliente", "Vendedor", "Segmento Cliente", "UF", "Município",
         "Primeira compra", "Última compra", "Dias sem comprar", "Status",
-        "Faturamento 12m", "KG 12m", "Pedidos 12m",
+        "Faturamento 12m", "KG 12m", "Pedidos 12m", "Grupo Produto",
     ]
+    if "Grupo Produto" in history and "Cod Cliente" in history:
+        eligible = history[pd.to_datetime(history["Data"], errors="coerce").le(pd.Timestamp(end_date))].copy()
+        if not eligible.empty:
+            latest_groups = eligible.sort_values("Data").groupby("Cod Cliente", dropna=False).tail(1)
+            group_map = {
+                str(row["Cod Cliente"]).removesuffix(".0"): str(row["Grupo Produto"])
+                for _, row in latest_groups[["Cod Cliente", "Grupo Produto"]].iterrows()
+            }
+            detail["Grupo Produto"] = detail["Cod Cliente"].astype(str).str.removesuffix(".0").map(group_map).fillna("Não mapeado")
+    else:
+        detail["Grupo Produto"] = "Não mapeado"
     records = []
     ordered = detail.sort_values(
         ["Status", "Dias sem comprar", "Faturamento 12m"],
@@ -298,6 +309,69 @@ def _unified_snapshot(overview, commercial, funnel, flow_dates, monthly, panels)
     return rows
 
 
+
+def _monthly_sales_payload(history, last_date, months=12):
+    """Agrega vendas por mês e recortes, preservando IDs distintos para filtros."""
+    start = pd.Timestamp(last_date).to_period("M").start_time - pd.DateOffset(months=max(int(months), 1) - 1)
+    source = history[pd.to_datetime(history["Data"], errors="coerce").between(start, last_date, inclusive="both")].copy()
+    source["Data"] = pd.to_datetime(source["Data"], errors="coerce")
+    source["mes"] = source["Data"].dt.to_period("M").astype(str)
+    dimensions = {"vendedor": "Vendedor", "grupo": "Grupo Produto", "segmento": "Segmento Cliente", "cidade": "Município"}
+    for column in dimensions.values():
+        if column not in source:
+            source[column] = "Não mapeado"
+        source[column] = source[column].fillna("Não mapeado").astype(str)
+    if "Cod Cliente" not in source:
+        source["Cod Cliente"] = ""
+    if "Produto Codigo" not in source:
+        source["Produto Codigo"] = source.get("Produto", "")
+    if "Produto" not in source:
+        source["Produto"] = source["Produto Codigo"]
+    source["_cliente_id"] = source["Cod Cliente"].fillna("").astype(str).str.removesuffix(".0")
+    source["_produto_id"] = source["Produto Codigo"].fillna("").astype(str).str.removesuffix(".0")
+    cut_columns = ["mes", *dimensions.keys()]
+    grouped = source.groupby(cut_columns, dropna=False).agg(
+        faturamento=("Faturamento", "sum"),
+        peso=("Peso", "sum"),
+        margem=("Margem", "sum"),
+        clientes_ids=("_cliente_id", lambda values: sorted(set(value for value in values if value))),
+        produtos_ids=("_produto_id", lambda values: sorted(set(value for value in values if value))),
+    ).reset_index()
+    recortes = []
+    for row in grouped.to_dict(orient="records"):
+        recortes.append({
+            **{key: str(row[key]) for key in cut_columns},
+            "faturamento": _number(row["faturamento"]),
+            "peso": _number(row["peso"]),
+            "margem": _number(row["margem"]),
+            "clientes_ids": row["clientes_ids"],
+            "produtos_ids": row["produtos_ids"],
+        })
+    sku_columns = ["mes", "vendedor", "grupo", "Produto Codigo", "Produto"]
+    sku_group = source.groupby(sku_columns, dropna=False).agg(
+        faturamento=("Faturamento", "sum"), peso=("Peso", "sum")
+    ).reset_index()
+    skus = [{
+        "mes": str(row["mes"]), "vendedor": str(row["vendedor"]), "grupo": str(row["grupo"]),
+        "codigo": str(row["Produto Codigo"]).removesuffix(".0"), "produto": str(row["Produto"]),
+        "faturamento": _number(row["faturamento"]), "peso": _number(row["peso"]),
+    } for row in sku_group.to_dict(orient="records")]
+    return recortes, skus
+
+
+def _monthly_customer_payload(history, last_date, months=12):
+    """Publica retratos da carteira no fim de cada mês para permitir filtros históricos."""
+    final_month = pd.Timestamp(last_date).to_period("M")
+    first_month = final_month - max(int(months), 1) + 1
+    snapshots = []
+    for period in pd.period_range(first_month, final_month, freq="M"):
+        end = min(period.end_time.normalize(), pd.Timestamp(last_date).normalize())
+        available = history[pd.to_datetime(history["Data"], errors="coerce").le(end)]
+        snapshot = _customer_payload(available, end)
+        snapshots.append({"mes": str(period), **snapshot})
+    return snapshots
+
+
 def build_payload(data, stock=None):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
@@ -359,6 +433,8 @@ def build_payload(data, stock=None):
             key: (value if key in ("mes", "clientes_ids", "produtos_ids") else _number(value))
             for key, value in item.items()
         })
+    monthly_recortes, monthly_skus = _monthly_sales_payload(data, last_date, months=12)
+    monthly_customers = _monthly_customer_payload(data, last_date, months=12)
     panels = {
         "segmentos": _breakdown(current, "Segmento Cliente"),
         "produtos": _breakdown(current, "Grupo Produto"),
@@ -369,7 +445,7 @@ def build_payload(data, stock=None):
     customer_status = _customer_payload(data, last_date)
     inventory = _inventory_payload(stock, data, months=3)
     return {
-        "versao": 2,
+        "versao": 3,
         "atualizado_em": datetime.now().astimezone().isoformat(),
         "periodo": {"inicio": month_start.date().isoformat(), "fim": last_date.date().isoformat()},
         "overview": current_metrics,
@@ -377,8 +453,11 @@ def build_payload(data, stock=None):
         "funil_acompanhamento": funnel,
         "rastreabilidade_datas": flow_dates,
         "mensal": monthly_records,
+        "mensal_recortes": monthly_recortes,
+        "mensal_skus": monthly_skus,
         "paineis": panels,
         "clientes_carteira": customer_status,
+        "clientes_mensais": monthly_customers,
         "estoque": inventory,
         "consulta_unificada": _unified_snapshot(current_metrics, commercial, funnel, flow_dates, monthly_records, panels),
     }
