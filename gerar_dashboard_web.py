@@ -14,7 +14,7 @@ import pandas as pd
 from src.cloud_storage import upload_bytes
 from src.data import load_data, load_stock
 from src.inventory import build_inventory_analysis
-from src.value_intelligence import portfolio_health
+from src.value_intelligence import customer_rfmv, portfolio_health
 
 
 OUTPUT_PATH = os.getenv("SUPABASE_DASHBOARD_PATH", "dashboard/command-center.json")
@@ -87,6 +87,7 @@ def _optional_number(indicators, key):
 def _customer_payload(history, end_date):
     """Publica status e carteira mínima, sem telefone, e-mail ou histórico por nota."""
     _, detail = portfolio_health(history, end_date, inactivity_days=180)
+    rfmv = customer_rfmv(history, end_date)
     if detail.empty:
         return {
             "data_referencia": pd.Timestamp(end_date).date().isoformat(),
@@ -106,6 +107,7 @@ def _customer_payload(history, end_date):
         "Cod Cliente", "Cliente", "Vendedor", "Segmento Cliente", "UF", "Município",
         "Primeira compra", "Última compra", "Dias sem comprar", "Status",
         "Faturamento 12m", "KG 12m", "Pedidos 12m", "Grupo Produto",
+        "Nota R", "Nota F", "Nota M", "Nota V", "Nota RFMV", "Classe RFMV", "Código RFMV",
     ]
     if "Grupo Produto" in history and "Cod Cliente" in history:
         eligible = history[pd.to_datetime(history["Data"], errors="coerce").le(pd.Timestamp(end_date))].copy()
@@ -118,6 +120,13 @@ def _customer_payload(history, end_date):
             detail["Grupo Produto"] = detail["Cod Cliente"].astype(str).str.removesuffix(".0").map(group_map).fillna("Não mapeado")
     else:
         detail["Grupo Produto"] = "Não mapeado"
+    if not rfmv.empty and "Cod Cliente" in detail:
+        detail = detail.copy()
+        rfmv = rfmv.copy()
+        detail["_rfmv_key"] = detail["Cod Cliente"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+        rfmv["_rfmv_key"] = rfmv["Cod Cliente"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+        score_columns = ["_rfmv_key", "Nota R", "Nota F", "Nota M", "Nota V", "Nota RFMV", "Classe RFMV", "Código RFMV"]
+        detail = detail.merge(rfmv[score_columns].drop_duplicates("_rfmv_key"), on="_rfmv_key", how="left").drop(columns="_rfmv_key")
     records = []
     ordered = detail.sort_values(
         ["Status", "Dias sem comprar", "Faturamento 12m"],
