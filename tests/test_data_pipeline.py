@@ -3,9 +3,11 @@ import os
 import unittest
 from unittest.mock import patch
 import pandas as pd
+import requests
 from openpyxl import Workbook
 from src import data
 from src.data_catalog import object_path
+from src.cloud_storage import is_missing_object_error
 
 
 def mapping_file():
@@ -56,6 +58,15 @@ class DataPipelineTests(unittest.TestCase):
         with patch.dict(os.environ,{"SUPABASE_DATA_PATH":"bases/homologacao/metalforte_base.csv.gz"},clear=True):
             self.assertEqual(object_path("targets"),"bases/homologacao/metalforte_metas.xlsx")
             self.assertEqual(object_path("orders"),"bases/homologacao/metalforte_pedidos_realizado.csv.gz")
+
+    def test_missing_storage_object_uses_error_code_even_with_http_400(self):
+        response = requests.Response()
+        response.status_code = 400
+        response._content = b'{"statusCode":"404","code":"NoSuchKey","message":"Object not found"}'
+        self.assertTrue(is_missing_object_error(requests.HTTPError(response=response)))
+
+        response._content = b'{"statusCode":"400","code":"InvalidKey","message":"Bad request"}'
+        self.assertFalse(is_missing_object_error(requests.HTTPError(response=response)))
 
     def test_cloud_failure_does_not_use_local_base(self):
         with patch.object(data,"is_configured",return_value=True),patch.object(data,"download_bytes",side_effect=OSError()),patch.object(data.pd,"read_csv") as read:
