@@ -329,7 +329,7 @@ def _monthly_sales_payload(history, last_date, months=12):
         source["Produto"] = source["Produto Codigo"]
     source["_cliente_id"] = source["Cod Cliente"].fillna("").astype(str).str.removesuffix(".0")
     source["_produto_id"] = source["Produto Codigo"].fillna("").astype(str).str.removesuffix(".0")
-    cut_columns = ["mes", *dimensions.keys()]
+    cut_columns = ["mes", *dimensions.values()]
     grouped = source.groupby(cut_columns, dropna=False).agg(
         faturamento=("Faturamento", "sum"),
         peso=("Peso", "sum"),
@@ -340,19 +340,19 @@ def _monthly_sales_payload(history, last_date, months=12):
     recortes = []
     for row in grouped.to_dict(orient="records"):
         recortes.append({
-            **{key: str(row[key]) for key in cut_columns},
+            **{"mes": str(row["mes"]), **{key: str(row[column]) for key, column in dimensions.items()}},
             "faturamento": _number(row["faturamento"]),
             "peso": _number(row["peso"]),
             "margem": _number(row["margem"]),
             "clientes_ids": row["clientes_ids"],
             "produtos_ids": row["produtos_ids"],
         })
-    sku_columns = ["mes", "vendedor", "grupo", "Produto Codigo", "Produto"]
+    sku_columns = ["mes", "Vendedor", "Grupo Produto", "Produto Codigo", "Produto"]
     sku_group = source.groupby(sku_columns, dropna=False).agg(
         faturamento=("Faturamento", "sum"), peso=("Peso", "sum")
     ).reset_index()
     skus = [{
-        "mes": str(row["mes"]), "vendedor": str(row["vendedor"]), "grupo": str(row["grupo"]),
+        "mes": str(row["mes"]), "vendedor": str(row["Vendedor"]), "grupo": str(row["Grupo Produto"]),
         "codigo": str(row["Produto Codigo"]).removesuffix(".0"), "produto": str(row["Produto"]),
         "faturamento": _number(row["faturamento"]), "peso": _number(row["peso"]),
     } for row in sku_group.to_dict(orient="records")]
