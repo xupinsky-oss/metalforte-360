@@ -415,13 +415,13 @@ def build_payload(data, stock=None):
         {"etapa": "Faturado no período", "valor": _optional_number(indicators, "pedidos_faturados_valor") if _optional_number(indicators, "pedidos_faturados_valor") is not None else current_metrics["faturamento"], "peso": current_metrics["peso"], "tipo": "resultado"},
     ]
 
-    monthly = data[data["Data"] >= month_start - pd.DateOffset(months=11)].copy()
+    monthly = data[data["Data"] >= history_start].copy()
     monthly["mes"] = monthly["Data"].dt.to_period("M").astype(str)
     monthly = monthly.groupby("mes", as_index=False).agg(
         faturamento=("Faturamento", "sum"), peso=("Peso", "sum"), margem=("Margem", "sum")
     )
     monthly["margem_pct"] = monthly["margem"] / monthly["faturamento"].replace(0, pd.NA)
-    monthly_source = data[data["Data"] >= month_start - pd.DateOffset(months=11)].copy()
+    monthly_source = data[data["Data"] >= history_start].copy()
     monthly_source["mes"] = monthly_source["Data"].dt.to_period("M").astype(str)
     monthly_ids = monthly_source.groupby("mes").agg(
         clientes_ids=("Cod Cliente", lambda values: sorted(set(values.dropna().astype(str)))),
@@ -434,8 +434,8 @@ def build_payload(data, stock=None):
             key: (value if key in ("mes", "clientes_ids", "produtos_ids") else _number(value))
             for key, value in item.items()
         })
-    monthly_recortes, monthly_skus = _monthly_sales_payload(data, last_date, months=12)
-    monthly_customers = _monthly_customer_payload(data, last_date, months=12)
+    monthly_recortes, monthly_skus = _monthly_sales_payload(data, last_date, months=history_months)
+    monthly_customers = _monthly_customer_payload(data, last_date, months=customer_months)
     panels = {
         "segmentos": _breakdown(current, "Segmento Cliente"),
         "produtos": _breakdown(current, "Grupo Produto"),
