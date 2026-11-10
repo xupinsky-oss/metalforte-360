@@ -21,6 +21,7 @@ from src.auth import render_user_admin
 from src.data import enrich_city_clusters, load_city_clusters
 from src.product_groups import normalize_product_group
 from src.targets import allocate_target, target_scope
+from src.ui.navigation import group_pages
 from src.value_intelligence import (
     customer_rfmv,
     iqr_inlier_mask,
@@ -390,6 +391,11 @@ def _inject_navigation_layout(total):
         </style>""",
         unsafe_allow_html=True,
     )
+
+
+def _reset_navigation_page():
+    """Limpa a seleção anterior quando a área de navegação muda."""
+    st.session_state.pop("mf_page", None)
 
 
 def _inject_kpi_styles():
@@ -4090,7 +4096,19 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
         st.error("Seu usuário não possui permissão para nenhuma visão. Procure um administrador.")
         return
 
-    labels = [label for label, _ in pages]
+    grouped_pages = group_pages(pages)
+    group_labels = list(grouped_pages)
+    if st.session_state.get("mf_page_group") not in group_labels:
+        st.session_state["mf_page_group"] = group_labels[0]
+        st.session_state.pop("mf_page", None)
+    selected_group = st.selectbox(
+        "Área",
+        group_labels,
+        key="mf_page_group",
+        on_change=_reset_navigation_page,
+    )
+    active_pages = grouped_pages[selected_group]
+    labels = [label for label, _ in active_pages]
     _inject_navigation_layout(len(labels))
     # A stale or empty widget value can survive a Streamlit Cloud reload and
     # make the page lookup fail before any dashboard view is rendered.
@@ -4099,7 +4117,7 @@ def render(data, history, start_date, end_date, last_load, brl, brl2, pct, pp, s
     selected = st.segmented_control("Navegação", labels, default=labels[0], key="mf_page")
     if selected not in labels:
         selected = labels[0]
-    permission = dict(pages)[selected]
+    permission = dict(active_pages)[selected]
     can_export = "export_data" in permissions
     def resolve_lazy(value):
         """Materializa bases auxiliares somente quando a página as solicita."""
