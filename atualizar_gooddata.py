@@ -7,8 +7,8 @@ from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REP
 from src.inventory import prepare_stock
 from src.dimensions import normalize_dimensions
 from src.secure_credentials import load_credential
-from src.cloud_storage import download_bytes,is_configured,upload_file,upload_bytes,upload_status
-from src.targets import TARGET_COLUMNS,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
+from src.cloud_storage import download_bytes,is_configured,is_missing_object_error,upload_file,upload_bytes,upload_status
+from src.targets import TARGET_COLUMNS,consolidate_targets,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
 from src.product_groups import normalize_product_group
 
 ROOT=Path(__file__).resolve().parent
@@ -336,6 +336,7 @@ def collect_target_periods(con,current_detail,current_value,existing_targets=Non
             .dropna().dt.to_period('M').dt.start_time
         )
     periods=[]
+    errors=[]
     for offset in range(offset_from,offset_to+1):
         competence=base_competence+pd.DateOffset(months=offset)
         # Competências passadas já publicadas são históricas: não precisam ser
@@ -358,10 +359,17 @@ def collect_target_periods(con,current_detail,current_value,existing_targets=Non
             periods.append(period)
             logging.info('Meta %s: %s linhas',competence.strftime('%Y-%m'),len(period))
         except Exception as exc:
-            logging.warning('Meta %s indisponível (%s): %s',competence.strftime('%Y-%m'),type(exc).__name__,str(exc))
+            message=f"Meta {competence.strftime('%Y-%m')} indisponível ({type(exc).__name__}): {exc}"
+            errors.append(message)
+            logging.warning('%s',message,exc_info=True)
+            # O offset corrente contém os dados recebidos nesta própria execução.
+            # Se ele não puder ser interpretado, publicar apenas meses vizinhos
+            # produziria uma série temporal incompleta sem deixar isso claro.
+            if offset == 0:
+                raise RuntimeError(message) from exc
     if not periods:
-        logging.warning('Nenhuma competência de meta disponível; preservando histórico anterior e seguindo com a base comercial.')
-        return pd.DataFrame(columns=TARGET_COLUMNS)
+        details='; '.join(errors) if errors else 'Nenhum período foi consultado.'
+        raise RuntimeError(f'Nenhuma competência de meta disponível: {details}')
     return pd.concat(periods,ignore_index=True)
 
 def consolidate(downloaded,product_matrix=None):
@@ -600,8 +608,7 @@ def main():
             previous_targets=read_targets_workbook(target_payload)
             logging.info('Metas carregadas do workbook privado do Supabase: %s linhas',len(previous_targets))
         except Exception as exc:
-            status=getattr(getattr(exc,'response',None),'status_code',None)
-            if status != 404:
+            if not is_missing_object_error(exc):
                 logging.warning('Workbook de metas indisponível ou inválido (%s); mantendo carga comercial independente.',type(exc).__name__)
             else:
                 legacy_path=os.getenv('SUPABASE_TARGET_LEGACY_PATH','bases/metalforte_metas.csv.gz')
@@ -610,7 +617,7 @@ def main():
                     previous_targets=pd.read_csv(io.BytesIO(legacy_payload),compression='gzip',low_memory=False)
                     logging.info('Migrando histórico legado de metas (%s linhas) para Excel.',len(previous_targets))
                 except Exception as legacy_exc:
-                    if getattr(getattr(legacy_exc,'response',None),'status_code',None) != 404:
+                    if not is_missing_object_error(legacy_exc):
                         logging.warning('Histórico legado de metas não pôde ser lido (%s).',type(legacy_exc).__name__)
                 if previous_targets.empty:
                     # Migração única: se não existir nem XLSX nem snapshot legado,

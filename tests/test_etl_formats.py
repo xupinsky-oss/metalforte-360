@@ -49,6 +49,15 @@ class EtlFormatTests(unittest.TestCase):
         self.assertAlmostEqual(result["Meta R$"].sum(), 30000)
         self.assertAlmostEqual(result["Meta KG"].sum(), 6000)
 
+    def test_target_collection_fails_loudly_when_current_report_is_invalid(self):
+        class Connector:
+            def raw_report(self, report_id, offset_from=0, offset_to=0):
+                raise AssertionError("Não deve consultar offsets quando o intervalo é somente o mês atual")
+
+        with patch.dict("os.environ", {"TOTVS_TARGET_OFFSET_FROM": "0", "TOTVS_TARGET_OFFSET_TO": "0"}):
+            with self.assertRaisesRegex(RuntimeError, "Meta .* indisponível"):
+                collect_target_periods(Connector(), pd.DataFrame(), pd.DataFrame())
+
     def test_quote_detail_preserves_margin_and_commercial_dimensions(self):
         flow = build_flow_timeline({
             "orcamentos_abertos_detalhe": pd.DataFrame({

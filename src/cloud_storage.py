@@ -25,6 +25,25 @@ def is_configured():
     return _settings() is not None
 
 
+def is_missing_object_error(error):
+    """Reconhece a ausência de um objeto mesmo quando Storage responde HTTP 400."""
+    response = getattr(error, "response", None)
+    if response is None:
+        return False
+    if response.status_code == 404:
+        return True
+    if response.status_code != 400:
+        return False
+    try:
+        payload = response.json()
+    except (ValueError, TypeError):
+        return False
+    return isinstance(payload, dict) and (
+        payload.get("code") == "NoSuchKey"
+        or str(payload.get("statusCode", "")) == "404"
+    )
+
+
 def _object_url(path=None):
     base_url, _, bucket, default_path = _settings()
     object_name = path or default_path
