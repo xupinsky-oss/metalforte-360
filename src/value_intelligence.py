@@ -35,10 +35,10 @@ def _quintile_score(values):
 
 
 def rfmv_class(total_scores):
-    """Aplica as faixas comerciais D/C/B/A sobre a nota total de 0 a 20."""
+    """Aplica as faixas D (1–5), C (6–9), B (10–15) e A (16–20)."""
     scores = pd.to_numeric(pd.Series(total_scores), errors="coerce").fillna(0).clip(0, 20)
     classes = np.select(
-        [scores.le(5), scores.le(10), scores.le(15)],
+        [scores.lt(6), scores.lt(10), scores.lt(16)],
         ["D", "C", "B"], default="A",
     )
     return pd.Series(classes, index=scores.index, dtype="string")
