@@ -4,6 +4,7 @@ O arquivo permanece no bucket privado e as funções de leitura verificam
 a identidade do proprietário antes de entregar os dados por cliente.
 """
 
+import gzip
 import json
 import os
 from datetime import datetime
@@ -466,6 +467,7 @@ def build_payload(data, stock=None):
 def main():
     payload = build_payload(load_data(), load_stock())
     content = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    content = gzip.compress(content, mtime=0)
     if not upload_bytes(content, OUTPUT_PATH, "application/json; charset=utf-8"):
         raise RuntimeError("Supabase não está configurado para publicar o resumo HTML.")
     print(f"Resumo HTML publicado em {OUTPUT_PATH} ({len(content):,} bytes).")
