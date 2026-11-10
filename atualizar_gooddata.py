@@ -7,7 +7,7 @@ from src.totvs import TotvsGoodDataConnector,REPORTS,STOCK_REPORTS,INDICATOR_REP
 from src.inventory import prepare_stock
 from src.dimensions import normalize_dimensions
 from src.secure_credentials import load_credential
-from src.cloud_storage import download_bytes,is_configured,upload_file,upload_bytes,upload_status
+from src.cloud_storage import download_bytes,is_configured,is_missing_object_error,upload_file,upload_bytes,upload_status
 from src.targets import TARGET_COLUMNS,consolidate_targets,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
 from src.product_groups import normalize_product_group
 
@@ -608,8 +608,7 @@ def main():
             previous_targets=read_targets_workbook(target_payload)
             logging.info('Metas carregadas do workbook privado do Supabase: %s linhas',len(previous_targets))
         except Exception as exc:
-            status=getattr(getattr(exc,'response',None),'status_code',None)
-            if status != 404:
+            if not is_missing_object_error(exc):
                 logging.warning('Workbook de metas indisponível ou inválido (%s); mantendo carga comercial independente.',type(exc).__name__)
             else:
                 legacy_path=os.getenv('SUPABASE_TARGET_LEGACY_PATH','bases/metalforte_metas.csv.gz')
@@ -618,7 +617,7 @@ def main():
                     previous_targets=pd.read_csv(io.BytesIO(legacy_payload),compression='gzip',low_memory=False)
                     logging.info('Migrando histórico legado de metas (%s linhas) para Excel.',len(previous_targets))
                 except Exception as legacy_exc:
-                    if getattr(getattr(legacy_exc,'response',None),'status_code',None) != 404:
+                    if not is_missing_object_error(legacy_exc):
                         logging.warning('Histórico legado de metas não pôde ser lido (%s).',type(legacy_exc).__name__)
                 if previous_targets.empty:
                     # Migração única: se não existir nem XLSX nem snapshot legado,
