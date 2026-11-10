@@ -1,8 +1,7 @@
-"""Gera o extrato agregado usado pelo Command Center HTML.
+"""Gera o resumo privado do painel comercial com carteira e estoque.
 
-O arquivo não contém pedidos, notas, preços por cliente nem outras linhas da
-base. Ele permanece no bucket privado e é entregue apenas pela Edge Function
-para usuários autenticados no Supabase.
+O arquivo permanece no bucket privado e as funções de leitura verificam
+a identidade do proprietário antes de entregar os dados por cliente.
 """
 
 import json
@@ -12,7 +11,9 @@ from datetime import datetime
 import pandas as pd
 
 from src.cloud_storage import upload_bytes
-from src.data import load_data
+from src.data import load_data, load_stock
+from src.inventory import build_inventory_analysis
+from src.value_intelligence import portfolio_health
 
 
 OUTPUT_PATH = os.getenv("SUPABASE_DASHBOARD_PATH", "dashboard/command-center.json")
@@ -80,6 +81,128 @@ def _load_indicators():
 
 def _optional_number(indicators, key):
     return _number(indicators[key]) if key in indicators else None
+
+
+def _customer_payload(history, end_date):
+    """Publica status e carteira mínima, sem telefone, e-mail ou histórico por nota."""
+    _, detail = portfolio_health(history, end_date, inactivity_days=180)
+    if detail.empty:
+        return {
+            "data_referencia": pd.Timestamp(end_date).date().isoformat(),
+            "regras": {"novo_dias": 90, "ativo_dias": 90, "em_risco_dias": 180},
+            "contagens": {"total": 0, "novos": 0, "ativos": 0, "em_risco": 0, "inativos": 0},
+            "clientes": [],
+        }
+    names = {
+        "Novo": "novos",
+        "Ativo": "ativos",
+        "Em risco": "em_risco",
+        "Inativo": "inativos",
+    }
+    counts = {value: int(detail["Status"].eq(key).sum()) for key, value in names.items()}
+    counts["total"] = int(len(detail))
+    columns = [
+        "Cod Cliente", "Cliente", "Vendedor", "Segmento Cliente", "UF", "Município",
+        "Primeira compra", "Última compra", "Dias sem comprar", "Status",
+        "Faturamento 12m", "KG 12m", "Pedidos 12m",
+    ]
+    records = []
+    ordered = detail.sort_values(
+        ["Status", "Dias sem comprar", "Faturamento 12m"],
+        ascending=[True, False, False],
+    )
+    for row in ordered[[column for column in columns if column in ordered]].to_dict("records"):
+        item = {}
+        for key, value in row.items():
+            if key in ("Primeira compra", "Última compra"):
+                item[key] = pd.Timestamp(value).date().isoformat() if pd.notna(value) else None
+            elif key == "Cod Cliente":
+                item[key] = str(value).removesuffix(".0") if pd.notna(value) else ""
+            elif isinstance(value, (int, float)) and key not in ("Dias sem comprar", "Pedidos 12m"):
+                item[key] = _number(value)
+            elif pd.isna(value):
+                item[key] = None
+            else:
+                item[key] = value.item() if hasattr(value, "item") else value
+        records.append(item)
+    return {
+        "data_referencia": pd.Timestamp(end_date).date().isoformat(),
+        "regras": {
+            "novo_dias": 90,
+            "ativo_dias": 90,
+            "em_risco_dias": 180,
+            "descricao": "Novo: primeira compra nos últimos 90 dias; ativo: última compra há até 90 dias; em risco: 91 a 180 dias; inativo: acima de 180 dias.",
+        },
+        "contagens": counts,
+        "clientes": records,
+    }
+
+
+def _inventory_payload(stock, sales, months=3):
+    """Cruza a fotografia do ERP com vendas por código usando a rotina oficial."""
+    if stock is None or stock.empty:
+        return {"meses_giro": months, "itens": [], "grupos": [], "resumo": {}}
+    analysis = build_inventory_analysis(stock, sales, months=months, abc_measure="Peso")
+    if analysis.empty:
+        return {"meses_giro": months, "itens": [], "grupos": [], "resumo": {}}
+    start = analysis.attrs.get("start_date")
+    end = analysis.attrs.get("end_date")
+    items = []
+    for row in analysis.to_dict("records"):
+        days = row.get("Dias de estoque")
+        items.append({
+            "codigo": str(row.get("Produto Codigo", "")).removesuffix(".0"),
+            "produto": str(row.get("Produto", "") or ""),
+            "grupo": str(row.get("Grupo Produto", "Não mapeado") or "Não mapeado"),
+            "saldo_kg": _number(row.get("Saldo Total", 0)),
+            "reserva_kg": _number(row.get("Reserva Total", 0)),
+            "disponivel_kg": _number(row.get("Estoque disponível (kg)", 0)),
+            "vendas_historicas_kg": _number(row.get("Vendas históricas (kg)", 0)),
+            "faturamento_historico": _number(row.get("Faturamento histórico (R$)", 0)),
+            "pedidos_historicos": int(row.get("Pedidos históricos", 0) or 0),
+            "venda_media_diaria_kg": _number(row.get("Venda média diária (kg)", 0)),
+            "dias_estoque": _number(days) if pd.notna(days) else None,
+            "giro": str(row.get("Giro", "Sem giro")),
+            "curva_abc": str(row.get("Curva ABC", "C")),
+            "cobertura": str(row.get("Cobertura", "Sem estoque e sem giro")),
+            "excesso_potencial_kg": _number(row.get("Excesso potencial (kg)", 0)),
+            "reposicao_30_dias_kg": _number(row.get("Reposição para 30 dias (kg)", 0)),
+        })
+    coverage = analysis["Cobertura"].value_counts().to_dict()
+    valid_days = pd.to_numeric(analysis["Dias de estoque"], errors="coerce").dropna()
+    group_rows = []
+    for group, frame in analysis.groupby("Grupo Produto", dropna=False):
+        group_rows.append({
+            "nome": str(group),
+            "produtos": int(len(frame)),
+            "saldo_kg": _number(frame["Saldo Total"].sum()),
+            "reserva_kg": _number(frame["Reserva Total"].sum()),
+            "disponivel_kg": _number(frame["Estoque disponível (kg)"].sum()),
+            "vendas_kg": _number(frame["Vendas históricas (kg)"].sum()),
+            "alto_giro": int(frame["Giro"].eq("Alto giro").sum()),
+        })
+    group_rows.sort(key=lambda item: item["disponivel_kg"], reverse=True)
+    return {
+        "meses_giro": months,
+        "periodo_giro": {
+            "inicio": pd.Timestamp(start).date().isoformat() if start is not None else None,
+            "fim": pd.Timestamp(end).date().isoformat() if end is not None else None,
+            "dias_calendario": int(analysis.attrs.get("calendar_days", 0)),
+        },
+        "resumo": {
+            "produtos": int(len(analysis)),
+            "saldo_kg": _number(analysis["Saldo Total"].sum()),
+            "reserva_kg": _number(analysis["Reserva Total"].sum()),
+            "disponivel_kg": _number(analysis["Estoque disponível (kg)"].sum()),
+            "produtos_alto_giro": int(analysis["Giro"].eq("Alto giro").sum()),
+            "produtos_sem_giro": int(analysis["Giro"].eq("Sem giro").sum()),
+            "produtos_ruptura": int(analysis["Cobertura"].eq("Ruptura").sum()),
+            "dias_estoque_mediana": _number(valid_days.median()) if not valid_days.empty else None,
+            "faixas_cobertura": {str(key): int(value) for key, value in coverage.items()},
+        },
+        "grupos": group_rows,
+        "itens": items,
+    }
 
 
 def _load_flow():
@@ -175,7 +298,7 @@ def _unified_snapshot(overview, commercial, funnel, flow_dates, monthly, panels)
     return rows
 
 
-def build_payload(data):
+def build_payload(data, stock=None):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
     month_start = last_date.replace(day=1)
@@ -232,8 +355,10 @@ def build_payload(data):
         "cidades": _breakdown(current, "Município"),
     }
     flow_dates = _flow_payload(flow, month_start, last_date)
+    customer_status = _customer_payload(data, last_date)
+    inventory = _inventory_payload(stock, data, months=3)
     return {
-        "versao": 1,
+        "versao": 2,
         "atualizado_em": datetime.now().astimezone().isoformat(),
         "periodo": {"inicio": month_start.date().isoformat(), "fim": last_date.date().isoformat()},
         "overview": current_metrics,
@@ -242,12 +367,14 @@ def build_payload(data):
         "rastreabilidade_datas": flow_dates,
         "mensal": monthly_records,
         "paineis": panels,
+        "clientes_carteira": customer_status,
+        "estoque": inventory,
         "consulta_unificada": _unified_snapshot(current_metrics, commercial, funnel, flow_dates, monthly_records, panels),
     }
 
 
 def main():
-    payload = build_payload(load_data())
+    payload = build_payload(load_data(), load_stock())
     content = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     if not upload_bytes(content, OUTPUT_PATH, "application/json; charset=utf-8"):
         raise RuntimeError("Supabase não está configurado para publicar o resumo HTML.")
@@ -256,3 +383,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
