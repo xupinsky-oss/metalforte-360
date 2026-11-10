@@ -158,6 +158,16 @@ render(
                 app = AppTest.from_string(
                     self._script(permission, extra_permissions=extra_permissions)
                 ).run(timeout=30)
+                group = {
+                    "Pedidos × faturado": "Visão geral",
+                    "Estoque": "Operações",
+                    "Validação DE/PARA": "Operações",
+                    "Direcionador comercial": "Inteligência",
+                    "Fechamento e exportação": "Visão geral",
+                }[page]
+                if app.selectbox(key="mf_page_group").value != group:
+                    app.selectbox(key="mf_page_group").set_value(group)
+                    app.run(timeout=30)
                 app.segmented_control(key="mf_page").set_value(page)
                 app.run(timeout=30)
                 self.assertEqual(list(app.exception), [])
@@ -169,6 +179,17 @@ render(
         )
         app = AppTest.from_string(script).run(timeout=30)
         self.assertNotIn("Funil", app.segmented_control(key="mf_page").options)
+
+    def test_navigation_groups_are_limited_to_available_permissions(self):
+        script = self._script("view_overview").replace(
+            "permissions={'view_overview'}",
+            "permissions={'view_overview', 'view_clients', 'view_products', 'view_stock', 'manage_users'}",
+        )
+        app = AppTest.from_string(script).run(timeout=30)
+        self.assertEqual(
+            app.selectbox(key="mf_page_group").options,
+            ["Visão geral", "Comercial", "Operações", "Administração"],
+        )
 
 
 if __name__ == "__main__":
