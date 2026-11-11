@@ -170,6 +170,9 @@ jobs:
           python scripts/etl_status.py step --index 8 --status completed --message "Resumo privado publicado"
           python scripts/etl_status.py step --index 9 --status completed --message "Publicação validada pelo processo"
           python scripts/etl_status.py step --index 10 --status completed --message "Painel disponível para reconsulta"
+      - name: Atualizar resumos por vendedor
+        if: github.event_name == 'schedule' || inputs.environment == 'producao'
+        run: python scripts/publish_seller_snapshots.py
       - name: Finalizar telemetria
         if: always()
         shell: bash
