@@ -54,7 +54,7 @@ class DataPipelineTests(unittest.TestCase):
 
     def test_environment_paths_stay_together(self):
         with patch.dict(os.environ,{"SUPABASE_DATA_PATH":"bases/homologacao/metalforte_base.csv.gz"},clear=True):
-            self.assertEqual(object_path("targets"),"bases/homologacao/metalforte_metas.csv.gz")
+            self.assertEqual(object_path("targets"),"bases/homologacao/metalforte_metas.xlsx")
             self.assertEqual(object_path("orders"),"bases/homologacao/metalforte_pedidos_realizado.csv.gz")
 
     def test_cloud_failure_does_not_use_local_base(self):
