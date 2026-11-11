@@ -359,12 +359,16 @@ def _monthly_sales_payload(history, last_date, months=12):
         })
     sku_columns = ["mes", "Vendedor", "Grupo Produto", "Produto Codigo", "Produto"]
     sku_group = source.groupby(sku_columns, dropna=False).agg(
-        faturamento=("Faturamento", "sum"), peso=("Peso", "sum")
+        faturamento=("Faturamento", "sum"),
+        peso=("Peso", "sum"),
+        margem=("Margem", "sum"),
+        clientes_ids=("_cliente_id", lambda values: sorted(set(value for value in values if value))),
     ).reset_index()
     skus = [{
         "mes": str(row["mes"]), "vendedor": str(row["Vendedor"]), "grupo": str(row["Grupo Produto"]),
         "codigo": str(row["Produto Codigo"]).removesuffix(".0"), "produto": str(row["Produto"]),
         "faturamento": _number(row["faturamento"]), "peso": _number(row["peso"]),
+        "margem": _number(row["margem"]), "clientes_ids": row["clientes_ids"],
     } for row in sku_group.to_dict(orient="records")]
     return recortes, skus
 
