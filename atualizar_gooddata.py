@@ -8,7 +8,7 @@ from src.inventory import prepare_stock
 from src.dimensions import normalize_dimensions
 from src.secure_credentials import load_credential
 from src.cloud_storage import download_bytes,is_configured,upload_file,upload_bytes,upload_status
-from src.targets import TARGET_COLUMNS,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
+from src.targets import TARGET_COLUMNS,consolidate_targets,read_targets_workbook,targets_workbook_bytes,empty_targets_workbook_bytes
 from src.product_groups import normalize_product_group
 
 ROOT=Path(__file__).resolve().parent
