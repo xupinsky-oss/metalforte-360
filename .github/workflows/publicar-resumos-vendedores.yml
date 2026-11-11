@@ -1,0 +1,34 @@
+name: Publicar resumos por vendedor
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publicar-resumos-vendedores.yml"
+      - "scripts/publish_seller_snapshots.py"
+  workflow_dispatch:
+  schedule:
+    - cron: "12,42 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      SUPABASE_BUCKET: metalforte-private
+      SUPABASE_DASHBOARD_PATH: dashboard/command-center.json
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+      - name: Publicar resumos privados por vendedor
+        run: python scripts/publish_seller_snapshots.py
