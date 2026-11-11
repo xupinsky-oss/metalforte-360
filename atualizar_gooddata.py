@@ -336,6 +336,7 @@ def collect_target_periods(con,current_detail,current_value,existing_targets=Non
             .dropna().dt.to_period('M').dt.start_time
         )
     periods=[]
+    errors=[]
     for offset in range(offset_from,offset_to+1):
         competence=base_competence+pd.DateOffset(months=offset)
         # Competências passadas já publicadas são históricas: não precisam ser
@@ -358,10 +359,17 @@ def collect_target_periods(con,current_detail,current_value,existing_targets=Non
             periods.append(period)
             logging.info('Meta %s: %s linhas',competence.strftime('%Y-%m'),len(period))
         except Exception as exc:
-            logging.warning('Meta %s indisponível (%s): %s',competence.strftime('%Y-%m'),type(exc).__name__,str(exc))
+            message=f"Meta {competence.strftime('%Y-%m')} indisponível ({type(exc).__name__}): {exc}"
+            errors.append(message)
+            logging.warning('%s',message,exc_info=True)
+            # O offset corrente contém os dados recebidos nesta própria execução.
+            # Se ele não puder ser interpretado, publicar meses vizinhos produziria
+            # uma série temporal incompleta sem deixar isso claro.
+            if offset == 0:
+                raise RuntimeError(message) from exc
     if not periods:
-        logging.warning('Nenhuma competência de meta disponível; preservando histórico anterior e seguindo com a base comercial.')
-        return pd.DataFrame(columns=TARGET_COLUMNS)
+        details='; '.join(errors) if errors else 'Nenhum período foi consultado.'
+        raise RuntimeError(f'Nenhuma competência de meta disponível: {details}')
     return pd.concat(periods,ignore_index=True)
 
 def consolidate(downloaded,product_matrix=None):
