@@ -12,7 +12,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.cloud_storage import upload_bytes
-from src.data import load_data, load_stock
+from src.data import load_data, load_stock, load_pedidos_realizado
 from src.inventory import build_inventory_analysis
 from src.value_intelligence import customer_rfmv, portfolio_health
 
@@ -386,7 +386,110 @@ def _monthly_customer_payload(history, last_date, months=12):
     return snapshots
 
 
-def build_payload(data, stock=None):
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
+def _orders_detail(data, orders, flow):
+    """Prepara pedidos liberados para drill por vendedor, cliente, grupo e SKU."""
+    required = {"Competência", "Vendedor", "Cod Cliente", "Produto Codigo"}
+    if orders is None or orders.empty or not required.issubset(orders.columns):
+        return []
+
+    frame = orders.copy()
+    frame["mes"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").astype("string")
+    frame["Cod Cliente"] = frame["Cod Cliente"].fillna("").astype(str).str.strip()
+    frame["Produto Codigo"] = frame["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+    frame["Vendedor"] = frame["Vendedor"].fillna("Não mapeado").astype(str).str.strip()
+    for column in ("Pedidos (R$)", "Pedidos (kg)", "Faturado (R$)", "Faturado (kg)"):
+        if column not in frame:
+            frame[column] = 0
+        frame[column] = pd.to_numeric(frame[column], errors="coerce").fillna(0)
+
+    keys = ["mes", "Vendedor", "Cod Cliente", "Produto Codigo"]
+    frame = frame[frame["mes"].notna() & frame["Cod Cliente"].ne("") & frame["Produto Codigo"].ne("")]
+    frame = frame.groupby(keys, dropna=False, as_index=False).agg(
+        pedidos_liberados_valor=("Pedidos (R$)", "sum"),
+        pedidos_liberados_peso=("Pedidos (kg)", "sum"),
+        faturamento=("Faturado (R$)", "sum"),
+        peso_realizado=("Faturado (kg)", "sum"),
+    )
+
+    sales = data.copy()
+    sales["mes"] = pd.to_datetime(sales["Data"], errors="coerce").dt.to_period("M").astype("string")
+    sales["Cod Cliente"] = sales["Cod Cliente"].fillna("").astype(str).str.strip()
+    sales["Produto Codigo"] = sales["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+    actual = sales.groupby(keys, dropna=False, as_index=False).agg(margem=("Margem", "sum"))
+    frame = frame.merge(actual, on=keys, how="left", validate="one_to_one")
+    frame["margem"] = pd.to_numeric(frame["margem"], errors="coerce").fillna(0)
+
+    product_columns = [column for column in ("Produto Codigo", "Produto", "Grupo Produto") if column in data]
+    products = data[product_columns].dropna(subset=["Produto Codigo"]).drop_duplicates("Produto Codigo", keep="last")
+    if "Produto" not in products:
+        products["Produto"] = "Não mapeado"
+    if "Grupo Produto" not in products:
+        products["Grupo Produto"] = "Não mapeado"
+    frame = frame.merge(products, on="Produto Codigo", how="left", validate="many_to_one")
+
+    if "Município" in data:
+        client_columns = ["Cod Cliente", "Cliente", "Município"]
+        clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).drop_duplicates("Cod Cliente", keep="last")
+        frame = frame.merge(clients, on="Cod Cliente", how="left", validate="many_to_one")
+    else:
+        frame["Cliente"] = "Não mapeado"
+        frame["Município"] = "Não mapeado"
+
+    frame["data_inclusao_inicio"] = pd.NaT
+    frame["data_inclusao_fim"] = pd.NaT
+    frame["frete"] = ""
+    flow_keys = ["mes", "Vendedor", "Cod Cliente", "Produto Codigo"]
+    if flow is not None and not flow.empty and "Origem" in flow:
+        released = flow[flow["Origem"].astype(str).eq("Pedido liberado")].copy()
+        if not released.empty and set(flow_keys[1:]).issubset(released.columns):
+            order_date = pd.to_datetime(released.get("Data Pedido"), errors="coerce")
+            release_date = pd.to_datetime(released.get("Data Liberação"), errors="coerce")
+            released["mes"] = order_date.dt.to_period("M").astype("string")
+            fallback = released["mes"].isna()
+            released.loc[fallback, "mes"] = release_date.loc[fallback].dt.to_period("M").astype("string")
+            released["Cod Cliente"] = released["Cod Cliente"].fillna("").astype(str).str.strip()
+            released["Produto Codigo"] = released["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+            released["Vendedor"] = released["Vendedor"].fillna("Não mapeado").astype(str).str.strip()
+            if "Data Pedido" not in released:
+                released["Data Pedido"] = pd.NaT
+            if "Modalidade" not in released:
+                released["Modalidade"] = ""
+            inclusion = released.groupby(flow_keys, dropna=False, as_index=False).agg(
+                data_inclusao_inicio=("Data Pedido", "min"),
+                data_inclusao_fim=("Data Pedido", "max"),
+                frete=("Modalidade", lambda values: " / ".join(sorted({str(value).strip() for value in values if pd.notna(value) and str(value).strip()}))),
+            )
+            frame = frame.drop(columns=["data_inclusao_inicio", "data_inclusao_fim", "frete"]).merge(
+                inclusion, on=flow_keys, how="left", validate="one_to_one"
+            )
+
+    for column, fallback in (("Grupo Produto", "Não mapeado"), ("Produto", "Não mapeado"), ("Cliente", "Não mapeado"), ("Município", "Não mapeado"), ("frete", "Não informado")):
+        frame[column] = frame[column].fillna(fallback).astype(str)
+
+    records = []
+    for row in frame.to_dict("records"):
+        billed = _number(row["faturamento"])
+        margin = _number(row["margem"])
+        weight = _number(row["peso_realizado"])
+        date_start, date_end = row.get("data_inclusao_inicio"), row.get("data_inclusao_fim")
+        records.append({
+            "mes": str(row["mes"]), "vendedor": str(row["Vendedor"]),
+            "codigo_cliente": str(row["Cod Cliente"]), "cliente": str(row["Cliente"]),
+            "cidade": str(row["Município"]), "grupo": str(row["Grupo Produto"]),
+            "sku": str(row["Produto Codigo"]), "produto": str(row["Produto"]),
+            "pedidos_liberados_valor": _number(row["pedidos_liberados_valor"]),
+            "pedidos_liberados_peso": _number(row["pedidos_liberados_peso"]),
+            "faturamento": billed, "margem": margin,
+            "margem_pct": _number(margin / billed) if billed else 0,
+            "peso_realizado": weight, "preco_medio": _number(billed / weight) if weight else 0,
+            "data_inclusao_inicio": pd.Timestamp(date_start).date().isoformat() if pd.notna(date_start) else None,
+            "data_inclusao_fim": pd.Timestamp(date_end).date().isoformat() if pd.notna(date_end) else None,
+            "frete": str(row["frete"]),
+        })
+    return records
+
+def build_payload(data, stock=None, orders=None):
     data = data.dropna(subset=["Data"]).copy()
     last_date = data["Data"].max().normalize()
     month_start = last_date.replace(day=1)
@@ -461,6 +564,7 @@ def build_payload(data, stock=None):
     flow_dates = _flow_payload(flow, month_start, last_date)
     customer_status = _customer_payload(data, last_date)
     inventory = _inventory_payload(stock, data, months=3)
+    pedidos_detalhe = _orders_detail(data, orders, flow)
     return {
         "versao": 3,
         "atualizado_em": datetime.now().astimezone().isoformat(),
@@ -468,6 +572,7 @@ def build_payload(data, stock=None):
         "overview": current_metrics,
         "metas_e_pedidos": commercial,
         "funil_acompanhamento": funnel,
+        "pedidos_detalhe": pedidos_detalhe,
         "rastreabilidade_datas": flow_dates,
         "mensal": monthly_records,
         "mensal_recortes": monthly_recortes,
@@ -481,7 +586,7 @@ def build_payload(data, stock=None):
 
 
 def main():
-    payload = build_payload(load_data(), load_stock())
+    payload = build_payload(load_data(), load_stock(), load_pedidos_realizado())
     content = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     content = gzip.compress(content, mtime=0)
     if not upload_bytes(content, OUTPUT_PATH, "application/json; charset=utf-8"):
