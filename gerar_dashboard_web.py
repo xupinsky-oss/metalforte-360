@@ -430,8 +430,9 @@ def _orders_detail(data, orders, flow):
     frame["margem"] = pd.to_numeric(frame["margem"], errors="coerce").fillna(0) * ratio
 
     product_columns = [column for column in ("Produto Codigo", "Produto", "Grupo Produto") if column in data]
-    products = data[product_columns].dropna(subset=["Produto Codigo"]).drop_duplicates("Produto Codigo", keep="last")
+    products = data[product_columns].dropna(subset=["Produto Codigo"]).copy()
     products["Produto Codigo"] = code(products["Produto Codigo"])
+    products = products.drop_duplicates("Produto Codigo", keep="last")
     if "Produto" not in products:
         products["Produto"] = "Não mapeado"
     if "Grupo Produto" not in products:
@@ -440,8 +441,9 @@ def _orders_detail(data, orders, flow):
 
     if "Município" in data:
         client_columns = ["Cod Cliente", "Cliente", "Município"]
-        clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).drop_duplicates("Cod Cliente", keep="last")
+        clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).copy()
         clients["Cod Cliente"] = code(clients["Cod Cliente"])
+        clients = clients.drop_duplicates("Cod Cliente", keep="last")
         frame = frame.merge(clients, on="Cod Cliente", how="left", validate="many_to_one")
     else:
         frame["Cliente"] = "Não mapeado"
