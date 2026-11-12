@@ -394,7 +394,7 @@ def _orders_detail(data, orders, flow):
 
     frame = orders.copy()
     frame["mes"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").astype("string")
-    frame["Cod Cliente"] = frame["Cod Cliente"].fillna("").astype(str).str.strip()
+    frame["Cod Cliente"] = frame["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
     frame["Produto Codigo"] = frame["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
     frame["Vendedor"] = frame["Vendedor"].fillna("Não mapeado").astype(str).str.strip()
     for column in ("Pedidos (R$)", "Pedidos (kg)", "Faturado (R$)", "Faturado (kg)"):
@@ -413,11 +413,16 @@ def _orders_detail(data, orders, flow):
 
     sales = data.copy()
     sales["mes"] = pd.to_datetime(sales["Data"], errors="coerce").dt.to_period("M").astype("string")
-    sales["Cod Cliente"] = sales["Cod Cliente"].fillna("").astype(str).str.strip()
+    sales["Cod Cliente"] = sales["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
     sales["Produto Codigo"] = sales["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-    actual = sales.groupby(keys, dropna=False, as_index=False).agg(margem=("Margem", "sum"))
-    frame = frame.merge(actual, on=keys, how="left", validate="one_to_one")
-    frame["margem"] = pd.to_numeric(frame["margem"], errors="coerce").fillna(0)
+    detail_keys = ["mes", "Cod Cliente", "Produto Codigo"]
+    actual = sales.groupby(detail_keys, dropna=False, as_index=False).agg(margem=("Margem", "sum"))
+    frame = frame.merge(actual, on=detail_keys, how="left", validate="many_to_one")
+    # O vendedor do relatório de pedidos pode diferir do vendedor da nota.
+    # Distribui a margem pelo faturamento de cada vendedor sem duplicar o total.
+    billed_total = frame.groupby(detail_keys, dropna=False)["faturamento"].transform("sum")
+    ratio = frame["faturamento"].div(billed_total.where(billed_total.ne(0))).fillna(0)
+    frame["margem"] = pd.to_numeric(frame["margem"], errors="coerce").fillna(0) * ratio
 
     product_columns = [column for column in ("Produto Codigo", "Produto", "Grupo Produto") if column in data]
     products = data[product_columns].dropna(subset=["Produto Codigo"]).drop_duplicates("Produto Codigo", keep="last")
@@ -431,7 +436,7 @@ def _orders_detail(data, orders, flow):
     if "Município" in data:
         client_columns = ["Cod Cliente", "Cliente", "Município"]
         clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).drop_duplicates("Cod Cliente", keep="last")
-        clients["Cod Cliente"] = clients["Cod Cliente"].astype("string").str.strip()
+        clients["Cod Cliente"] = clients["Cod Cliente"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
         frame = frame.merge(clients, on="Cod Cliente", how="left", validate="many_to_one")
     else:
         frame["Cliente"] = "Não mapeado"
@@ -440,7 +445,7 @@ def _orders_detail(data, orders, flow):
     frame["data_inclusao_inicio"] = pd.NaT
     frame["data_inclusao_fim"] = pd.NaT
     frame["frete"] = ""
-    flow_keys = ["mes", "Vendedor", "Cod Cliente", "Produto Codigo"]
+    flow_keys = ["mes", "Cod Cliente", "Produto Codigo"]
     if flow is not None and not flow.empty and "Origem" in flow:
         released = flow[flow["Origem"].astype(str).eq("Pedido liberado")].copy()
         if not released.empty and set(flow_keys[1:]).issubset(released.columns):
@@ -449,9 +454,8 @@ def _orders_detail(data, orders, flow):
             released["mes"] = order_date.dt.to_period("M").astype("string")
             fallback = released["mes"].isna()
             released.loc[fallback, "mes"] = release_date.loc[fallback].dt.to_period("M").astype("string")
-            released["Cod Cliente"] = released["Cod Cliente"].fillna("").astype(str).str.strip()
+            released["Cod Cliente"] = released["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
             released["Produto Codigo"] = released["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-            released["Vendedor"] = released["Vendedor"].fillna("Não mapeado").astype(str).str.strip()
             if "Data Pedido" not in released:
                 released["Data Pedido"] = pd.NaT
             if "Modalidade" not in released:
