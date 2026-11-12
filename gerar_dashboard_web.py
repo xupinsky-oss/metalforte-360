@@ -481,7 +481,7 @@ def _orders_detail(data, orders, flow):
             )
 
     if "Data Pedido" in sales:
-        sales["Data Pedido"] = pd.to_datetime(sales["Data Pedido"], errors="coerce")
+        sales["Data Pedido"] = pd.to_datetime(sales["Data Pedido"], format="mixed", dayfirst=True, errors="coerce")
         sale_dates = sales.groupby(detail_keys, dropna=False, as_index=False).agg(
             inicio_venda=("Data Pedido", "min"),
             fim_venda=("Data Pedido", "max"),
@@ -501,6 +501,12 @@ def _orders_detail(data, orders, flow):
         "frete_ligado": int(frame["frete"].fillna("").ne("").sum()),
         "data_pedido_vendas": int(data["Data Pedido"].notna().sum()) if "Data Pedido" in data else 0,
         "pares_cliente_sku": len(set(zip(frame["Cod Cliente"], frame["Produto Codigo"])) & set(zip(released["Cod Cliente"], released["Produto Codigo"]))) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "clientes_fluxo_preenchidos": int(released["Cod Cliente"].ne("").sum()) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "skus_fluxo_preenchidos": int(released["Produto Codigo"].ne("").sum()) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "clientes_iguais": len(set(frame["Cod Cliente"]) & set(released["Cod Cliente"])) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "skus_iguais": len(set(frame["Produto Codigo"]) & set(released["Produto Codigo"])) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "datas_venda_validas": int(sales["Data Pedido"].notna().sum()) if "Data Pedido" in sales else 0,
+
         "meses_iguais": len(set(frame["mes"]) & set(released["mes"])) if flow is not None and not flow.empty and "Origem" in flow else 0,
     }, ensure_ascii=False))
 
