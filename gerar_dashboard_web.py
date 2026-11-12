@@ -392,10 +392,15 @@ def _orders_detail(data, orders, flow):
     if orders is None or orders.empty or not required.issubset(orders.columns):
         return []
 
+    def code(values):
+        return (values.fillna("").astype(str).str.strip()
+                .str.replace(r"\\.0$", "", regex=True)
+                .str.replace(r"^0+(?=\\d)", "", regex=True))
+
     frame = orders.copy()
     frame["mes"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").astype("string")
-    frame["Cod Cliente"] = frame["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-    frame["Produto Codigo"] = frame["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+    frame["Cod Cliente"] = frame["Cod Cliente"].pipe(code)
+    frame["Produto Codigo"] = frame["Produto Codigo"].pipe(code)
     frame["Vendedor"] = frame["Vendedor"].fillna("Não mapeado").astype(str).str.strip()
     for column in ("Pedidos (R$)", "Pedidos (kg)", "Faturado (R$)", "Faturado (kg)"):
         if column not in frame:
@@ -413,8 +418,8 @@ def _orders_detail(data, orders, flow):
 
     sales = data.copy()
     sales["mes"] = pd.to_datetime(sales["Data"], errors="coerce").dt.to_period("M").astype("string")
-    sales["Cod Cliente"] = sales["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-    sales["Produto Codigo"] = sales["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+    sales["Cod Cliente"] = sales["Cod Cliente"].pipe(code)
+    sales["Produto Codigo"] = sales["Produto Codigo"].pipe(code)
     detail_keys = ["mes", "Cod Cliente", "Produto Codigo"]
     actual = sales.groupby(detail_keys, dropna=False, as_index=False).agg(margem=("Margem", "sum"))
     frame = frame.merge(actual, on=detail_keys, how="left", validate="many_to_one")
@@ -426,7 +431,7 @@ def _orders_detail(data, orders, flow):
 
     product_columns = [column for column in ("Produto Codigo", "Produto", "Grupo Produto") if column in data]
     products = data[product_columns].dropna(subset=["Produto Codigo"]).drop_duplicates("Produto Codigo", keep="last")
-    products["Produto Codigo"] = products["Produto Codigo"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+    products["Produto Codigo"] = code(products["Produto Codigo"])
     if "Produto" not in products:
         products["Produto"] = "Não mapeado"
     if "Grupo Produto" not in products:
@@ -436,7 +441,7 @@ def _orders_detail(data, orders, flow):
     if "Município" in data:
         client_columns = ["Cod Cliente", "Cliente", "Município"]
         clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).drop_duplicates("Cod Cliente", keep="last")
-        clients["Cod Cliente"] = clients["Cod Cliente"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
+        clients["Cod Cliente"] = code(clients["Cod Cliente"])
         frame = frame.merge(clients, on="Cod Cliente", how="left", validate="many_to_one")
     else:
         frame["Cliente"] = "Não mapeado"
@@ -454,8 +459,12 @@ def _orders_detail(data, orders, flow):
             released["mes"] = order_date.dt.to_period("M").astype("string")
             fallback = released["mes"].isna()
             released.loc[fallback, "mes"] = release_date.loc[fallback].dt.to_period("M").astype("string")
-            released["Cod Cliente"] = released["Cod Cliente"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
-            released["Produto Codigo"] = released["Produto Codigo"].fillna("").astype(str).str.strip().str.replace(r"\.0$", "", regex=True)
+            released["Cod Cliente"] = released["Cod Cliente"].pipe(code)
+            released["Produto Codigo"] = released["Produto Codigo"].pipe(code)
+            release_months = released.copy()
+            release_months["mes"] = release_date.dt.to_period("M").astype("string")
+            released = pd.concat([released, release_months], ignore_index=True)
+            released = released[released["mes"].notna()]
             if "Data Pedido" not in released:
                 released["Data Pedido"] = pd.NaT
             if "Modalidade" not in released:
@@ -469,6 +478,17 @@ def _orders_detail(data, orders, flow):
                 inclusion, on=flow_keys, how="left", validate="one_to_one"
             )
 
+    if "Data Pedido" in sales:
+        sales["Data Pedido"] = pd.to_datetime(sales["Data Pedido"], errors="coerce")
+        sale_dates = sales.groupby(detail_keys, dropna=False, as_index=False).agg(
+            inicio_venda=("Data Pedido", "min"),
+            fim_venda=("Data Pedido", "max"),
+        )
+        frame = frame.merge(sale_dates, on=detail_keys, how="left", validate="many_to_one")
+        frame["data_inclusao_inicio"] = frame["data_inclusao_inicio"].combine_first(frame["inicio_venda"])
+        frame["data_inclusao_fim"] = frame["data_inclusao_fim"].combine_first(frame["fim_venda"])
+        frame = frame.drop(columns=["inicio_venda", "fim_venda"])
+
     print("Cobertura do detalhe de pedidos: " + json.dumps({
         "linhas": int(len(frame)),
         "eventos_fluxo": int(len(flow)) if flow is not None else 0,
@@ -478,7 +498,11 @@ def _orders_detail(data, orders, flow):
         "datas_pedido_ligadas": int(frame["data_inclusao_inicio"].notna().sum()),
         "frete_ligado": int(frame["frete"].fillna("").ne("").sum()),
         "data_pedido_vendas": int(data["Data Pedido"].notna().sum()) if "Data Pedido" in data else 0,
+        "pares_cliente_sku": len(set(zip(frame["Cod Cliente"], frame["Produto Codigo"])) & set(zip(released["Cod Cliente"], released["Produto Codigo"]))) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "meses_iguais": len(set(frame["mes"]) & set(released["mes"])) if flow is not None and not flow.empty and "Origem" in flow else 0,
     }, ensure_ascii=False))
+
+    frame["frete"] = frame["frete"].replace("", pd.NA)
 
     for column, fallback in (("Grupo Produto", "Não mapeado"), ("Produto", "Não mapeado"), ("Cliente", "Não mapeado"), ("Município", "Não mapeado"), ("frete", "Não informado")):
         frame[column] = frame[column].fillna(fallback).astype(str)
