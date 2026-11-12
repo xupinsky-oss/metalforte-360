@@ -3,6 +3,10 @@ import gzip
 import hashlib
 import json
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.cloud_storage import download_bytes, upload_bytes
 
@@ -14,6 +18,7 @@ def scoped_payload(snapshot, seller):
     cuts = [row for row in snapshot.get("mensal_recortes", []) if row.get("vendedor") == seller]
     skus = [row for row in snapshot.get("mensal_skus", []) if row.get("vendedor") == seller]
     orders = [row for row in snapshot.get("pedidos_recortes", []) if row.get("vendedor") == seller]
+    order_details = [row for row in snapshot.get("pedidos_detalhe", []) if row.get("vendedor") == seller]
     portfolio = dict(snapshot.get("clientes_carteira") or {})
     portfolio["clientes"] = [row for row in portfolio.get("clientes", []) if row.get("Vendedor") == seller]
 
@@ -76,6 +81,7 @@ def scoped_payload(snapshot, seller):
         "mensal_recortes": cuts,
         "mensal_skus": skus,
         "pedidos_recortes": orders,
+        "pedidos_detalhe": order_details,
         "clientes_carteira": portfolio,
         "clientes_mensais": customer_months,
         "base_vendedores": [row for row in snapshot.get("base_vendedores", []) if row.get("nome") == seller],
