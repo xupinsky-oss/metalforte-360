@@ -394,8 +394,8 @@ def _orders_detail(data, orders, flow):
 
     def code(values):
         return (values.fillna("").astype(str).str.strip()
-                .str.replace(r"\\.0$", "", regex=True)
-                .str.replace(r"^0+(?=\\d)", "", regex=True))
+                .str.replace(r"\.0$", "", regex=True)
+                .str.replace(r"^0+(?=\d)", "", regex=True))
 
     frame = orders.copy()
     frame["mes"] = pd.to_datetime(frame["Competência"], errors="coerce").dt.to_period("M").astype("string")

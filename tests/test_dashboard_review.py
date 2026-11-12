@@ -53,6 +53,39 @@ class DashboardLogicReviewTests(unittest.TestCase):
         self.assertTrue(np.isnan(summary["preco_kg"]))
 
 
+class OrdersDetailJoinTests(unittest.TestCase):
+    def test_numeric_codes_link_margin_city_and_order_date(self):
+        from gerar_dashboard_web import _orders_detail
+
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-11-15"]),
+            "Data Pedido": ["12/11/2026"],
+            "Cod Cliente": ["000123"],
+            "Cliente": ["CLIENTE TESTE"],
+            "Município": ["Goiânia"],
+            "Produto Codigo": ["00456.0"],
+            "Produto": ["PRODUTO TESTE"],
+            "Grupo Produto": ["TUBOS"],
+            "Margem": [20.0],
+        })
+        orders = pd.DataFrame({
+            "Competência": pd.to_datetime(["2026-11-01"]),
+            "Vendedor": ["VENDEDOR TESTE"],
+            "Cod Cliente": ["123.0"],
+            "Produto Codigo": ["456"],
+            "Pedidos (R$)": [100.0],
+            "Pedidos (kg)": [10.0],
+            "Faturado (R$)": [100.0],
+            "Faturado (kg)": [10.0],
+        })
+        rows = _orders_detail(sales, orders, pd.DataFrame())
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["margem"], 20.0)
+        self.assertEqual(rows[0]["cidade"], "Goiânia")
+        self.assertEqual(rows[0]["data_inclusao_inicio"], "2026-11-12")
+
+
+
 class DashboardPageSmokeTests(unittest.TestCase):
     @staticmethod
     def _script(permission, *, extra_permissions=()):
