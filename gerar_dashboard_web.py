@@ -469,6 +469,17 @@ def _orders_detail(data, orders, flow):
                 inclusion, on=flow_keys, how="left", validate="one_to_one"
             )
 
+    print("Cobertura do detalhe de pedidos: " + json.dumps({
+        "linhas": int(len(frame)),
+        "eventos_fluxo": int(len(flow)) if flow is not None else 0,
+        "eventos_liberados": int(len(released)) if flow is not None and not flow.empty and "Origem" in flow else 0,
+        "datas_pedido_eventos": int(released["Data Pedido"].notna().sum()) if flow is not None and not flow.empty and "Origem" in flow and "Data Pedido" in released else 0,
+        "frete_eventos": int(released["Modalidade"].notna().sum()) if flow is not None and not flow.empty and "Origem" in flow and "Modalidade" in released else 0,
+        "datas_pedido_ligadas": int(frame["data_inclusao_inicio"].notna().sum()),
+        "frete_ligado": int(frame["frete"].fillna("").ne("").sum()),
+        "data_pedido_vendas": int(data["Data Pedido"].notna().sum()) if "Data Pedido" in data else 0,
+    }, ensure_ascii=False))
+
     for column, fallback in (("Grupo Produto", "Não mapeado"), ("Produto", "Não mapeado"), ("Cliente", "Não mapeado"), ("Município", "Não mapeado"), ("frete", "Não informado")):
         frame[column] = frame[column].fillna(fallback).astype(str)
 
