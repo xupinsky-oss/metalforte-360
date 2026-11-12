@@ -422,6 +422,7 @@ def _orders_detail(data, orders, flow):
 
     product_columns = [column for column in ("Produto Codigo", "Produto", "Grupo Produto") if column in data]
     products = data[product_columns].dropna(subset=["Produto Codigo"]).drop_duplicates("Produto Codigo", keep="last")
+    products["Produto Codigo"] = products["Produto Codigo"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
     if "Produto" not in products:
         products["Produto"] = "Não mapeado"
     if "Grupo Produto" not in products:
@@ -431,6 +432,7 @@ def _orders_detail(data, orders, flow):
     if "Município" in data:
         client_columns = ["Cod Cliente", "Cliente", "Município"]
         clients = data.sort_values("Data")[client_columns].dropna(subset=["Cod Cliente"]).drop_duplicates("Cod Cliente", keep="last")
+        clients["Cod Cliente"] = clients["Cod Cliente"].astype("string").str.strip()
         frame = frame.merge(clients, on="Cod Cliente", how="left", validate="many_to_one")
     else:
         frame["Cliente"] = "Não mapeado"
