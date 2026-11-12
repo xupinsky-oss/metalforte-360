@@ -386,7 +386,6 @@ def _monthly_customer_payload(history, last_date, months=12):
     return snapshots
 
 
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 def _orders_detail(data, orders, flow):
     """Prepara pedidos liberados para drill por vendedor, cliente, grupo e SKU."""
     required = {"Competência", "Vendedor", "Cod Cliente", "Produto Codigo"}
