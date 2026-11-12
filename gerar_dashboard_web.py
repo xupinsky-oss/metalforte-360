@@ -7,6 +7,7 @@ a identidade do proprietário antes de entregar os dados por cliente.
 import gzip
 import json
 import os
+import unicodedata
 from datetime import datetime
 
 import pandas as pd
@@ -535,6 +536,83 @@ def _orders_detail(data, orders, flow):
             "data_inclusao_fim": pd.Timestamp(date_end).date().isoformat() if pd.notna(date_end) else None,
             "frete": str(row["frete"]),
         })
+    # O relatório Pedido × Realizado identifica a venda mensal, mas não traz
+    # todos os pedidos liberados. A trilha Rel.029 contém o pedido item a item.
+    if flow is not None and not flow.empty and "Origem" in flow:
+        source = flow[flow["Origem"].astype(str).eq("Pedido liberado")].copy()
+        if not source.empty and {"Valor", "Peso", "Cliente", "Produto"}.issubset(source.columns):
+            def label(values):
+                return values.fillna("").astype(str).map(
+                    lambda value: " ".join(
+                        "".join(char for char in unicodedata.normalize("NFKD", value.upper())
+                                if not unicodedata.combining(char)).split()
+                    )
+                )
+
+            client_ref = data[["Cliente", "Cod Cliente", "Município"]].copy()
+            client_ref["_label"] = label(client_ref["Cliente"])
+            client_ref["Cod Cliente"] = code(client_ref["Cod Cliente"])
+            client_ref = client_ref[client_ref["_label"].ne("")].drop_duplicates("_label", keep="last").set_index("_label")
+            product_ref = data[["Produto", "Produto Codigo", "Grupo Produto"]].copy()
+            product_ref["_label"] = label(product_ref["Produto"])
+            product_ref["Produto Codigo"] = code(product_ref["Produto Codigo"])
+            product_ref = product_ref[product_ref["_label"].ne("")].drop_duplicates("_label", keep="last").set_index("_label")
+            seller_ref = data[["Vendedor"]].drop_duplicates().copy()
+            seller_ref["_label"] = label(seller_ref["Vendedor"])
+            seller_ref = seller_ref[seller_ref["_label"].ne("")].drop_duplicates("_label", keep="last").set_index("_label")
+
+            source["Data Pedido"] = pd.to_datetime(source.get("Data Pedido"), format="mixed", dayfirst=True, errors="coerce")
+            source["Data Liberação"] = pd.to_datetime(source.get("Data Liberação"), format="mixed", dayfirst=True, errors="coerce")
+            release_date = source["Data Liberação"].combine_first(source["Data Pedido"])
+            source["mes"] = release_date.dt.to_period("M").astype("string")
+            source = source[source["mes"].notna()].copy()
+            source["_cliente"] = label(source["Cliente"])
+            source["_produto"] = label(source["Produto"])
+            source["_vendedor"] = label(source["Vendedor"]) if "Vendedor" in source else ""
+            source["codigo_cliente"] = source["_cliente"].map(client_ref["Cod Cliente"]).fillna("")
+            source["cidade"] = source["_cliente"].map(client_ref["Município"]).fillna("Não mapeado")
+            source["vendedor"] = source["_vendedor"].map(seller_ref["Vendedor"]).fillna(source.get("Vendedor", "Não mapeado"))
+            source["grupo"] = source["_produto"].map(product_ref["Grupo Produto"]).fillna(source.get("Grupo Produto", "Não mapeado"))
+            source["sku"] = source["_produto"].map(product_ref["Produto Codigo"]).fillna(code(source["Produto Codigo"]) if "Produto Codigo" in source else "")
+            source["cliente"] = source["Cliente"].fillna("Não mapeado").astype(str)
+            source["produto"] = source["Produto"].fillna("Não mapeado").astype(str)
+            source["frete"] = source.get("Modalidade", pd.Series("", index=source.index)).fillna("Não informado").astype(str).str.strip().replace("", "Não informado")
+            source["Valor"] = pd.to_numeric(source["Valor"], errors="coerce").fillna(0)
+            source["Peso"] = pd.to_numeric(source["Peso"], errors="coerce").fillna(0)
+            group_cols = ["mes", "vendedor", "codigo_cliente", "cliente", "cidade", "grupo", "sku", "produto", "frete"]
+            released_rows = source.groupby(group_cols, dropna=False, as_index=False).agg(
+                pedidos_liberados_valor=("Valor", "sum"),
+                pedidos_liberados_peso=("Peso", "sum"),
+                data_inclusao_inicio=("Data Pedido", "min"),
+                data_inclusao_fim=("Data Pedido", "max"),
+            )
+            covered_months = set(released_rows["mes"])
+            for record in records:
+                if record["mes"] in covered_months:
+                    record["pedidos_liberados_valor"] = 0
+                    record["pedidos_liberados_peso"] = 0
+            for row in released_rows.to_dict("records"):
+                start = row["data_inclusao_inicio"]
+                end = row["data_inclusao_fim"]
+                records.append({
+                    "mes": str(row["mes"]), "vendedor": str(row["vendedor"]),
+                    "codigo_cliente": str(row["codigo_cliente"]), "cliente": str(row["cliente"]),
+                    "cidade": str(row["cidade"]), "grupo": str(row["grupo"]),
+                    "sku": str(row["sku"]), "produto": str(row["produto"]),
+                    "pedidos_liberados_valor": _number(row["pedidos_liberados_valor"]),
+                    "pedidos_liberados_peso": _number(row["pedidos_liberados_peso"]),
+                    "faturamento": 0, "margem": 0, "margem_pct": 0,
+                    "peso_realizado": 0, "preco_medio": 0,
+                    "data_inclusao_inicio": pd.Timestamp(start).date().isoformat() if pd.notna(start) else None,
+                    "data_inclusao_fim": pd.Timestamp(end).date().isoformat() if pd.notna(end) else None,
+                    "frete": str(row["frete"]),
+                })
+            print("Pedidos liberados da trilha: " + json.dumps({
+                "linhas": int(len(released_rows)),
+                "valor_mes_atual": _number(released_rows.loc[released_rows["mes"].eq(str(data["Data"].max().to_period("M"))), "pedidos_liberados_valor"].sum()),
+                "clientes_mapeados": int(source["codigo_cliente"].ne("").sum()),
+                "skus_mapeados": int(source["_produto"].isin(product_ref.index).sum()),
+            }, ensure_ascii=False))
     return records
 
 def build_payload(data, stock=None, orders=None):
