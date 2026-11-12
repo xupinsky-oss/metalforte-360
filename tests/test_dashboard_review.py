@@ -85,6 +85,55 @@ class OrdersDetailJoinTests(unittest.TestCase):
         self.assertEqual(rows[0]["data_inclusao_inicio"], "2026-11-12")
 
 
+    def test_released_flow_supplies_order_value_date_and_freight(self):
+        from gerar_dashboard_web import _orders_detail
+
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-11-15"]),
+            "Data Pedido": ["12/11/2026"],
+            "Cod Cliente": ["123"],
+            "Cliente": ["CLIENTE TESTE"],
+            "Município": ["Goiânia"],
+            "Produto Codigo": ["456"],
+            "Produto": ["PRODUTO TESTE"],
+            "Grupo Produto": ["TUBOS"],
+            "Vendedor": ["VENDEDOR TESTE"],
+            "Margem": [20.0],
+        })
+        orders = pd.DataFrame({
+            "Competência": pd.to_datetime(["2026-11-01"]),
+            "Vendedor": ["VENDEDOR TESTE"],
+            "Cod Cliente": ["123"],
+            "Produto Codigo": ["456"],
+            "Pedidos (R$)": [999.0],
+            "Pedidos (kg)": [99.0],
+            "Faturado (R$)": [100.0],
+            "Faturado (kg)": [10.0],
+        })
+        flow = pd.DataFrame({
+            "Origem": ["Pedido liberado"],
+            "Vendedor": ["VENDEDOR TESTE"],
+            "Cod Cliente": [""],
+            "Cliente": ["CLIENTE TESTE"],
+            "Produto Codigo": ["OUTRO-CODIGO"],
+            "Produto": ["PRODUTO TESTE"],
+            "Grupo Produto": ["TUBOS"],
+            "Pedido": ["PED-1"],
+            "Data Pedido": pd.to_datetime(["2026-11-12"]),
+            "Data Liberação": pd.to_datetime(["2026-11-13"]),
+            "Modalidade": ["CIF"],
+            "Valor": [120.0],
+            "Peso": [12.0],
+        })
+        rows = _orders_detail(sales, orders, flow)
+        self.assertEqual(sum(row["pedidos_liberados_valor"] for row in rows), 120.0)
+        released = [row for row in rows if row["pedidos_liberados_valor"]][0]
+        self.assertEqual(released["frete"], "CIF")
+        self.assertEqual(released["data_inclusao_inicio"], "2026-11-12")
+        self.assertEqual(released["codigo_cliente"], "123")
+        self.assertEqual(released["sku"], "456")
+
+
 
 class DashboardPageSmokeTests(unittest.TestCase):
     @staticmethod
