@@ -691,6 +691,16 @@ def build_payload(data, stock=None, orders=None):
     customer_status = _customer_payload(data, last_date)
     inventory = _inventory_payload(stock, data, months=3)
     pedidos_detalhe = _orders_detail(data, orders, flow)
+    pedidos_recortes = []
+    if pedidos_detalhe:
+        pedidos_recortes = (
+            pd.DataFrame(pedidos_detalhe)
+            .groupby(["mes", "vendedor", "grupo"], dropna=False, as_index=False)[
+                ["pedidos_liberados_valor", "pedidos_liberados_peso"]
+            ]
+            .sum()
+            .to_dict("records")
+        )
     return {
         "versao": 3,
         "atualizado_em": datetime.now().astimezone().isoformat(),
@@ -699,6 +709,7 @@ def build_payload(data, stock=None, orders=None):
         "metas_e_pedidos": commercial,
         "funil_acompanhamento": funnel,
         "pedidos_detalhe": pedidos_detalhe,
+        "pedidos_recortes": pedidos_recortes,
         "rastreabilidade_datas": flow_dates,
         "mensal": monthly_records,
         "mensal_recortes": monthly_recortes,
