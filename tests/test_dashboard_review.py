@@ -83,6 +83,8 @@ class OrdersDetailJoinTests(unittest.TestCase):
         self.assertEqual(rows[0]["margem"], 20.0)
         self.assertEqual(rows[0]["cidade"], "Goiânia")
         self.assertEqual(rows[0]["data_inclusao_inicio"], "2026-11-12")
+        self.assertEqual(rows[0]["data_faturamento_inicio"], "2026-11-15")
+        self.assertEqual(rows[0]["data_faturamento_fim"], "2026-11-15")
 
 
     def test_released_flow_supplies_order_value_date_and_freight(self):
@@ -130,8 +132,39 @@ class OrdersDetailJoinTests(unittest.TestCase):
         released = [row for row in rows if row["pedidos_liberados_valor"]][0]
         self.assertEqual(released["frete"], "CIF")
         self.assertEqual(released["data_inclusao_inicio"], "2026-11-12")
+        self.assertIsNone(released["data_faturamento_inicio"])
         self.assertEqual(released["codigo_cliente"], "123")
         self.assertEqual(released["sku"], "456")
+
+    def test_invoice_dates_follow_billed_seller_and_unbilled_rows_stay_empty(self):
+        from gerar_dashboard_web import _orders_detail
+
+        sales = pd.DataFrame({
+            "Data": pd.to_datetime(["2026-11-15", "2026-11-20"]),
+            "Data Pedido": ["10/11/2026", "11/11/2026"],
+            "Cod Cliente": ["123", "123"],
+            "Cliente": ["CLIENTE TESTE", "CLIENTE TESTE"],
+            "Município": ["Goiânia", "Goiânia"],
+            "Produto Codigo": ["456", "456"],
+            "Produto": ["PRODUTO TESTE", "PRODUTO TESTE"],
+            "Grupo Produto": ["TUBOS", "TUBOS"],
+            "Vendedor": ["ANA", "BRUNO"],
+            "Margem": [20.0, 30.0],
+        })
+        orders = pd.DataFrame({
+            "Competência": pd.to_datetime(["2026-11-01"] * 3),
+            "Vendedor": ["ANA", "BRUNO", "CARLA"],
+            "Cod Cliente": ["123"] * 3,
+            "Produto Codigo": ["456"] * 3,
+            "Pedidos (R$)": [100.0] * 3,
+            "Pedidos (kg)": [10.0] * 3,
+            "Faturado (R$)": [100.0, 100.0, 0.0],
+            "Faturado (kg)": [10.0, 10.0, 0.0],
+        })
+        rows = {row["vendedor"]: row for row in _orders_detail(sales, orders, pd.DataFrame())}
+        self.assertEqual(rows["ANA"]["data_faturamento_inicio"], "2026-11-15")
+        self.assertEqual(rows["BRUNO"]["data_faturamento_inicio"], "2026-11-20")
+        self.assertIsNone(rows["CARLA"]["data_faturamento_inicio"])
 
 
 
