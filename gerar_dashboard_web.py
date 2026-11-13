@@ -422,8 +422,26 @@ def _orders_detail(data, orders, flow):
     sales["Cod Cliente"] = sales["Cod Cliente"].pipe(code)
     sales["Produto Codigo"] = sales["Produto Codigo"].pipe(code)
     detail_keys = ["mes", "Cod Cliente", "Produto Codigo"]
-    actual = sales.groupby(detail_keys, dropna=False, as_index=False).agg(margem=("Margem", "sum"))
+    actual = sales.groupby(detail_keys, dropna=False, as_index=False).agg(
+        margem=("Margem", "sum"),
+        data_faturamento_inicio=("Data", "min"),
+        data_faturamento_fim=("Data", "max"),
+    )
     frame = frame.merge(actual, on=detail_keys, how="left", validate="many_to_one")
+    if "Vendedor" in sales:
+        # Prefere as notas do mesmo vendedor; só usa o par cliente/SKU quando
+        # o nome do vendedor difere entre os dois relatórios.
+        seller_dates = sales.groupby(keys, dropna=False, as_index=False).agg(
+            data_faturamento_vendedor_inicio=("Data", "min"),
+            data_faturamento_vendedor_fim=("Data", "max"),
+        )
+        frame = frame.merge(seller_dates, on=keys, how="left", validate="many_to_one")
+        for suffix in ("inicio", "fim"):
+            frame[f"data_faturamento_{suffix}"] = frame[f"data_faturamento_vendedor_{suffix}"].combine_first(
+                frame[f"data_faturamento_{suffix}"]
+            )
+        frame = frame.drop(columns=["data_faturamento_vendedor_inicio", "data_faturamento_vendedor_fim"])
+    frame.loc[frame["faturamento"].le(0), ["data_faturamento_inicio", "data_faturamento_fim"]] = pd.NaT
     # O vendedor do relatório de pedidos pode diferir do vendedor da nota.
     # Distribui a margem pelo faturamento de cada vendedor sem duplicar o total.
     billed_total = frame.groupby(detail_keys, dropna=False)["faturamento"].transform("sum")
@@ -522,6 +540,7 @@ def _orders_detail(data, orders, flow):
         margin = _number(row["margem"])
         weight = _number(row["peso_realizado"])
         date_start, date_end = row.get("data_inclusao_inicio"), row.get("data_inclusao_fim")
+        invoice_start, invoice_end = row.get("data_faturamento_inicio"), row.get("data_faturamento_fim")
         records.append({
             "mes": str(row["mes"]), "vendedor": str(row["Vendedor"]),
             "codigo_cliente": str(row["Cod Cliente"]), "cliente": str(row["Cliente"]),
@@ -534,6 +553,8 @@ def _orders_detail(data, orders, flow):
             "peso_realizado": weight, "preco_medio": _number(billed / weight) if weight else 0,
             "data_inclusao_inicio": pd.Timestamp(date_start).date().isoformat() if pd.notna(date_start) else None,
             "data_inclusao_fim": pd.Timestamp(date_end).date().isoformat() if pd.notna(date_end) else None,
+            "data_faturamento_inicio": pd.Timestamp(invoice_start).date().isoformat() if pd.notna(invoice_start) else None,
+            "data_faturamento_fim": pd.Timestamp(invoice_end).date().isoformat() if pd.notna(invoice_end) else None,
             "frete": str(row["frete"]),
         })
     # O relatório Pedido × Realizado identifica a venda mensal, mas não traz
@@ -605,6 +626,8 @@ def _orders_detail(data, orders, flow):
                     "peso_realizado": 0, "preco_medio": 0,
                     "data_inclusao_inicio": pd.Timestamp(start).date().isoformat() if pd.notna(start) else None,
                     "data_inclusao_fim": pd.Timestamp(end).date().isoformat() if pd.notna(end) else None,
+                    "data_faturamento_inicio": None,
+                    "data_faturamento_fim": None,
                     "frete": str(row["frete"]),
                 })
             print("Pedidos liberados da trilha: " + json.dumps({
