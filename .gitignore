@@ -19,6 +19,10 @@ data/backup/
 data/auditoria.txt
 logs/
 
+# Arquivos locais da carga manual (o guia da pasta continua versionado)
+CARGA_MANUAL/*
+!CARGA_MANUAL/LEIA-ME.md
+
 # Local configuration
 .env
 .env.*
