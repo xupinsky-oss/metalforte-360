@@ -54,6 +54,7 @@ OPTIONAL_FLOW_REPORTS = {
     "orcamentos_abertos_detalhe": "Orçamentos em aberto",
 }
 OPTIONAL_LOSS_REPORT = "perdas_por_motivo"
+OPTIONAL_STOCK_REPORT = "estoque_produto"
 ALLOWED_EXTENSIONS = {".csv", ".txt", ".zip"}
 
 
@@ -133,12 +134,23 @@ def folder_status() -> list[dict[str, object]]:
             "Modificado em": datetime.fromtimestamp(loss_path.stat().st_mtime).strftime("%d/%m/%Y %H:%M") if loss_path else "—",
         }
     )
+    stock_path = report_path(OPTIONAL_STOCK_REPORT)
+    items.append(
+        {
+            "Relatório": "Estoque por produto",
+            "Arquivo esperado": expected_filename(OPTIONAL_STOCK_REPORT),
+            "Obrigatório": "Não (estoque)",
+            "Situação": "Pronto" if stock_path else "Ausente",
+            "Arquivo encontrado": stock_path.name if stock_path else "—",
+            "Modificado em": datetime.fromtimestamp(stock_path.stat().st_mtime).strftime("%d/%m/%Y %H:%M") if stock_path else "—",
+        }
+    )
     return items
 
 
 def save_upload(report_name: str, payload: bytes) -> Path:
     """Salva uma exportação do GoodData com o nome padrão do processo."""
-    if report_name not in {*REQUIRED_REPORTS, *OPTIONAL_FLOW_REPORTS, OPTIONAL_LOSS_REPORT}:
+    if report_name not in {*REQUIRED_REPORTS, *OPTIONAL_FLOW_REPORTS, OPTIONAL_LOSS_REPORT, OPTIONAL_STOCK_REPORT}:
         raise ValueError("Relatório desconhecido.")
     if not payload:
         raise ValueError("O arquivo enviado está vazio.")
@@ -163,7 +175,7 @@ def validate_manual_files() -> dict[str, object]:
 
 def _save_input_snapshot(stamp: str) -> None:
     """Mantém uma cópia de auditoria dos arquivos que originaram a carga."""
-    for name in [*REQUIRED_REPORTS, *OPTIONAL_FLOW_REPORTS, OPTIONAL_LOSS_REPORT]:
+    for name in [*REQUIRED_REPORTS, *OPTIONAL_FLOW_REPORTS, OPTIONAL_LOSS_REPORT, OPTIONAL_STOCK_REPORT]:
         path = report_path(name)
         if path:
             shutil.copy2(path, RAW / f"manual_{name}_{stamp}{path.suffix}")

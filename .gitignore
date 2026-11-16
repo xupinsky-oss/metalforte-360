@@ -23,6 +23,9 @@ logs/
 CARGA_MANUAL/*
 !CARGA_MANUAL/LEIA-ME.md
 
+# Painel privado gerado localmente a partir dos dados comerciais
+PAINEL_PRIVADO_HTML/
+
 # Local configuration
 .env
 .env.*
