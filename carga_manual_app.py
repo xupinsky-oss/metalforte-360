@@ -9,12 +9,14 @@ from src.manual_load import (
     INPUT_DIR,
     OPTIONAL_FLOW_REPORTS,
     OPTIONAL_LOSS_REPORT,
+    OPTIONAL_STOCK_REPORT,
     REQUIRED_REPORTS,
     folder_status,
     prepare_input_folder,
     run_manual_update,
     save_upload,
 )
+from gerar_painel_privado import generate_private_dashboard
 
 
 st.set_page_config(page_title="Carga manual | METALFORTE 360", page_icon="📥", layout="wide")
@@ -61,6 +63,10 @@ with st.expander("Adicionar ou substituir arquivos", expanded=False):
     if uploaded is not None and st.button("Salvar perdas por motivo", key="save_perdas"):
         save_upload(OPTIONAL_LOSS_REPORT, uploaded.getvalue())
         st.success("perdas_por_motivo.csv salvo.")
+    uploaded = st.file_uploader("Estoque por produto — opcional (estoque_produto.csv)", type=["csv", "txt", "zip"], key="upload_estoque")
+    if uploaded is not None and st.button("Salvar estoque por produto", key="save_estoque"):
+        save_upload(OPTIONAL_STOCK_REPORT, uploaded.getvalue())
+        st.success("estoque_produto.csv salvo.")
 
 st.divider()
 st.subheader("Publicação")
@@ -79,5 +85,17 @@ if st.button("Validar e atualizar painel", type="primary", disabled=not confirm,
             cols[2].metric("Última data na base", result["ultima_data"])
             cols[3].metric("Eventos do funil", result["eventos_funil_atualizados"])
             st.json(result)
+
+st.divider()
+st.subheader("Painel HTML privado")
+st.caption("Gera um arquivo local, separado do METALFORTE 360, para uso exclusivo da gestão comercial.")
+if st.button("Gerar painel privado", width="stretch"):
+    try:
+        html_file = generate_private_dashboard()
+    except Exception as exc:
+        st.error(f"Não foi possível gerar o painel privado: {exc}")
+    else:
+        st.success("Painel HTML privado gerado.")
+        st.code(str(html_file))
 
 st.caption("A carga anterior é preservada automaticamente em data/backup antes da substituição.")

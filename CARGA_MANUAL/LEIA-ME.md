@@ -19,6 +19,7 @@ Coloque aqui os arquivos exportados do GoodData. O painel `Abrir_Carga_Manual.ba
 - `op_sob_encomenda.csv`
 - `orcamentos_abertos_detalhe.csv`
 - `perdas_por_motivo.csv`
+- `estoque_produto.csv` — deve conter produto/código e estoque em kg
 
 Os complementares atualizam o funil e as perdas. Os sete arquivos obrigatórios atualizam a base comercial principal.
 
