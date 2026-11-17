@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import html
+import json
 from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+from plotly.offline import get_plotlyjs
 from plotly.subplots import make_subplots
 
 from atualizar_gooddata import ACTIVE, parse_raw
@@ -63,6 +65,29 @@ def _group(data, dimension):
     out = data.groupby(dimension, dropna=False).agg(Faturamento=("Faturamento", "sum"), Margem=("Margem", "sum"), Peso=("Peso", "sum"), Clientes=("Cliente Chave", "nunique")).reset_index()
     out["Margem %"] = out["Margem"] / out["Faturamento"].replace(0, pd.NA)
     return out.sort_values("Faturamento", ascending=False)
+
+
+def _interactive_series(data):
+    """Séries prontas para troca de medida e período no HTML offline."""
+    first_purchase = data.groupby("Cliente Chave")["Data"].min()
+    definitions = {"D": "Dia", "W-MON": "Semana", "M": "Mês"}
+    result = {}
+    for frequency, label in definitions.items():
+        rows = []
+        for period, frame in data.groupby(data["Data"].dt.to_period(frequency)):
+            revenue = float(frame["Faturamento"].sum())
+            weight = float(frame["Peso"].sum())
+            new_customers = int((first_purchase.dt.to_period(frequency) == period).sum())
+            rows.append({
+                "periodo": str(period),
+                "faturamento": round(revenue, 2),
+                "preco_medio": round(revenue / weight, 4) if weight else None,
+                "positivacao": int(frame["Cliente Chave"].nunique()),
+                "novos_clientes": new_customers,
+                "margem_pct": round(float(frame["Margem"].sum()) / revenue, 6) if revenue else None,
+            })
+        result[label] = rows
+    return result
 
 
 def _stock_days(data):
@@ -161,7 +186,11 @@ def generate_private_dashboard():
 
     cards = [("Faturamento MTD", _money(revenue), f"{_pct(month_delta)} vs. mês anterior · {_pct(year_delta)} vs. ano anterior"), ("Margem %", _pct(margin_pct), "margem realizada sobre faturamento"), ("Positivação", _int(active), f"clientes compradores · {_pct(_ratio(active, observed))} da base observada em 12 meses"), ("Novos clientes", _int(len(new_keys)), "primeira compra observada no mês"), ("Positivação – novos", _int(new_active), "novos clientes que compraram no mês")]
     cards_html = "".join(f'<article class="card"><span>{html.escape(label)}</span><strong>{value}</strong><small>{html.escape(note)}</small></article>' for label, value, note in cards)
-    charts = [_chart(evolution, True), _chart(week_chart), _chart(day_chart), _chart(client_chart), _chart(product_chart), _chart(order_chart)]
+    series = _interactive_series(data)
+    # Uma única cópia offline do Plotly mantém o HTML funcional mesmo sem internet.
+    plotly_bundle = get_plotlyjs()
+    charts = [_chart(week_chart), _chart(day_chart), _chart(client_chart), _chart(product_chart), _chart(order_chart)]
+    interactive_html = f'''<section class="full panel"><h2>Gráfico principal</h2><div class="controls"><label>Medida <select id="metric"><option value="faturamento">Faturamento</option><option value="preco_medio">Preço médio (R$/kg)</option><option value="positivacao">Positivação</option><option value="novos_clientes">Novos clientes</option><option value="margem_pct">Margem %</option></select></label><label>Granularidade <select id="frequency"><option value="Mês">Mês</option><option value="Semana">Semana</option><option value="Dia">Dia</option></select></label></div><div id="grafico-principal"></div></section><script>{plotly_bundle}</script><script>const series={json.dumps(series, ensure_ascii=False)};const settings={{faturamento:{{label:'Faturamento',prefix:'R$ ',format:',.0f'}},preco_medio:{{label:'Preço médio (R$/kg)',prefix:'R$ ',format:',.2f'}},positivacao:{{label:'Positivação (clientes compradores)',format:',.0f'}},novos_clientes:{{label:'Novos clientes',format:',.0f'}},margem_pct:{{label:'Margem %',format:'.2%'}}}};function drawMain(){{const metric=document.getElementById('metric').value;const frequency=document.getElementById('frequency').value;const data=series[frequency]||[];const setting=settings[metric];const values=data.map(x=>x[metric]);Plotly.newPlot('grafico-principal',[{{x:data.map(x=>x.periodo),y:values,type:'scatter',mode:'lines+markers',line:{{color:'#F36A2D',width:3}},marker:{{size:6}},hovertemplate:'%{{x}}<br>'+setting.label+': %{{y}}<extra></extra>'}}],{{title:setting.label+' por '+frequency.toLowerCase(),height:440,paper_bgcolor:'white',plot_bgcolor:'white',margin:{{l:58,r:30,t:60,b:65}},font:{{family:'Arial',color:'#27364A'}},xaxis:{{gridcolor:'#EDF1F5'}},yaxis:{{gridcolor:'#EDF1F5',tickprefix:setting.prefix||'',tickformat:setting.format}}}},{{displayModeBar:false,responsive:true}});}}document.getElementById('metric').addEventListener('change',drawMain);document.getElementById('frequency').addEventListener('change',drawMain);drawMain();</script>'''
     stock_html = _table(stock[["Produto", "Estoque (kg)", "Demanda 90 dias (kg)", "Dias de estoque"]].head(25)) if not stock.empty else '<p class="empty">Inclua estoque_produto.csv com código de produto e estoque em kg para calcular os dias de estoque.</p>'
     growing_table = growing[["Cliente", "Segmento", "Atual", "Anterior", "Variação %"]].rename(
         columns={"Atual": "Faturamento", "Anterior": "Pedidos"}
@@ -169,7 +198,7 @@ def generate_private_dashboard():
     declining_table = declining[["Cliente", "Segmento", "Atual", "Anterior", "Variação %"]].rename(
         columns={"Atual": "Faturamento", "Anterior": "Pedidos"}
     )
-    page = f'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gestão comercial privada | METALFORTE</title><style>body{{font-family:Arial,sans-serif;background:#F5F7FA;color:#27364A;margin:0}}.wrap{{max-width:1600px;margin:auto;padding:26px}}h1{{margin:0;font-size:30px}}h2{{font-size:20px;margin:28px 0 12px}}.sub,.note{{color:#617086;font-size:13px;line-height:1.5}}.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}}.card,.panel{{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:17px;box-shadow:0 2px 9px #25354A0A}}.card span,.card small{{display:block;color:#617086;font-size:13px}}.card strong{{display:block;font-size:25px;margin:9px 0}}.grid{{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:16px;margin-top:16px}}.full{{margin-top:16px}}.data-table{{width:100%;border-collapse:collapse;font-size:13px}}.data-table th{{text-align:left;background:#F7F9FC;color:#516277}}.data-table th,.data-table td{{padding:9px;border-bottom:1px solid #E7ECF2}}.empty{{padding:16px;background:#FFF6EE;border-left:4px solid #F36A2D;color:#704126}}@media(max-width:900px){{.grid{{grid-template-columns:1fr}}.wrap{{padding:15px}}}}</style></head><body><main class="wrap"><h1>METALFORTE | Gestão comercial privada</h1><p class="sub">Base até {latest.strftime('%d/%m/%Y')} · arquivo local, de uso interno</p><section class="cards">{cards_html}</section><section class="full panel">{charts[0]}</section><section class="grid"><article class="panel">{charts[1]}</article><article class="panel">{charts[2]}</article></section><section class="grid"><article class="panel">{charts[3]}</article><article class="panel">{_table(client_segment, money=("Faturamento", "Margem"), percent=("Margem %",))}</article></section><section class="grid"><article class="panel">{charts[4]}</article><article class="panel">{_table(product_segment, money=("Faturamento", "Margem"), percent=("Margem %",))}</article></section><section class="grid"><article class="panel">{charts[5]}<p class="note">Pedidos associados usam a data de pedido das linhas que já fazem parte da base faturada. Para carteira ainda em aberto, inclua os arquivos de fluxo na carga.</p></article><article class="panel">{_table(order_compare[["Rótulo", "Faturamento", "Pedidos associados"]], money=("Faturamento", "Pedidos associados"))}</article></section><h2>Clientes em crescimento, queda e inativos</h2><section class="grid"><article class="panel"><h3>Crescimento ≥ 10%</h3>{_table(growing_table, money=("Faturamento", "Pedidos"), percent=("Variação %",))}</article><article class="panel"><h3>Queda ≤ -10%</h3>{_table(declining_table, money=("Faturamento", "Pedidos"), percent=("Variação %",))}</article></section><section class="grid"><article class="panel"><h2>Pararam de comprar</h2>{_table(stopped, money=("Faturamento",))}<p class="note">Sem compra há mais de 90 dias a partir da última data da base.</p></article><article class="panel"><h2>Estoque x demanda</h2>{stock_html}<p class="note">Dias de estoque = estoque em kg ÷ demanda média diária dos últimos 90 dias.</p></article></section><section class="full panel"><h2>Definições</h2><p class="note">Positivação = clientes compradores no período. Novos clientes = primeira compra observada na base. Comparações M-1 e ano anterior consideram o mesmo número de dias transcorridos. A base atual não contém data de cadastro do cliente; por isso, “novo” significa novo comprador.</p></section></main></body></html>'''
+    page = f'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gestão comercial privada | METALFORTE</title><style>body{{font-family:Arial,sans-serif;background:#F5F7FA;color:#27364A;margin:0}}.wrap{{max-width:1600px;margin:auto;padding:26px}}h1{{margin:0;font-size:30px}}h2{{font-size:20px;margin:28px 0 12px}}.sub,.note{{color:#617086;font-size:13px;line-height:1.5}}.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}}.card,.panel{{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:17px;box-shadow:0 2px 9px #25354A0A}}.card span,.card small{{display:block;color:#617086;font-size:13px}}.card strong{{display:block;font-size:25px;margin:9px 0}}.grid{{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:16px;margin-top:16px}}.full{{margin-top:16px}}.controls{{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}}.controls label{{font-size:14px;font-weight:700;color:#516277}}select{{display:block;margin-top:5px;min-width:210px;padding:8px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;font-size:14px}}.data-table{{width:100%;border-collapse:collapse;font-size:13px}}.data-table th{{text-align:left;background:#F7F9FC;color:#516277}}.data-table th,.data-table td{{padding:9px;border-bottom:1px solid #E7ECF2}}.empty{{padding:16px;background:#FFF6EE;border-left:4px solid #F36A2D;color:#704126}}@media(max-width:900px){{.grid{{grid-template-columns:1fr}}.wrap{{padding:15px}}}}</style></head><body><main class="wrap"><h1>METALFORTE | Gestão comercial privada</h1><p class="sub">Base até {latest.strftime('%d/%m/%Y')} · arquivo local, de uso interno</p><section class="cards">{cards_html}</section>{interactive_html}<section class="grid"><article class="panel">{charts[0]}</article><article class="panel">{charts[1]}</article></section><section class="grid"><article class="panel">{charts[2]}</article><article class="panel">{_table(client_segment, money=("Faturamento", "Margem"), percent=("Margem %",))}</article></section><section class="grid"><article class="panel">{charts[3]}</article><article class="panel">{_table(product_segment, money=("Faturamento", "Margem"), percent=("Margem %",))}</article></section><section class="grid"><article class="panel">{charts[4]}<p class="note">Pedidos associados usam a data de pedido das linhas que já fazem parte da base faturada. Para carteira ainda em aberto, inclua os arquivos de fluxo na carga.</p></article><article class="panel">{_table(order_compare[["Rótulo", "Faturamento", "Pedidos associados"]], money=("Faturamento", "Pedidos associados"))}</article></section><h2>Clientes em crescimento, queda e inativos</h2><section class="grid"><article class="panel"><h3>Crescimento ≥ 10%</h3>{_table(growing_table, money=("Faturamento", "Pedidos"), percent=("Variação %",))}</article><article class="panel"><h3>Queda ≤ -10%</h3>{_table(declining_table, money=("Faturamento", "Pedidos"), percent=("Variação %",))}</article></section><section class="grid"><article class="panel"><h2>Pararam de comprar</h2>{_table(stopped, money=("Faturamento",))}<p class="note">Sem compra há mais de 90 dias a partir da última data da base.</p></article><article class="panel"><h2>Estoque x demanda</h2>{stock_html}<p class="note">Dias de estoque = estoque em kg ÷ demanda média diária dos últimos 90 dias.</p></article></section><section class="full panel"><h2>Definições</h2><p class="note">Positivação = clientes compradores no período. Novos clientes = primeira compra observada na base. Comparações M-1 e ano anterior consideram o mesmo número de dias transcorridos. A base atual não contém data de cadastro do cliente; por isso, “novo” significa novo comprador.</p></section></main></body></html>'''
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(page, encoding="utf-8")
     return OUTPUT
