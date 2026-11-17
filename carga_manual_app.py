@@ -14,6 +14,7 @@ from src.manual_load import (
     folder_status,
     prepare_input_folder,
     run_manual_update,
+    run_gooddata_update,
     save_upload,
 )
 from gerar_painel_privado import generate_private_dashboard
@@ -36,6 +37,23 @@ st.markdown(
     4. Clique em **Validar e atualizar painel**.
     """
 )
+
+st.subheader("Atualização automática — recomendada")
+st.caption("Usa as rotinas oficiais já atualizadas no TOTVS/GoodData: comercial, pedidos, clientes, produtos, produção e estoque.")
+auto_confirm = st.checkbox("Confirmo que desejo consultar o GoodData/TOTVS agora.", key="auto_confirm")
+if st.button("Atualizar base pelo GoodData/TOTVS", type="primary", disabled=not auto_confirm, width="stretch"):
+    with st.spinner("Consultando GoodData/TOTVS, consolidando a base e validando os totais..."):
+        try:
+            automatic_result = run_gooddata_update()
+        except Exception as exc:
+            st.error(str(exc))
+        else:
+            st.success("Base atualizada pelo GoodData/TOTVS. Agora clique em Gerar painel privado.")
+            st.json(automatic_result)
+
+st.divider()
+st.subheader("Carga manual — contingência")
+st.caption("Use esta opção somente se precisar trabalhar com arquivos CSV/ZIP exportados manualmente.")
 
 st.subheader("Situação dos arquivos")
 status = pd.DataFrame(folder_status())
@@ -69,7 +87,7 @@ with st.expander("Adicionar ou substituir arquivos", expanded=False):
         st.success("estoque_produto.csv salvo.")
 
 st.divider()
-st.subheader("Publicação")
+st.subheader("Publicação da carga manual")
 confirm = st.checkbox("Confirmo que os arquivos foram extraídos para o período correto.")
 if st.button("Validar e atualizar painel", type="primary", disabled=not confirm, width="stretch"):
     with st.spinner("Validando arquivos, consolidando a base e publicando o painel..."):
