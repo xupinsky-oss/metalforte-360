@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -275,3 +277,39 @@ def run_manual_update(publish: bool = True) -> dict[str, object]:
     if publish:
         upload_status(result)
     return result
+
+
+def run_gooddata_update() -> dict[str, object]:
+    """Executa a carga já homologada do GoodData/TOTVS no computador local.
+
+    A credencial não passa pela interface nem é gravada no projeto: o processo
+    reutiliza exclusivamente a credencial segura já configurada no Windows.
+    """
+    command = [sys.executable, str(ROOT / "atualizar_gooddata.py")]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=1800,
+    )
+    output = "\n".join(part for part in (completed.stdout, completed.stderr) if part).strip()
+    if completed.returncode != 0:
+        tail = output[-1800:] if output else "Sem detalhes retornados pelo atualizador."
+        raise RuntimeError(
+            "A atualização automática não foi concluída. "
+            "Verifique se a credencial do GoodData está configurada neste computador.\n\n"
+            f"Detalhes técnicos:\n{tail}"
+        )
+    # O atualizador imprime o resultado em JSON como última linha. Mantemos uma
+    # alternativa legível caso futuras versões incluam mensagens adicionais.
+    for line in reversed(completed.stdout.splitlines()):
+        try:
+            result = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(result, dict):
+            return result
+    return {"status": "ok", "origem": "GoodData/TOTVS", "detalhes": output[-1000:]}
