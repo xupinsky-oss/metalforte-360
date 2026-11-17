@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636114710523" licenseType="Commercial" modified="Sat Oct 10 17:14:35 BRT 2026" modifiedBy="Guilherme" name="DIM Plano de Contas CT1" revision="1.14" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="CT1010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT1_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field name="CT1_CONTA_N1" type="string"/>
+<Field name="CT1_CONTA_N2" type="string"/>
+<Field name="CT1_CONTA_N3" type="string"/>
+<Field name="CT1_CONTA_N4" type="string"/>
+<Field name="CT1_CONTA_N5" type="string"/>
+<Field name="CT1_CLASSIFICACAO1_ORC" type="string"/>
+<Field name="CT1_CLASSIFICACAO2_ORC" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="CT1010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT1_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field name="CT1_CONTA_N1" type="string"/>
+<Field name="CT1_CONTA_N2" type="string"/>
+<Field name="CT1_CONTA_N3" type="string"/>
+<Field name="CT1_CONTA_N4" type="string"/>
+<Field name="CT1_CONTA_N5" type="string"/>
+<Field name="CT1_CLASSIFICACAO1_ORC" type="string"/>
+<Field name="CT1_CLASSIFICACAO2_ORC" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="4">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Cadastro Plano de Contas CT1 " guiX="12" guiY="7" id="CADASTRO_PLANO_DE_CONTAS_CT1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  CT1_CONTA, 
+	  CT1_DESC01,
+	  CT1_CLASSE,
+	  CT1_NORMAL,
+	  CT1_CONTA_N1,
+	  CT1_CONTA_N2,
+	  CT1_CONTA_N3,
+	  CT1_CONTA_N4,
+	  CT1_CONTA_N5,
+	  -----------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN CT1_CLASSIFICACAO1_ORC = 'Não Classificado' AND SUBSTRING(CT1_CONTA,1,1) >= '3' THEN '00(?) Classificar'
+		  ELSE CT1_CLASSIFICACAO1_ORC
+	  END AS CT1_CLASSIFICACAO1_ORC,
+	  -----------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN CT1_CLASSIFICACAO2_ORC = 'Não Classificado' AND SUBSTRING(CT1_CONTA,1,1) >= '3' THEN '0 - Classificar'
+		  ELSE CT1_CLASSIFICACAO2_ORC
+	  END AS CT1_CLASSIFICACAO2_ORC
+	  -----------------------------------------------------------------------------------------------------------------------------------
+FROM(
+
+SELECT DISTINCT
+	  CT1.CT1_CONTA, 
+	  CT1.CT1_DESC01, 
+	  CT1.CT1_CLASSE, 
+	  CT1.CT1_NORMAL,
+	  LTRIM(RTRIM(CT1.CT1_CONTA)) + ' - ' + LTRIM(RTRIM(CT1.CT1_DESC01)) AS CT1_CONTA_N1,
+	  LTRIM(RTRIM(AAA.CT1_CONTA)) + ' - ' + LTRIM(RTRIM(AAA.CT1_DESC01)) AS CT1_CONTA_N2,
+	  LTRIM(RTRIM(BBB.CT1_CONTA)) + ' - ' + LTRIM(RTRIM(BBB.CT1_DESC01)) AS CT1_CONTA_N3,
+	  LTRIM(RTRIM(CCC.CT1_CONTA)) + ' - ' + LTRIM(RTRIM(CCC.CT1_DESC01)) AS CT1_CONTA_N4,
+	  LTRIM(RTRIM(DDD.CT1_CONTA)) + ' - ' + LTRIM(RTRIM(DDD.CT1_DESC01)) AS CT1_CONTA_N5,
+	  -----------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN CT1.CT1_CONTA IN('4110400001','4110100001','4110200001','4110300001') THEN '01(+) Faturamento Bruto'
+		  WHEN CT1.CT1_CONTA IN('4120100001','4120100002','4120100003','4120100004',
+		                        '4120100006')                                        THEN '02(-) Total Impostos'
+		  WHEN CT1.CT1_CONTA IN('4120200001','3410400002')                           THEN '03(-) Abatimentos'
+		  WHEN CT1.CT1_CONTA IN('3110400001','3110100001','3110200001','3110600017',
+		                        '3110600018')                                        THEN '04(-) C.P.V (Custo dos Produtos Vendidos)'
+		  
+		  WHEN CT1.CT1_CONTA IN('3110600002','3110600015','3110600001',
+		                        '3110600011','3110600009','3110600012','3110600014',
+		                        '3110600010','3110600013','3410200059','3110600016') THEN '05(-) Despesas Variáveis Industriais'
+		  
+		  WHEN CT1.CT1_CONTA IN('3110500017','3110500002','3110500014','3110500011',
+		                        '3110500006','3110500018','3110500003','3110500007',
+								'3110590000','3110500021','3110500001','3110500004',
+								'3110500013','3110500016','3110500005','3110500020',
+								'3110500010','3110500019','3410200005','3110600005',
+								'3110600003','3110500009','3110500015','3110500008',
+								'3110600019','3113000001','3113000002')              THEN '06(-) Industrial Fixo'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410200012','3410200063')                           THEN '07(-) Encargos de Depreciação'
+		  WHEN CT1.CT1_CONTA IN('3410100005','3410100006','3410100016')              THEN '08(-) Comercial Variável'
+		  WHEN CT1.CT1_CONTA IN('3410200015','3410200004','3410200023','3410200014',
+		                        '3410200027')                                        THEN '09(-) Logística Variável'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410100023','3410300007','3410100033','3410100017',
+		                        '3410100018','3410100019','3410100009','3410100015',
+								'3410100030','3410100031','3410100007','3410100021',
+								'3410100026','3410100027','3410100029','3410100002',
+								'3410100028','3410100008','3410100020','3410100003',
+								'3410100022','3410200045','3410200039','3410200021',
+								'3420100004','3410300012','3410200058','3410200040',
+								'3410200054','3410200018','3410200028','3410200043',
+								'3410200002','3410200013','3410200056','3410200010',
+								'3410200042','3410200024','3410200008','3410200033',
+								'3410300008','3410200049','3410200038','3410200022',
+								'3410200053','3410300001','3410200006','3410300004',
+								'3410200025','3410200048','3410300003','3420100003',
+								'3410200050','3410300005','3410200044','3410300011',
+								'3410200017','3410200051','3410100001','3410100024',
+								'3410100025','3410100032','3410100034','3410100004',
+								'3410100010','3410100012','3410100014','3410200009',
+								'3410200026','3410200030','3410200034','3410200046',
+								'3410200057','3410200060','3410200061','3410200062',
+								'3410300002','3410300010','3410300013','3410500007',
+								'3410500016','3410200020','3410200052','3410200011') THEN '10(-) Administrativo Fixo'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410200003','3410200032','3410200037','3410200029',
+		                        '3410200055')                                        THEN '11(-) Comercial Fixo'
+		  WHEN CT1.CT1_CONTA IN('3410500011','3410500021','3410500006','3410500012') THEN '12(-) Despesas Tributárias'
+		  WHEN CT1.CT1_CONTA IN('3410400018','3410400003')                           THEN '13(-) Outras Despesas Operacionais'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410500005','3410400021','3410400017','3410400008',
+		                        '3410400005','3410400010','3410400012','3410400011',
+		                        '3410400006','3410400007','3410400020','3410400022',
+		                        '3410400013','3410200031','3410500010','3410500009') THEN '14(-) Despesas Financeiras'
+		  
+		  WHEN CT1.CT1_CONTA IN('4130100005','4130100002','4130100003','4130100001',
+		                        '4130100011','4310100001','4310200001')              THEN '15(+) Receitas Financeiras'
+		  WHEN CT1.CT1_CONTA IN('3410500014','4140100004','4140100001','4140100003',
+		                        '4140100005','4140100002')                           THEN '16(-) Protege'
+		  ELSE 'Não Classificado'
+	  END AS CT1_CLASSIFICACAO1_ORC,
+	  -----------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN CT1.CT1_CONTA IN('4110400001','4110100001','4110200001','3110600013') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('4120100001','4120100002','4120100003','4120100004') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('4120200001','3410400002','3110600010','3110600017') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3110400001','3110100001','3110200001','3410200055') THEN '1 - Total'
+		  
+		  WHEN CT1.CT1_CONTA IN('3110600002','3110600016','3110600015','3110600001',
+		                        '3110600011','3110600009','3110600012','3110600014',
+		                        '4310100001','3110600018','4310200001','3410400013',
+		                        '3410200031','4140100002','3410500010','3410500012',
+		                        '3410500009'                                       ) THEN '1 - Total'
+		  
+		  WHEN CT1.CT1_CONTA IN('3110500017','3110500002','3110500014','3110500011',
+		                        '3110500006','3110500018','3110500003','3110500007',
+								'3110590000','3110500021','3110500001','3110500004',
+								'3110500013','3110500016','3110500005','3110500020',
+								'3110500010','3110500019','3110500009','3110500015',
+								'3110500008','3410100004','3410100010','3410100014') THEN '1 - Trabalhistas'
+		  WHEN CT1.CT1_CONTA IN('3410200005','3110600005','3110600003','3410100024',
+		                        '3113000001','3113000002')                           THEN '2 - Operacionais'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410200012','3410200014','3410200027','3410200059') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3410100005','3410100006','3410100016','3410400011') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3410200015','3410200004','3410200023','4140100004') THEN '1 - Total'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410100023','3410300007','3410100033','3410100017',
+		                        '3410100018','3410100019','3410100009','3410100015',
+								'3410100030','3410100031','3410100007','3410100021',
+								'3410100026','3410100027','3410100029','3410100002',
+								'3410100028','3410100008','3410100020','3410100003',
+								'3410100022','3410100001','3410100032','3410100034',
+								'3410300010','3110600019')                           THEN '1 - Trabalhistas'
+		  WHEN CT1.CT1_CONTA IN('3410200045','3410200039','3410200021','3420100004',
+		                        '3410300012','3410200058','3410200040','3410200054',
+								'3410200018','3410200028','3410200043','3410200002',
+								'3410200013','3410200056','3410200010','3410200042',
+								'3410200024','3410200008','3410200033','3410300008',
+								'3410200049','3410200038','3410200022','3410200053',
+								'3410300001','3410200006','3410300004','3410200025',
+								'3410200048','3410300003','3420100003','3410200050',
+								'3410300005','3410200044','3410300011','3410200017',
+								'3410200051','3410100025','3410100012',
+								'3410200009','3410200026','3410200030','3410200034',
+								'3410200046','3410200057','3410200060','3410200061',
+								'3410200062','3410300002','3410300013','3410500007',
+								'3410500016','3410200020','3410200052','3410200011') THEN '2 - Operacionais'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410200003','3410200032','3410200037','3410200029') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3410500011','3410500021','3410500006','3410200052') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3410400018','3410400003','3410400006','3410400007') THEN '1 - Total'
+		  
+		  WHEN CT1.CT1_CONTA IN('3410500005','3410400021','3410400017','3410400008',
+		                        '3410400005','3410400010','3410400012','3410400020') THEN '1 - Total'
+		  
+		  WHEN CT1.CT1_CONTA IN('4130100005','4130100002','4130100003','3410400022') THEN '1 - Total'
+		  WHEN CT1.CT1_CONTA IN('3410500014','4110300001','4120100006','4130100001',
+		                        '4130100011','4140100001','4140100003','4140100005') THEN '1 - Total'
+		  ELSE 'Não Classificado'
+	  END AS CT1_CLASSIFICACAO2_ORC
+	  -----------------------------------------------------------------------------------------------------------------------------------
+
+FROM CT1010 CT1 --1'405
+-------------------------------------------------------------
+LEFT JOIN CT1010 AAA ON AAA.D_E_L_E_T_ = ' ' --1'405
+                    AND AAA.CT1_CONTA  = CT1.CT1_CTASUP
+-------------------------------------------------------------
+LEFT JOIN CT1010 BBB ON BBB.D_E_L_E_T_ = ' ' --1'405
+                    AND BBB.CT1_CONTA  = AAA.CT1_CTASUP
+-------------------------------------------------------------
+LEFT JOIN CT1010 CCC ON CCC.D_E_L_E_T_ = ' ' --1'405
+                    AND CCC.CT1_CONTA  = BBB.CT1_CTASUP
+-------------------------------------------------------------
+LEFT JOIN CT1010 DDD ON DDD.D_E_L_E_T_ = ' ' --1'405
+                    AND DDD.CT1_CONTA  = CCC.CT1_CTASUP
+-------------------------------------------------------------
+WHERE CT1.D_E_L_E_T_ = ' ' 
+
+)APL
+
+UNION ALL 
+
+SELECT 'XXX', 'N/A', ' ', ' ', 'XXX - Sem Conta Contabil', 'XXX - Sem Conta Contabil', 'XXX - Sem Conta Contabil', 'XXX - Sem Conta Contabil', 'XXX - Sem Conta Contabil', 'Não Classificado', 'Não Classificado']]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CADASTRO_PLANO_DE_CONTAS_CT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="REFORMAT1:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="Reformat" guiX="299" guiY="48" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CT1_CONTA = $in.0.CT1_CONTA;
+	$out.0.CT1_DESC01 = $in.0.CT1_DESC01;
+	$out.0.CT1_CLASSE = $in.0.CT1_CLASSE;
+	$out.0.CT1_NORMAL = $in.0.CT1_NORMAL;
+	$out.0.CT1_CONTA_N1 = $in.0.CT1_CONTA_N1;
+	$out.0.CT1_CONTA_N2 = $in.0.CT1_CONTA_N2;
+	$out.0.CT1_CONTA_N3 = $in.0.CT1_CONTA_N3;
+	$out.0.CT1_CONTA_N4 = $in.0.CT1_CONTA_N4;
+	$out.0.CT1_CONTA_N5 = $in.0.CT1_CONTA_N5;
+	$out.0.CT1_CLASSIFICACAO1_ORC = $in.0.CT1_CLASSIFICACAO1_ORC;
+	$out.0.CT1_CLASSIFICACAO2_ORC = $in.0.CT1_CLASSIFICACAO2_ORC;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_CADASTRO_PLANO_DE_CONTAS_CT1_WRITER:0"/>
+</Phase>
+<Phase number="6">
+<Node dataset="dataset.cadastroplanodecontas" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.cadastroplanodecontas&quot;,&quot;datasetTitle&quot;:&quot;Cadastro Plano de Contas CT1&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;CT1_Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;CT1_Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;CT1_Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_classificacao1_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO1_ORC&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_classificacao1_orc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classificacao1_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO1_ORC&quot;,&quot;prettyId&quot;:&quot;ct1_classificacao1_orc&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSIFICACAO1_ORC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classificacao1_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO1_ORC&quot;,&quot;prettyId&quot;:&quot;ct1_classificacao1_orc&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSIFICACAO1_ORC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_classificacao2_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO2_ORC&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_classificacao2_orc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classificacao2_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO2_ORC&quot;,&quot;prettyId&quot;:&quot;ct1_classificacao2_orc&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSIFICACAO2_ORC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classificacao2_orc&quot;,&quot;title&quot;:&quot;CT1_CLASSIFICACAO2_ORC&quot;,&quot;prettyId&quot;:&quot;ct1_classificacao2_orc&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSIFICACAO2_ORC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_conta&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_conta&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta_n1&quot;,&quot;title&quot;:&quot;CT1_CONTA_N1&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta_n1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n1&quot;,&quot;title&quot;:&quot;CT1_CONTA_N1&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n1&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n1&quot;,&quot;title&quot;:&quot;CT1_CONTA_N1&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n1&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta_n2&quot;,&quot;title&quot;:&quot;CT1_CONTA_N2&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta_n2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n2&quot;,&quot;title&quot;:&quot;CT1_CONTA_N2&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n2&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n2&quot;,&quot;title&quot;:&quot;CT1_CONTA_N2&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n2&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta_n3&quot;,&quot;title&quot;:&quot;CT1_CONTA_N3&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta_n3&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n3&quot;,&quot;title&quot;:&quot;CT1_CONTA_N3&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n3&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N3&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n3&quot;,&quot;title&quot;:&quot;CT1_CONTA_N3&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n3&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N3&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta_n4&quot;,&quot;title&quot;:&quot;CT1_CONTA_N4&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta_n4&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n4&quot;,&quot;title&quot;:&quot;CT1_CONTA_N4&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n4&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N4&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n4&quot;,&quot;title&quot;:&quot;CT1_CONTA_N4&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n4&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N4&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta_n5&quot;,&quot;title&quot;:&quot;CT1_CONTA_N5&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta_n5&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n5&quot;,&quot;title&quot;:&quot;CT1_CONTA_N5&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n5&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N5&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta_n5&quot;,&quot;title&quot;:&quot;CT1_CONTA_N5&quot;,&quot;prettyId&quot;:&quot;ct1_conta_n5&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA_N5&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;CT1_Desc01_Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;CT1_Desc01_Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;CT1_Desc01_Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;CT1_Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;CT1_Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;CT1_Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Cadastro Plano de Contas CT1 Writer" guiX="537" guiY="139" id="GD_CADASTRO_PLANO_DE_CONTAS_CT1_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

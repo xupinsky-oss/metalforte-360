@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.gooddata.clover.designer.launch.GDCRunLaunchConfigurationType.deploy">
+<stringAttribute key="com.gooddata.clover.designer.launch.PROJECT_ID" value="sltez8zoyskp9vazf6jomo5askrbntnl"/>
+<stringAttribute key="com.gooddata.clover.designer.launch.TRANSFORMATION_ID" value="44cc7926-cd8c-4dfc-9600-a44f644d55f8"/>
+<stringAttribute key="com.gooddata.clover.designer.launch.TRANSFORMATION_NAME" value="Metalforte"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Metalforte"/>
+</launchConfiguration>

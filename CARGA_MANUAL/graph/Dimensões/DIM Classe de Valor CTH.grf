@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636114758044" licenseType="Commercial" modified="Mon Jun 02 17:39:17 BRT 2025" modifiedBy="Guilherme" name="DIM Classe de Valor CTH" revision="1.7" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata8">
+<Record fieldDelimiter=";" name="CTH010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTH_CLVL" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata9">
+<Record fieldDelimiter=";" name="CTH010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTH_CLVL" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="13">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Classe Valor CTH" guiX="30" guiY="7" id="CLASSE_VALOR_CTH" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  CTH_CLVL,
+      CTH_CLASSE,
+      CTH_NORMAL,
+      CTH_DESC01
+FROM GD_DIM_CLASSEVALORES_CTH]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CLASSE_VALOR_CTH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata8" outPort="Port 0 (out)" toNode="REFORMAT4:0"/>
+</Phase>
+<Phase number="14">
+<Node enabled="enabled" guiName="Reformat" guiX="279" guiY="47" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTH_CLVL = $in.0.CTH_CLVL;
+	$out.0.CTH_CLASSE = $in.0.CTH_CLASSE;
+	$out.0.CTH_NORMAL = $in.0.CTH_NORMAL;
+	$out.0.CTH_DESC01 = $in.0.CTH_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="GD_CLASSE_VALOR_CTH_WRITER:0"/>
+</Phase>
+<Phase number="15">
+<Node dataset="dataset.classevalorcth" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.classevalorcth&quot;,&quot;datasetTitle&quot;:&quot;Classe Valor - CTH&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_clvl&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;cth_clvl&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLVL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;cth_clvl&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLVL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Classe Valor CTH Writer" guiX="527" guiY="139" id="GD_CLASSE_VALOR_CTH_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

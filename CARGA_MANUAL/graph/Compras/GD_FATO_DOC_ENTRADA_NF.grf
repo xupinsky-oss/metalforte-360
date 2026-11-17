@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Sun May 28 13:33:57 BRT 2023" guiVersion="3.4.4.P" id="1685364303465" licenseType="Commercial" modified="Tue Apr 21 12:16:06 BRT 2026" modifiedBy="Guilherme" name="GD_PROT_FATO_DOC_ENTRADA_NF" revision="1.35" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_DOC_ENTRADA_NF" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="FK_SD1" nullable="true" shift="0" size="28" type="string"/>
+<Field name="FK_SF1" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_CTT" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SA2" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SB1" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SOLICITANTE" nullable="true" shift="0" size="14" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_COMPRADOR" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_APROVADOR" nullable="true" shift="0" size="12" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_GRUPO_APROVADOR" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_NNR" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_STATUS" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_PROCESSO" nullable="true" shift="0" size="3" type="string"/>
+<Field name="CHAVE_SED" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_DTDIGIT" nullable="true" shift="0" size="8" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT2" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT3" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT4" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CP_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C1_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C7_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_EMISSAO2" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="CP_XDATLIB" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DATA_COMPRA_SA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CR_DATALIB_APROV_N1" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CR_DATALIB_APROV_N2" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D1_QUANT" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_QTDEDEV" type="number"/>
+<Field eofAsDelimiter="false" name="D1_CUSTO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" length="12" name="D1_VUNIT" nullable="true" scale="4" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_VUNIT2" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="CP_SALBLQ" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_SC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_LIB" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_LIB_SC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SC_PC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_PC_APROV" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_APROV_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_PC_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_RECB_CLAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_CLAS" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_TEMPO_SC_NF" type="number"/>
+<Field name="D1_TEMPO_PC_CLAS" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_APROV_PC" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_TEMPO_APROV_PC_N2" type="number"/>
+<Field eofAsDelimiter="false" name="C7_QUANT" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C7_PRECO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C7_QUJE" nullable="true" shift="0" size="15" type="number"/>
+<Field name="FT_C_VLR_PIS" type="decimal"/>
+<Field name="FT_C_VLR_COFINS" type="decimal"/>
+<Field name="FT_C_VLR_ICMS" type="decimal"/>
+<Field name="FT_C_VLR_IPI" type="decimal"/>
+<Field name="D1_VALDESC" type="decimal"/>
+<Field name="D1_VALIPI" type="decimal"/>
+<Field name="D1_VALPIS" type="decimal"/>
+<Field name="D1_VALCOFINS" type="decimal"/>
+<Field name="D1_VALICM" type="decimal"/>
+<Field name="D1_BASEICM" type="number"/>
+<Field name="D1_PICM" type="number"/>
+<Field name="ALIQ_ICMS" type="decimal"/>
+<Field name="D1_VALFRE" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_DOC_ENTRADA_NF" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="FK_SD1" nullable="true" shift="0" size="28" type="string"/>
+<Field name="FK_SF1" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_CTT" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SA2" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SB1" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_SOLICITANTE" nullable="true" shift="0" size="14" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_COMPRADOR" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_APROVADOR" nullable="true" shift="0" size="12" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_GRUPO_APROVADOR" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_NNR" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_STATUS" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="CHAVE_PROCESSO" nullable="true" shift="0" size="3" type="string"/>
+<Field name="CHAVE_SED" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_DTDIGIT" nullable="true" shift="0" size="8" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT2" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT3" type="date"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT4" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CP_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C1_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C7_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_EMISSAO2" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="CP_XDATLIB" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DATA_COMPRA_SA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CR_DATALIB_APROV_N1" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CR_DATALIB_APROV_N2" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D1_QUANT" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_QTDEDEV" type="number"/>
+<Field eofAsDelimiter="false" name="D1_CUSTO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" length="12" name="D1_VUNIT" nullable="true" scale="4" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_VUNIT2" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="CP_SALBLQ" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_SC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_LIB" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_LIB_SC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SC_PC" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_PC_APROV" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_APROV_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_PC_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_RECB_CLAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_NF" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_SA_CLAS" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_TEMPO_SC_NF" type="number"/>
+<Field name="D1_TEMPO_PC_CLAS" type="number"/>
+<Field eofAsDelimiter="false" name="D1_TEMPO_APROV_PC" nullable="true" shift="0" size="15" type="number"/>
+<Field name="D1_TEMPO_APROV_PC_N2" type="number"/>
+<Field eofAsDelimiter="false" name="C7_QUANT" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C7_PRECO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C7_QUJE" nullable="true" shift="0" size="15" type="number"/>
+<Field name="FT_C_VLR_PIS" type="decimal"/>
+<Field name="FT_C_VLR_COFINS" type="decimal"/>
+<Field name="FT_C_VLR_ICMS" type="decimal"/>
+<Field name="FT_C_VLR_IPI" type="decimal"/>
+<Field name="D1_VALDESC" type="decimal"/>
+<Field name="D1_VALIPI" type="decimal"/>
+<Field name="D1_VALPIS" type="decimal"/>
+<Field name="D1_VALCOFINS" type="decimal"/>
+<Field name="D1_VALICM" type="decimal"/>
+<Field name="D1_BASEICM" type="number"/>
+<Field name="D1_PICM" type="number"/>
+<Field name="ALIQ_ICMS" type="decimal"/>
+<Field name="D1_VALFRE" type="number"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="20" guiY="21" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  FK_SD1,
+	  FK_SF1,
+      CHAVE_CTT,
+      CHAVE_FILIAL,
+      CHAVE_SA2,
+      CHAVE_SB1,
+      CHAVE_SOLICITANTE,
+      CHAVE_COMPRADOR,
+      CHAVE_APROVADOR,
+      CHAVE_GRUPO_APROVADOR,
+      CHAVE_NNR,
+      CHAVE_STATUS,
+      CHAVE_PROCESSO,
+	  CHAVE_SED,
+      D1_DTDIGIT,
+	  D1_DTDIGIT2,
+	  D1_DTDIGIT3,
+	  D1_DTDIGIT4,
+      D1_EMISSAO,
+      CP_EMISSAO,
+      C1_EMISSAO,
+      C7_EMISSAO,
+      D1_EMISSAO2,
+      CP_XDATLIB,
+      DATA_COMPRA_SA,
+      CR_DATALIB_APROV_N1,
+      CR_DATALIB_APROV_N2,
+      D1_QUANT,
+	  D1_QTDEDEV,
+      D1_CUSTO,
+      D1_VUNIT,
+      D1_VUNIT2,
+      CP_SALBLQ,
+      D1_TEMPO_SA_SC,
+      D1_TEMPO_SA_LIB,
+      D1_TEMPO_LIB_SC,
+      D1_TEMPO_SC_PC,
+      D1_TEMPO_PC_APROV,
+      D1_TEMPO_APROV_NF,
+      D1_TEMPO_PC_NF,
+      D1_TEMPO_RECB_CLAS,
+      D1_TEMPO_SA_NF,
+      D1_TEMPO_SA_CLAS,
+	  D1_TEMPO_SC_NF,  
+	  D1_TEMPO_PC_CLAS,
+      D1_TEMPO_APROV_PC,
+	  D1_TEMPO_APROV_PC_N2,
+      C7_QUANT,
+      C7_PRECO,
+      C7_QUJE,
+	  FT_C_VLR_PIS,
+	  FT_C_VLR_COFINS,
+	  FT_C_VLR_ICMS,
+	  FT_C_VLR_IPI,
+	  D1_VALDESC,
+	  D1_VALIPI,
+	  D1_VALPIS,
+	  D1_VALCOFINS,
+	  D1_VALICM,
+	  D1_BASEICM,
+	  D1_PICM,
+	  ALIQ_ICMS,
+	  D1_VALFRE
+	  
+FROM [dbo].[GD_FATO_DOC_ENTRADA_NF]]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="260" guiY="80" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FK_SD1 = removeNonPrintable($in.0.FK_SD1);
+	$out.0.FK_SF1 = removeNonPrintable($in.0.FK_SF1);
+	$out.0.CHAVE_CTT = $in.0.CHAVE_CTT;
+	$out.0.CHAVE_FILIAL = $in.0.CHAVE_FILIAL;
+	$out.0.CHAVE_SA2 = $in.0.CHAVE_SA2;
+	$out.0.CHAVE_SB1 = $in.0.CHAVE_SB1;
+	$out.0.CHAVE_SOLICITANTE = $in.0.CHAVE_SOLICITANTE;
+	$out.0.CHAVE_COMPRADOR = $in.0.CHAVE_COMPRADOR;
+	$out.0.CHAVE_APROVADOR = $in.0.CHAVE_APROVADOR;
+	$out.0.CHAVE_GRUPO_APROVADOR = $in.0.CHAVE_GRUPO_APROVADOR;
+	$out.0.CHAVE_NNR = $in.0.CHAVE_NNR;
+	$out.0.CHAVE_STATUS = $in.0.CHAVE_STATUS;
+	$out.0.CHAVE_PROCESSO = $in.0.CHAVE_PROCESSO;
+	$out.0.CHAVE_SED = $in.0.CHAVE_SED;
+	$out.0.D1_DTDIGIT = $in.0.D1_DTDIGIT;
+	$out.0.D1_DTDIGIT2 = $in.0.D1_DTDIGIT2;
+	$out.0.D1_DTDIGIT3 = $in.0.D1_DTDIGIT3;
+	$out.0.D1_DTDIGIT4 = $in.0.D1_DTDIGIT4;
+	$out.0.D1_EMISSAO = $in.0.D1_EMISSAO;
+	$out.0.CP_EMISSAO = $in.0.CP_EMISSAO;
+	$out.0.C1_EMISSAO = $in.0.C1_EMISSAO;
+	$out.0.C7_EMISSAO = $in.0.C7_EMISSAO;
+	$out.0.D1_EMISSAO2 = $in.0.D1_EMISSAO2;
+	$out.0.CP_XDATLIB = $in.0.CP_XDATLIB;
+	$out.0.DATA_COMPRA_SA = $in.0.DATA_COMPRA_SA;
+	$out.0.CR_DATALIB_APROV_N1 = $in.0.CR_DATALIB_APROV_N1;
+	$out.0.CR_DATALIB_APROV_N2 = $in.0.CR_DATALIB_APROV_N2;
+	$out.0.D1_QUANT = $in.0.D1_QUANT;
+	$out.0.D1_QTDEDEV = $in.0.D1_QTDEDEV;
+	$out.0.D1_CUSTO = $in.0.D1_CUSTO;
+	$out.0.D1_VUNIT = $in.0.D1_VUNIT;
+	$out.0.D1_VUNIT2 = $in.0.D1_VUNIT2;
+	$out.0.CP_SALBLQ = $in.0.CP_SALBLQ;
+	$out.0.D1_TEMPO_SA_SC = $in.0.D1_TEMPO_SA_SC;
+	$out.0.D1_TEMPO_SA_LIB = $in.0.D1_TEMPO_SA_LIB;
+	$out.0.D1_TEMPO_LIB_SC = $in.0.D1_TEMPO_LIB_SC;
+	$out.0.D1_TEMPO_SC_PC = $in.0.D1_TEMPO_SC_PC;
+	$out.0.D1_TEMPO_PC_APROV = $in.0.D1_TEMPO_PC_APROV;
+	$out.0.D1_TEMPO_APROV_NF = $in.0.D1_TEMPO_APROV_NF;
+	$out.0.D1_TEMPO_PC_NF = $in.0.D1_TEMPO_PC_NF;
+	$out.0.D1_TEMPO_RECB_CLAS = $in.0.D1_TEMPO_RECB_CLAS;
+	$out.0.D1_TEMPO_SA_NF = $in.0.D1_TEMPO_SA_NF;
+	$out.0.D1_TEMPO_SA_CLAS = $in.0.D1_TEMPO_SA_CLAS;
+	$out.0.D1_TEMPO_SC_NF = $in.0.D1_TEMPO_SC_NF;
+	$out.0.D1_TEMPO_PC_CLAS = $in.0.D1_TEMPO_PC_CLAS;
+	$out.0.D1_TEMPO_APROV_PC = $in.0.D1_TEMPO_APROV_PC;
+	$out.0.D1_TEMPO_APROV_PC_N2 = $in.0.D1_TEMPO_APROV_PC_N2;
+	$out.0.C7_QUANT = $in.0.C7_QUANT;
+	$out.0.C7_PRECO = $in.0.C7_PRECO;
+	$out.0.C7_QUJE = $in.0.C7_QUJE;
+	$out.0.FT_C_VLR_PIS = $in.0.FT_C_VLR_PIS;
+	$out.0.FT_C_VLR_COFINS = $in.0.FT_C_VLR_COFINS;
+	$out.0.FT_C_VLR_ICMS = $in.0.FT_C_VLR_ICMS;
+	$out.0.FT_C_VLR_IPI = $in.0.FT_C_VLR_IPI;
+	$out.0.D1_VALDESC = $in.0.D1_VALDESC;
+	$out.0.D1_VALIPI = $in.0.D1_VALIPI;
+	$out.0.D1_VALPIS = $in.0.D1_VALPIS;
+	$out.0.D1_VALCOFINS = $in.0.D1_VALCOFINS;
+	$out.0.D1_VALICM = $in.0.D1_VALICM;
+	$out.0.D1_BASEICM = $in.0.D1_BASEICM;
+	$out.0.D1_PICM = $in.0.D1_PICM;
+	$out.0.ALIQ_ICMS = $in.0.ALIQ_ICMS;
+	$out.0.D1_VALFRE = $in.0.D1_VALFRE;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="disabled" guiName="Trash" guiX="539" guiY="226" id="TRASH" type="TRASH"/>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.gd_fato_doc_entrada_nf" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_fato_doc_entrada_nf&quot;,&quot;datasetTitle&quot;:&quot;GD_FATO_DOC_ENTRADA_NF&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_doc_entrada_nf.chave_sed&quot;,&quot;title&quot;:&quot;CHAVE_SED&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_doc_entrada_nf_chave_sed&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_doc_entrada_nf.chave_sed&quot;,&quot;title&quot;:&quot;CHAVE_SED&quot;,&quot;prettyId&quot;:&quot;chave_sed&quot;,&quot;assignedMetadataField&quot;:&quot;CHAVE_SED&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_doc_entrada_nf.chave_sed&quot;,&quot;title&quot;:&quot;CHAVE_SED&quot;,&quot;prettyId&quot;:&quot;chave_sed&quot;,&quot;assignedMetadataField&quot;:&quot;CHAVE_SED&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_doc_entrada_nf.cp_xdatlib&quot;,&quot;title&quot;:&quot;CP_XDATLIB&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_doc_entrada_nf_cp_xdatlib&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_doc_entrada_nf.cp_xdatlib&quot;,&quot;title&quot;:&quot;CP_XDATLIB&quot;,&quot;prettyId&quot;:&quot;cp_xdatlib&quot;,&quot;assignedMetadataField&quot;:&quot;CP_XDATLIB&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_doc_entrada_nf.cp_xdatlib&quot;,&quot;title&quot;:&quot;CP_XDATLIB&quot;,&quot;prettyId&quot;:&quot;cp_xdatlib&quot;,&quot;assignedMetadataField&quot;:&quot;CP_XDATLIB&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_custo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_CTT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_aprovador_gh_chave_aprovador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;gd_dim_aprovador_gh__chave_aprovador&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;gd_dim_aprovador_gh__chave_aprovador&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_armazem_nnr_chave_nnr&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;gd_dim_armazem_nnr__chave_nnr&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_NNR&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;gd_dim_armazem_nnr__chave_nnr&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_comprador_gh.chave_comprador&quot;,&quot;title&quot;:&quot;CHAVE_COMPRADOR&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_comprador_gh_chave_comprador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_comprador_gh.chave_comprador&quot;,&quot;title&quot;:&quot;CHAVE_COMPRADOR&quot;,&quot;prettyId&quot;:&quot;gd_dim_comprador_gh__chave_comprador&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_COMPRADOR&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_comprador_gh.chave_comprador&quot;,&quot;title&quot;:&quot;CHAVE_COMPRADOR&quot;,&quot;prettyId&quot;:&quot;gd_dim_comprador_gh__chave_comprador&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf.pk_sd1&quot;,&quot;title&quot;:&quot;PK_SD1&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_pk_sd1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf.pk_sd1&quot;,&quot;title&quot;:&quot;PK_SD1&quot;,&quot;prettyId&quot;:&quot;gd_dim_doc_entrada_nf__pk_sd1&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SD1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf.pk_sd1&quot;,&quot;title&quot;:&quot;PK_SD1&quot;,&quot;prettyId&quot;:&quot;gd_dim_doc_entrada_nf__pk_sd1&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_fk_sf1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;gd_dim_doc_entrada_nf_sf1__fk_sf1&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SF1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;gd_dim_doc_entrada_nf_sf1__fk_sf1&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_filial_gh_chave_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_FILIAL&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_fornecedor_gh.pk_sa2&quot;,&quot;title&quot;:&quot;PK_SA2&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_fornecedor_gh_pk_sa2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_fornecedor_gh.pk_sa2&quot;,&quot;title&quot;:&quot;PK_SA2&quot;,&quot;prettyId&quot;:&quot;gd_dim_fornecedor_gh__pk_sa2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_SA2&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_fornecedor_gh.pk_sa2&quot;,&quot;title&quot;:&quot;PK_SA2&quot;,&quot;prettyId&quot;:&quot;gd_dim_fornecedor_gh__pk_sa2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_grupo_aprov_gh.chave_sal&quot;,&quot;title&quot;:&quot;CHAVE_SAL&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_grupo_aprov_gh_chave_sal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_aprov_gh.chave_sal&quot;,&quot;title&quot;:&quot;CHAVE_SAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_aprov_gh__chave_sal&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_GRUPO_APROVADOR&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_aprov_gh.chave_sal&quot;,&quot;title&quot;:&quot;CHAVE_SAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_aprov_gh__chave_sal&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_processo_compra_gh.chave_status&quot;,&quot;title&quot;:&quot;CHAVE_STATUS&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_processo_compra_gh_chave_status&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_processo_compra_gh.chave_status&quot;,&quot;title&quot;:&quot;CHAVE_STATUS&quot;,&quot;prettyId&quot;:&quot;gd_dim_processo_compra_gh__chave_status&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_PROCESSO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_processo_compra_gh.chave_status&quot;,&quot;title&quot;:&quot;CHAVE_STATUS&quot;,&quot;prettyId&quot;:&quot;gd_dim_processo_compra_gh__chave_status&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_solicitante_gh.chave_solicit&quot;,&quot;title&quot;:&quot;CHAVE_SOLICIT&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_solicitante_gh_chave_solicit&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_solicitante_gh.chave_solicit&quot;,&quot;title&quot;:&quot;CHAVE_SOLICIT&quot;,&quot;prettyId&quot;:&quot;gd_dim_solicitante_gh__chave_solicit&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_SOLICITANTE&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_solicitante_gh.chave_solicit&quot;,&quot;title&quot;:&quot;CHAVE_SOLICIT&quot;,&quot;prettyId&quot;:&quot;gd_dim_solicitante_gh__chave_solicit&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_status_compra_gh.chave_processo&quot;,&quot;title&quot;:&quot;CHAVE_PROCESSO&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_status_compra_gh_chave_processo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_status_compra_gh.chave_processo&quot;,&quot;title&quot;:&quot;CHAVE_PROCESSO&quot;,&quot;prettyId&quot;:&quot;gd_dim_status_compra_gh__chave_processo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_STATUS&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_status_compra_gh.chave_processo&quot;,&quot;title&quot;:&quot;CHAVE_PROCESSO&quot;,&quot;prettyId&quot;:&quot;gd_dim_status_compra_gh__chave_processo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_SB1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date&quot;,&quot;title&quot;:&quot;Date (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DTDIGIT3&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DTDIGIT4&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataaprovn1.date&quot;,&quot;title&quot;:&quot;Date (GD Data Aprov N1)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn1&quot;,&quot;assignedMetadataField&quot;:&quot;CR_DATALIB_APROV_N1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataaprovn1.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Aprov N1)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn1_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataaprovn1.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Aprov N1)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn1_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataaprovn2.date&quot;,&quot;title&quot;:&quot;Date (GD Data Aprov N2)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn2&quot;,&quot;assignedMetadataField&quot;:&quot;CR_DATALIB_APROV_N2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataaprovn2.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Aprov N2)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn2_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataaprovn2.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Aprov N2)&quot;,&quot;prettyId&quot;:&quot;gddataaprovn2_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatac1_emissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data C1_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac1_emissao&quot;,&quot;assignedMetadataField&quot;:&quot;C1_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatac1_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data C1_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac1_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatac1_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data C1_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac1_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatac7_emissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data C7_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac7_emissao&quot;,&quot;assignedMetadataField&quot;:&quot;C7_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatac7_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data C7_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac7_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatac7_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data C7_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatac7_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date&quot;,&quot;title&quot;:&quot;Date (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DTDIGIT&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatacompra.date&quot;,&quot;title&quot;:&quot;Date (GD Data Compra)&quot;,&quot;prettyId&quot;:&quot;gddatacompra&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_COMPRA_SA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatacompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Compra)&quot;,&quot;prettyId&quot;:&quot;gddatacompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatacompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Compra)&quot;,&quot;prettyId&quot;:&quot;gddatacompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatacp_emissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data CP_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatacp_emissao&quot;,&quot;assignedMetadataField&quot;:&quot;CP_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatacp_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data CP_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatacp_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatacp_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data CP_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatacp_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DTDIGIT2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataemissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data Emissao)&quot;,&quot;prettyId&quot;:&quot;gddataemissao&quot;,&quot;assignedMetadataField&quot;:&quot;D1_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataemissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Emissao)&quot;,&quot;prettyId&quot;:&quot;gddataemissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataemissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Emissao)&quot;,&quot;prettyId&quot;:&quot;gddataemissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataprenota.date&quot;,&quot;title&quot;:&quot;Date (GD Data PreNota)&quot;,&quot;prettyId&quot;:&quot;gddataprenota&quot;,&quot;assignedMetadataField&quot;:&quot;D1_EMISSAO2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataprenota.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data PreNota)&quot;,&quot;prettyId&quot;:&quot;gddataprenota_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataprenota.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data PreNota)&quot;,&quot;prettyId&quot;:&quot;gddataprenota_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.aliq_icms&quot;,&quot;title&quot;:&quot;ALIQ_ICMS&quot;,&quot;prettyId&quot;:&quot;aliq_icms&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;ALIQ_ICMS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.c7_preco&quot;,&quot;title&quot;:&quot;C7_PRECO&quot;,&quot;prettyId&quot;:&quot;c7_preco&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C7_PRECO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.c7_quant&quot;,&quot;title&quot;:&quot;C7_QUANT&quot;,&quot;prettyId&quot;:&quot;c7_quant&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C7_QUANT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.c7_quje&quot;,&quot;title&quot;:&quot;C7_QUJE&quot;,&quot;prettyId&quot;:&quot;c7_quje&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C7_QUJE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.cp_salblq&quot;,&quot;title&quot;:&quot;CP_SALBLQ&quot;,&quot;prettyId&quot;:&quot;cp_salblq&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;CP_SALBLQ&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_baseicm&quot;,&quot;title&quot;:&quot;D1_BASEICM&quot;,&quot;prettyId&quot;:&quot;d1_baseicm&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_BASEICM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_custo&quot;,&quot;title&quot;:&quot;D1_CUSTO&quot;,&quot;prettyId&quot;:&quot;d1_custo&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_CUSTO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_picm&quot;,&quot;title&quot;:&quot;D1_PICM&quot;,&quot;prettyId&quot;:&quot;d1_picm&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_PICM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_qtdedev&quot;,&quot;title&quot;:&quot;D1_QTDEDEV&quot;,&quot;prettyId&quot;:&quot;d1_qtdedev&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_QTDEDEV&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_quant&quot;,&quot;title&quot;:&quot;D1_QUANT&quot;,&quot;prettyId&quot;:&quot;d1_quant&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_QUANT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_aprov_nf&quot;,&quot;title&quot;:&quot;D1_TEMPO_APROV_NF&quot;,&quot;prettyId&quot;:&quot;d1_tempo_aprov_nf&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_APROV_NF&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_aprov_pc&quot;,&quot;title&quot;:&quot;D1_TEMPO_APROV_PC&quot;,&quot;prettyId&quot;:&quot;d1_tempo_aprov_pc&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_APROV_PC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_aprov_pc_n2&quot;,&quot;title&quot;:&quot;D1_TEMPO_APROV_PC_N2&quot;,&quot;prettyId&quot;:&quot;d1_tempo_aprov_pc_n2&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_APROV_PC_N2&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_lib_sc&quot;,&quot;title&quot;:&quot;D1_TEMPO_LIB_SC&quot;,&quot;prettyId&quot;:&quot;d1_tempo_lib_sc&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_LIB_SC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_pc_aprov&quot;,&quot;title&quot;:&quot;D1_TEMPO_PC_APROV&quot;,&quot;prettyId&quot;:&quot;d1_tempo_pc_aprov&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_PC_APROV&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_pc_nf1&quot;,&quot;title&quot;:&quot;D1_TEMPO_PC_CLAS&quot;,&quot;prettyId&quot;:&quot;d1_tempo_pc_nf1&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_PC_CLAS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_pc_nf&quot;,&quot;title&quot;:&quot;D1_TEMPO_PC_NF&quot;,&quot;prettyId&quot;:&quot;d1_tempo_pc_nf&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_PC_NF&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_recb_clas&quot;,&quot;title&quot;:&quot;D1_TEMPO_RECB_CLAS&quot;,&quot;prettyId&quot;:&quot;d1_tempo_recb_clas&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_RECB_CLAS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sa_clas&quot;,&quot;title&quot;:&quot;D1_TEMPO_SA_CLAS&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sa_clas&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SA_CLAS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sa_lib&quot;,&quot;title&quot;:&quot;D1_TEMPO_SA_LIB&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sa_lib&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SA_LIB&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sa_nf&quot;,&quot;title&quot;:&quot;D1_TEMPO_SA_NF&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sa_nf&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SA_NF&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sa_sc&quot;,&quot;title&quot;:&quot;D1_TEMPO_SA_SC&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sa_sc&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SA_SC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sc_nf&quot;,&quot;title&quot;:&quot;D1_TEMPO_SC_NF&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sc_nf&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SC_NF&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_tempo_sc_pc&quot;,&quot;title&quot;:&quot;D1_TEMPO_SC_PC&quot;,&quot;prettyId&quot;:&quot;d1_tempo_sc_pc&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_TEMPO_SC_PC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valcofins&quot;,&quot;title&quot;:&quot;D1_VALCOFINS&quot;,&quot;prettyId&quot;:&quot;d1_valcofins&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALCOFINS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valdesc&quot;,&quot;title&quot;:&quot;D1_VALDESC&quot;,&quot;prettyId&quot;:&quot;d1_valdesc&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALDESC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valfre&quot;,&quot;title&quot;:&quot;D1_VALFRE&quot;,&quot;prettyId&quot;:&quot;d1_valfre&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALFRE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valicm&quot;,&quot;title&quot;:&quot;D1_VALICM&quot;,&quot;prettyId&quot;:&quot;d1_valicm&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALICM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valipi&quot;,&quot;title&quot;:&quot;D1_VALIPI&quot;,&quot;prettyId&quot;:&quot;d1_valipi&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALIPI&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_valpis&quot;,&quot;title&quot;:&quot;D1_VALPIS&quot;,&quot;prettyId&quot;:&quot;d1_valpis&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VALPIS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_vunit&quot;,&quot;title&quot;:&quot;D1_VUNIT&quot;,&quot;prettyId&quot;:&quot;d1_vunit&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VUNIT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.d1_vunit2&quot;,&quot;title&quot;:&quot;D1_VUNIT2&quot;,&quot;prettyId&quot;:&quot;d1_vunit2&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VUNIT2&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.ft_c_vlr_cofins&quot;,&quot;title&quot;:&quot;FT_C_VLR_COFINS&quot;,&quot;prettyId&quot;:&quot;ft_c_vlr_cofins&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;FT_C_VLR_COFINS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.ft_c_vlr_icms&quot;,&quot;title&quot;:&quot;FT_C_VLR_ICMS&quot;,&quot;prettyId&quot;:&quot;ft_c_vlr_icms&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;FT_C_VLR_ICMS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.ft_c_vlr_ipi&quot;,&quot;title&quot;:&quot;FT_C_VLR_IPI&quot;,&quot;prettyId&quot;:&quot;ft_c_vlr_ipi&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;FT_C_VLR_IPI&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_doc_entrada_nf.ft_c_vlr_pis&quot;,&quot;title&quot;:&quot;FT_C_VLR_PIS&quot;,&quot;prettyId&quot;:&quot;ft_c_vlr_pis&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;FT_C_VLR_PIS&quot;}}],&quot;dateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="536" guiY="146" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

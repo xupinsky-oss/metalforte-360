@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636343909720" licenseType="Commercial" modified="Wed Nov 19 11:04:31 BRST 2025" modifiedBy="Guilherme" name="Main Contabil" revision="1.6" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabil/FATO Lancamento Contabil CT2.grf" guiName="FATO Lancamento Contabil CT2" guiX="9" guiY="8" id="FATO_LANCAMENTO_CONTABIL_CT2" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabil/FATO Recuperação Frete.grf" guiName="FATO Recuperação Frete" guiX="222" guiY="8" id="FATO_RECUPERACAO_FRETE" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabil/DIM NF SAIDA SD2 GH.grf" guiName="DIM NF SAIDA SD2 GH" guiX="400" guiY="8" id="DIM_NF_SAIDA_SD2_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabil/DIM NF SAIDA SF2 GH.grf" guiName="DIM NF SAIDA SF2 GH" guiX="567" guiY="8" id="DIM_NF_SAIDA_SF2_GH" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

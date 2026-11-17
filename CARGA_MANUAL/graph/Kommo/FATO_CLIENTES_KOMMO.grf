@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Fri Oct 25 14:22:32 BRST 2024" guiVersion="3.4.4.P" id="1729873490353" licenseType="Commercial" modified="Fri Oct 25 17:24:20 BRST 2024" modifiedBy="Guilherme" name="FATO_CLIENTES_KOMMO" revision="1.7" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="ExtKommo_ExtKommo_Agrupado" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field format="" label="PK_COUNT" name="PK_COUNT" type="string"/>
+<Field format="" label="PK_ID" name="PK_ID" type="string"/>
+<Field format="" label="NOME" name="NOME" type="string"/>
+<Field format="" label="ID_CONTA" name="ID_CONTA" type="string"/>
+<Field format="yyyy-MM-dd" label="DATA_CRIACAO" name="DATA_CRIACAO" type="date"/>
+<Field format="" label="HORA_CRIACAO" name="HORA_CRIACAO" type="string"/>
+<Field format="" label="CRIADO_POR_ID" name="CRIADO_POR_ID" type="string"/>
+<Field format="yyyy-MM-dd" label="DATA_ATT" name="DATA_ATT" type="date"/>
+<Field format="" label="HORA_ATT" name="HORA_ATT" type="string"/>
+<Field format="" label="RESPONSAVEL_ID" name="RESPONSAVEL_ID" type="string"/>
+<Field format="" label="PHONE_CONTATO" name="PHONE_CONTATO" type="string"/>
+<Field format="" label="EMAIL_CONTATO" name="EMAIL_CONTATO" type="string"/>
+<Field format="" label="DESC_EXTRA_CONTATO" name="DESC_EXTRA_CONTATO" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="ExtKommo_ExtKommo_Agrupado" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field label="PK_COUNT" name="PK_COUNT" type="string"/>
+<Field label="PK_ID" name="PK_ID" type="string"/>
+<Field label="NOME" name="NOME" type="string"/>
+<Field label="ID_CONTA" name="ID_CONTA" type="string"/>
+<Field format="yyyy-MM-dd" label="DATA_CRIACAO" name="DATA_CRIACAO" type="date"/>
+<Field label="HORA_CRIACAO" name="HORA_CRIACAO" type="string"/>
+<Field label="CRIADO_POR_ID" name="CRIADO_POR_ID" type="string"/>
+<Field format="yyyy-MM-dd" label="DATA_ATT" name="DATA_ATT" type="date"/>
+<Field label="HORA_ATT" name="HORA_ATT" type="string"/>
+<Field label="RESPONSAVEL_ID" name="RESPONSAVEL_ID" type="string"/>
+<Field label="PHONE_CONTATO" name="PHONE_CONTATO" type="string"/>
+<Field label="EMAIL_CONTATO" name="EMAIL_CONTATO" type="string"/>
+<Field label="DESC_EXTRA_CONTATO" name="DESC_EXTRA_CONTATO" type="string"/>
+<Field name="CONTAGEM" type="integer"/>
+</Record>
+</Metadata>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="zip:(https://${USER_PWD_SECURE_DI}@na1-di.gooddata.com/project-uploads/sltez8zoyskp9vazf6jomo5askrbntnl/today/ArquivosKommo.zip)#ExtKommo.xlsx" guiName="SpreadsheetDataReader" guiX="15" guiY="14" id="SPREADSHEET_DATA_READER" sheet="ExtKommo_Agrupado" type="SPREADSHEET_READER"/>
+<Node enabled="disabled" fileURL="${DATA_SOURCE_DIR}/ExtKommo.xlsx" guiName="SpreadsheetDataReader" guiX="15" guiY="132" id="SPREADSHEET_DATA_READER1" sheet="ExtKommo_Agrupado" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="SPREADSHEET_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (output)" toNode="REFORMAT1:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="disabled" guiName="Reformat" guiX="330" guiY="336" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.PK_COUNT = $in.0.PK_COUNT;
+	$out.0.PK_ID = $in.0.PK_ID;
+	$out.0.NOME = $in.0.NOME;
+	$out.0.ID_CONTA = $in.0.ID_CONTA;
+	$out.0.DATA_CRIACAO = $in.0.DATA_CRIACAO;
+	$out.0.HORA_CRIACAO = $in.0.HORA_CRIACAO;
+	$out.0.CRIADO_POR_ID = $in.0.CRIADO_POR_ID;
+	$out.0.DATA_ATT = $in.0.DATA_ATT;
+	$out.0.HORA_ATT = $in.0.HORA_ATT;
+	$out.0.RESPONSAVEL_ID = $in.0.RESPONSAVEL_ID;
+	$out.0.TIPO_CONTATO = $in.0.TIPO_CONTATO;
+	$out.0.CONTATO = $in.0.CONTATO;
+	$out.0.CONTAGEM = 1;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node enabled="enabled" guiName="Reformat" guiX="317" guiY="106" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.PK_COUNT = $in.0.PK_COUNT;
+	$out.0.PK_ID = $in.0.PK_ID;
+	$out.0.NOME = $in.0.NOME;
+	$out.0.ID_CONTA = $in.0.ID_CONTA;
+	$out.0.DATA_CRIACAO = $in.0.DATA_CRIACAO;
+	$out.0.HORA_CRIACAO = $in.0.HORA_CRIACAO;
+	$out.0.CRIADO_POR_ID = $in.0.CRIADO_POR_ID;
+	$out.0.DATA_ATT = $in.0.DATA_ATT;
+	$out.0.HORA_ATT = $in.0.HORA_ATT;
+	$out.0.RESPONSAVEL_ID = $in.0.RESPONSAVEL_ID;
+	$out.0.PHONE_CONTATO = $in.0.PHONE_CONTATO;
+	$out.0.EMAIL_CONTATO = $in.0.EMAIL_CONTATO;
+	$out.0.DESC_EXTRA_CONTATO = $in.0.DESC_EXTRA_CONTATO;
+	$out.0.CONTAGEM = 1;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.fato_clientes_kommo" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.fato_clientes_kommo&quot;,&quot;datasetTitle&quot;:&quot;FATO_CLIENTES_KOMMO&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.criado_por_id&quot;,&quot;title&quot;:&quot;CRIADO_POR_ID&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_criado_por_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.criado_por_id&quot;,&quot;title&quot;:&quot;CRIADO_POR_ID&quot;,&quot;prettyId&quot;:&quot;criado_por_id&quot;,&quot;assignedMetadataField&quot;:&quot;CRIADO_POR_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.criado_por_id&quot;,&quot;title&quot;:&quot;CRIADO_POR_ID&quot;,&quot;prettyId&quot;:&quot;criado_por_id&quot;,&quot;assignedMetadataField&quot;:&quot;CRIADO_POR_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.desc_extra_contato&quot;,&quot;title&quot;:&quot;DESC_EXTRA_CONTATO&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_desc_extra_contato&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.desc_extra_contato&quot;,&quot;title&quot;:&quot;DESC_EXTRA_CONTATO&quot;,&quot;prettyId&quot;:&quot;desc_extra_contato&quot;,&quot;assignedMetadataField&quot;:&quot;DESC_EXTRA_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.desc_extra_contato&quot;,&quot;title&quot;:&quot;DESC_EXTRA_CONTATO&quot;,&quot;prettyId&quot;:&quot;desc_extra_contato&quot;,&quot;assignedMetadataField&quot;:&quot;DESC_EXTRA_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.email_contato&quot;,&quot;title&quot;:&quot;EMAIL_CONTATO&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_email_contato&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.email_contato&quot;,&quot;title&quot;:&quot;EMAIL_CONTATO&quot;,&quot;prettyId&quot;:&quot;email_contato&quot;,&quot;assignedMetadataField&quot;:&quot;EMAIL_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.email_contato&quot;,&quot;title&quot;:&quot;EMAIL_CONTATO&quot;,&quot;prettyId&quot;:&quot;email_contato&quot;,&quot;assignedMetadataField&quot;:&quot;EMAIL_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.hora_att&quot;,&quot;title&quot;:&quot;HORA_ATT&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_hora_att&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.hora_att&quot;,&quot;title&quot;:&quot;HORA_ATT&quot;,&quot;prettyId&quot;:&quot;hora_att&quot;,&quot;assignedMetadataField&quot;:&quot;HORA_ATT&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.hora_att&quot;,&quot;title&quot;:&quot;HORA_ATT&quot;,&quot;prettyId&quot;:&quot;hora_att&quot;,&quot;assignedMetadataField&quot;:&quot;HORA_ATT&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.hora_criacao&quot;,&quot;title&quot;:&quot;HORA_CRIACAO&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_hora_criacao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.hora_criacao&quot;,&quot;title&quot;:&quot;HORA_CRIACAO&quot;,&quot;prettyId&quot;:&quot;hora_criacao&quot;,&quot;assignedMetadataField&quot;:&quot;HORA_CRIACAO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.hora_criacao&quot;,&quot;title&quot;:&quot;HORA_CRIACAO&quot;,&quot;prettyId&quot;:&quot;hora_criacao&quot;,&quot;assignedMetadataField&quot;:&quot;HORA_CRIACAO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.id_conta&quot;,&quot;title&quot;:&quot;ID_CONTA&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_id_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.id_conta&quot;,&quot;title&quot;:&quot;ID_CONTA&quot;,&quot;prettyId&quot;:&quot;id_conta&quot;,&quot;assignedMetadataField&quot;:&quot;ID_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.id_conta&quot;,&quot;title&quot;:&quot;ID_CONTA&quot;,&quot;prettyId&quot;:&quot;id_conta&quot;,&quot;assignedMetadataField&quot;:&quot;ID_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.nome&quot;,&quot;title&quot;:&quot;NOME&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.nome&quot;,&quot;title&quot;:&quot;NOME&quot;,&quot;prettyId&quot;:&quot;nome&quot;,&quot;assignedMetadataField&quot;:&quot;NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.nome&quot;,&quot;title&quot;:&quot;NOME&quot;,&quot;prettyId&quot;:&quot;nome&quot;,&quot;assignedMetadataField&quot;:&quot;NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.phone_contato&quot;,&quot;title&quot;:&quot;PHONE_CONTATO&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_phone_contato&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.phone_contato&quot;,&quot;title&quot;:&quot;PHONE_CONTATO&quot;,&quot;prettyId&quot;:&quot;phone_contato&quot;,&quot;assignedMetadataField&quot;:&quot;PHONE_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.phone_contato&quot;,&quot;title&quot;:&quot;PHONE_CONTATO&quot;,&quot;prettyId&quot;:&quot;phone_contato&quot;,&quot;assignedMetadataField&quot;:&quot;PHONE_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.pk_count&quot;,&quot;title&quot;:&quot;PK_COUNT&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_pk_count&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.pk_count&quot;,&quot;title&quot;:&quot;PK_COUNT&quot;,&quot;prettyId&quot;:&quot;pk_count&quot;,&quot;assignedMetadataField&quot;:&quot;PK_COUNT&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.pk_count&quot;,&quot;title&quot;:&quot;PK_COUNT&quot;,&quot;prettyId&quot;:&quot;pk_count&quot;,&quot;assignedMetadataField&quot;:&quot;PK_COUNT&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.pk_id&quot;,&quot;title&quot;:&quot;PK_ID&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_pk_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.pk_id&quot;,&quot;title&quot;:&quot;PK_ID&quot;,&quot;prettyId&quot;:&quot;pk_id&quot;,&quot;assignedMetadataField&quot;:&quot;PK_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.pk_id&quot;,&quot;title&quot;:&quot;PK_ID&quot;,&quot;prettyId&quot;:&quot;pk_id&quot;,&quot;assignedMetadataField&quot;:&quot;PK_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.fato_clientes_kommo.responsavel_id&quot;,&quot;title&quot;:&quot;RESPONSAVEL_ID&quot;,&quot;prettyId&quot;:&quot;attr_fato_clientes_kommo_responsavel_id&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.responsavel_id&quot;,&quot;title&quot;:&quot;RESPONSAVEL_ID&quot;,&quot;prettyId&quot;:&quot;responsavel_id&quot;,&quot;assignedMetadataField&quot;:&quot;RESPONSAVEL_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.fato_clientes_kommo.responsavel_id&quot;,&quot;title&quot;:&quot;RESPONSAVEL_ID&quot;,&quot;prettyId&quot;:&quot;responsavel_id&quot;,&quot;assignedMetadataField&quot;:&quot;RESPONSAVEL_ID&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_CRIACAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafiltro.date&quot;,&quot;title&quot;:&quot;Date (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_ATT&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiltro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiltro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.fato_clientes_kommo.contagem&quot;,&quot;title&quot;:&quot;CONTAGEM&quot;,&quot;prettyId&quot;:&quot;contagem&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;CONTAGEM&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="731" guiY="158" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node enabled="disabled" guiName="Trash" guiX="591" guiY="158" id="TRASH" type="TRASH"/>
+</Phase>
+</Graph>

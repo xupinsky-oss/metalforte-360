@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.gooddata.clover.designer.launch.GDCRunLocalLaunchConfigurationType.run">
+<booleanAttribute key="com.cloveretl.gui.launching.DEFAULT_ENGINE_ATTR" value="true"/>
+<intAttribute key="com.cloveretl.gui.launching.HEAPSIZE_ATTR" value="512"/>
+<booleanAttribute key="com.cloveretl.gui.launching.INFO_ATTR" value="false"/>
+<booleanAttribute key="com.cloveretl.gui.launching.LOGGING" value="true"/>
+<stringAttribute key="com.cloveretl.gui.launching.LOGLEVEL_ATTR" value="INFO"/>
+<booleanAttribute key="com.cloveretl.gui.launching.SERVER_ATTR" value="true"/>
+<booleanAttribute key="com.cloveretl.gui.launching.SKIP_CHECK_CONFIG_ATTR" value="false"/>
+<intAttribute key="com.cloveretl.gui.launching.TRACKING_ATTR" value="5"/>
+<booleanAttribute key="com.cloveretl.gui.launching.VERBOSE_ATTR" value="false"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="graph/Pedido de Venda.grf"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Metalforte"/>
+</launchConfiguration>

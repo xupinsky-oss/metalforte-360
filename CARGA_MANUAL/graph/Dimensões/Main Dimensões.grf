@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993354444" licenseType="Commercial" modified="Fri Jun 19 11:35:16 BRT 2026" modifiedBy="Guilherme" name="Main Dimensões" revision="1.11" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Clientes - SA1.grf" guiName="DIM Clientes - SA1" guiX="4" guiY="4" id="DIM_CLIENTES_SA1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Clientes Efetivados - SA1 SD2.grf" guiName="DIM Clientes Efetivados - SA1 SD2" guiX="147" guiY="4" id="DIM_CLIENTES_EFETIVADOS_SA1_SD2" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Grupo de Produtos - SBM.grf" guiName="DIM Grupo de Produtos - SBM" guiX="380" guiY="4" id="DIM_GRUPO_DE_PRODUTOS_SBM" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Motivos de Perdas - SZT.grf" guiName="DIM Motivos de Perdas - SZT" guiX="588" guiY="4" id="DIM_MOTIVOS_DE_PERDAS_SZT" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Produto - SB1.grf" guiName="DIM Produto - SB1" guiX="7" guiY="108" id="DIM_PRODUTO_SB1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Tabelas - SX5.grf" guiName="DIM Tabelas - SX5" guiX="153" guiY="108" id="DIM_TABELAS_SX5" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM TES - SF4.grf" guiName="DIM TES - SF4" guiX="295" guiY="108" id="DIM_TES_SF4" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="7">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Vendedor - SA3.grf" guiName="DIM Vendedor - SA3" guiX="432" guiY="108" id="DIM_VENDEDOR_SA3" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Centro de Custo CTT.grf" guiName="DIM Centro de Custo CTT" guiX="588" guiY="108" id="DIM_CENTRO_DE_CUSTO_CTT" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="9">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Classe de Valor CTH.grf" guiName="DIM Classe de Valor CTH" guiX="7" guiY="207" id="DIM_CLASSE_DE_VALOR_CTH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="10">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Item Contabil CTD.grf" guiName="DIM Item Contabil CTD" guiX="185" guiY="207" id="DIM_ITEM_CONTABIL_CTD" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="11">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Plano de Contas CT1.grf" guiName="DIM Plano de Contas CT1" guiX="355" guiY="207" id="DIM_PLANO_DE_CONTAS_CT1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="12">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Funcionarios SRA.grf" guiName="DIM Funcionarios SRA" guiX="533" guiY="207" id="DIM_FUNCIONARIOS_SRA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="13">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_FILIAL_GH.grf" guiName="GD_DIM_FILIAL_GH" guiX="7" guiY="309" id="GD_DIM_FILIAL_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="14">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Armazém - NNR.grf" guiName="DIM Armazém - NNR" guiX="170" guiY="309" id="DIM_ARMAZEM_NNR" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="15">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_FORNECEDOR_SA2.grf" guiName="GD_DIM_FORNECEDOR_SA2" guiX="328" guiY="309" id="GD_DIM_FORNECEDOR_SA2" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="16">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_SUBGRUPO_PRODUTO.grf" guiName="GD_DIM_SUBGRUPO_PRODUTO" guiX="522" guiY="309" id="GD_DIM_SUBGRUPO_PRODUTO" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="17">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_NATUREZA_GH.grf" guiName="GD_DIM_NATUREZA" guiX="7" guiY="412" id="GD_DIM_NATUREZA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="18">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_SUBGRUPO_PRODUTOS_ESPESSURA.grf" guiName="GD_DIM_SUBGRUPO_PRODUTOS_ESPESSURA" guiX="162" guiY="412" id="GD_DIM_SUBGRUPO_PRODUTOS_ESPESSURA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="19">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Dimensões/DIM Vendedor Cliente - SA3.grf" guiName="DIM Vendedor Cliente - SA3" guiX="461" guiY="412" id="DIM_VENDEDOR_CLIENTE_SA3" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

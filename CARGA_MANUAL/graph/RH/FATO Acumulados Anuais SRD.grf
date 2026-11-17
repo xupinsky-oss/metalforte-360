@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636344649623" licenseType="Commercial" modified="Mon Jun 02 21:19:13 BRT 2025" modifiedBy="Guilherme" name="FATO Acumulados Anuais SRD" revision="1.7" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRA010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="RA_NOME" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DEPTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DESCRIC" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="RV_COD" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="RV_DESC" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RD_DATPGT" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="#.###" name="RD_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="RD_DATARQ" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="RD_HORAS" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="X5_DESCRI" nullable="true" shift="0" size="55" type="string"/>
+<Field format="yyyyMMdd" name="DATA_COMPETENCIA" type="date"/>
+<Field name="RD_FILIAL" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRA010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="RA_NOME" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DEPTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DESCRIC" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="RV_COD" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="RV_DESC" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RD_DATPGT" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="#.###" name="RD_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="RD_DATARQ" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="RD_HORAS" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="X5_DESCRI" nullable="true" shift="0" size="55" type="string"/>
+<Field format="yyyyMMdd" name="DATA_COMPETENCIA" type="date"/>
+<Field name="RD_FILIAL" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SRD - Acumulados Anuais " guiX="13" guiY="12" id="SRD_ACUMULADOS_ANUAIS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  RA_FILIAL,
+      RA_MAT,
+      RA_NOME,
+      CTT_CUSTO,
+      CTT_DESC01,
+      QB_DEPTO,
+      QB_DESCRIC,
+      RV_COD,
+      RV_DESC,
+      RD_DATPGT,
+      RD_VALOR,
+      RD_DATARQ,
+      RD_HORAS,
+      X5_DESCRI,
+      DATA_COMPTENCIA,
+      RD_FILIAL
+FROM GD_FATO_ACUMULADOANUAL_SRD]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SRD_ACUMULADOS_ANUAIS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT4:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="314" guiY="78" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.RA_FILIAL = $in.0.RA_FILIAL;
+	$out.0.RA_MAT = $in.0.RA_MAT;
+	$out.0.CTT_CUSTO = $in.0.CTT_CUSTO;
+	$out.0.QB_DEPTO = $in.0.QB_DEPTO;
+	$out.0.RV_COD = $in.0.RV_COD;
+	$out.0.RV_DESC = $in.0.RV_DESC;
+	$out.0.RD_VALOR = $in.0.RD_VALOR;
+	$out.0.RD_DATPGT = $in.0.RD_DATPGT;
+	$out.0.RA_NOME = $in.0.RA_NOME;
+	$out.0.CTT_DESC01 = $in.0.CTT_DESC01;
+	$out.0.QB_DESCRIC = $in.0.QB_DESCRIC;
+	$out.0.RD_HORAS = $in.0.RD_HORAS;
+	$out.0.X5_DESCRI = $in.0.X5_DESCRI;
+	$out.0.RD_DATARQ = $in.0.RD_DATARQ;
+	$out.0.DATA_COMPETENCIA = $in.0.DATA_COMPETENCIA;
+	$out.0.RD_FILIAL = $in.0.RD_FILIAL;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_SRD_ACUMULADOS_ANUAIS_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.verbassalariaisrh" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.verbassalariaisrh&quot;,&quot;datasetTitle&quot;:&quot;SRD Verbas Salariais RH&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.ctt_desc01&quot;,&quot;title&quot;:&quot;RD_CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_ctt_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.ctt_desc01&quot;,&quot;title&quot;:&quot;RD_CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.ctt_desc01&quot;,&quot;title&quot;:&quot;RD_CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.qb_descric&quot;,&quot;title&quot;:&quot;RD_QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_qb_descric&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.qb_descric&quot;,&quot;title&quot;:&quot;RD_QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;qb_descric&quot;,&quot;assignedMetadataField&quot;:&quot;QB_DESCRIC&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.qb_descric&quot;,&quot;title&quot;:&quot;RD_QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;qb_descric&quot;,&quot;assignedMetadataField&quot;:&quot;QB_DESCRIC&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_ra_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;ra_nome&quot;,&quot;assignedMetadataField&quot;:&quot;RA_NOME&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;ra_nome&quot;,&quot;assignedMetadataField&quot;:&quot;RA_NOME&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.rd_datarq&quot;,&quot;title&quot;:&quot;RD_DATARQ&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_rd_datarq&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rd_datarq&quot;,&quot;title&quot;:&quot;RD_DATARQ&quot;,&quot;prettyId&quot;:&quot;rd_datarq&quot;,&quot;assignedMetadataField&quot;:&quot;RD_DATARQ&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rd_datarq&quot;,&quot;title&quot;:&quot;RD_DATARQ&quot;,&quot;prettyId&quot;:&quot;rd_datarq&quot;,&quot;assignedMetadataField&quot;:&quot;RD_DATARQ&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.rd_filial&quot;,&quot;title&quot;:&quot;RD_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_rd_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rd_filial&quot;,&quot;title&quot;:&quot;RD_FILIAL&quot;,&quot;prettyId&quot;:&quot;rd_filial&quot;,&quot;assignedMetadataField&quot;:&quot;RD_FILIAL&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rd_filial&quot;,&quot;title&quot;:&quot;RD_FILIAL&quot;,&quot;prettyId&quot;:&quot;rd_filial&quot;,&quot;assignedMetadataField&quot;:&quot;RD_FILIAL&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.rv_cod&quot;,&quot;title&quot;:&quot;RV_COD&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_rv_cod&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rv_cod&quot;,&quot;title&quot;:&quot;RV_COD&quot;,&quot;prettyId&quot;:&quot;rv_cod&quot;,&quot;assignedMetadataField&quot;:&quot;RV_COD&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rv_cod&quot;,&quot;title&quot;:&quot;RV_COD&quot;,&quot;prettyId&quot;:&quot;rv_cod&quot;,&quot;assignedMetadataField&quot;:&quot;RV_COD&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.rv_desc&quot;,&quot;title&quot;:&quot;RV_DESC&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_rv_desc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rv_desc&quot;,&quot;title&quot;:&quot;RV_DESC&quot;,&quot;prettyId&quot;:&quot;rv_desc&quot;,&quot;assignedMetadataField&quot;:&quot;RV_DESC&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.rv_desc&quot;,&quot;title&quot;:&quot;RV_DESC&quot;,&quot;prettyId&quot;:&quot;rv_desc&quot;,&quot;assignedMetadataField&quot;:&quot;RV_DESC&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.verbassalariaisrh.situacaocolaborador&quot;,&quot;title&quot;:&quot;SITUACAO COLABORADOR&quot;,&quot;prettyId&quot;:&quot;attr_verbassalariaisrh_situacaocolaborador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.verbassalariaisrh.situacaocolaborador&quot;,&quot;title&quot;:&quot;SITUACAO COLABORADOR&quot;,&quot;prettyId&quot;:&quot;situacaocolaborador&quot;,&quot;assignedMetadataField&quot;:&quot;X5_DESCRI&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;RA_MAT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data.date&quot;,&quot;title&quot;:&quot;Date (DATA)&quot;,&quot;prettyId&quot;:&quot;data&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_COMPETENCIA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.verbassalariaisrh.rd_horas&quot;,&quot;title&quot;:&quot;RD_HORAS&quot;,&quot;prettyId&quot;:&quot;rd_horas&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RD_HORAS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.verbassalariaisrh.rd_valor&quot;,&quot;title&quot;:&quot;RD_VALOR&quot;,&quot;prettyId&quot;:&quot;rd_valor&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RD_VALOR&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;datesWithFactConflict&quot;:[]}}" enabled="enabled" guiName="GD SRD - Acumulados Anuais  Writer" guiX="562" guiY="160" id="GD_SRD_ACUMULADOS_ANUAIS_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

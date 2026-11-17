@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636114679546" licenseType="Commercial" modified="Mon Jun 02 17:43:21 BRT 2025" modifiedBy="Guilherme" name="DIM Centro de Custo CTT" revision="1.8" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="CTT010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter=";" name="CTT010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Cadastro de Centro de Custo CTT " guiX="27" guiY="31" id="CADASTRO_DE_CENTRO_DE_CUSTO_CTT" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  CTT_CUSTO,
+      CTT_CLASSE,
+      CTT_NORMAL,
+      CTT_DESC01
+FROM GD_DIM_CCUSTO_CTT]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CADASTRO_DE_CENTRO_DE_CUSTO_CTT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="Reformat" guiX="334" guiY="54" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTT_CUSTO = $in.0.CTT_CUSTO;
+	$out.0.CTT_CLASSE = $in.0.CTT_CLASSE;
+	$out.0.CTT_NORMAL = $in.0.CTT_NORMAL;
+	$out.0.CTT_DESC01 = $in.0.CTT_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_CADASTRO_DE_CENTRO_DE_CUSTO_CTT_WRITER:0"/>
+</Phase>
+<Phase number="3">
+<Node dataset="dataset.centrodecusto" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.centrodecusto&quot;,&quot;datasetTitle&quot;:&quot;CENTRO DE CUSTO CTT&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_custo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_custo&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CUSTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_custo&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CUSTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Cadastro de Centro de Custo CTT Writer" guiX="542" guiY="163" id="GD_CADASTRO_DE_CENTRO_DE_CUSTO_CTT_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

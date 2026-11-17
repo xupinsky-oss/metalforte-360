@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636344809387" licenseType="Commercial" modified="Mon Jun 02 21:18:56 BRT 2025" modifiedBy="Guilherme" name="FATO Afastamentos SR8" revision="1.8" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata7" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SR8010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="R8_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="R8_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="R8_SEQ" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="R8_DATA" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="R8_TIPO" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="R8_DATAINI" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="R8_DATAFIM" nullable="true" shift="0" size="8" type="string"/>
+<Field name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata8" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SR8010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="R8_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="R8_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="R8_SEQ" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="R8_DATA" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="R8_TIPO" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="R8_DATAINI" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="R8_DATAFIM" nullable="true" shift="0" size="8" type="date"/>
+<Field name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="7">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SR8- Afastamento" guiX="12" guiY="9" id="SR8_AFASTAMENTO" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  R8_FILIAL,
+      R8_MAT,
+      R8_SEQ,
+      R8_DATA,
+      R8_TIPO,
+      R8_DATAINI,
+      R8_DATAFIM,
+      COUNT
+FROM GD_FATO_STATUSAFASTADO_SR8]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SR8_AFASTAMENTO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="REFORMAT1:0"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" guiName="Reformat" guiX="318" guiY="55" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.R8_FILIAL = $in.0.R8_FILIAL;
+	$out.0.R8_MAT = $in.0.R8_MAT;
+	$out.0.R8_SEQ = $in.0.R8_SEQ;
+	$out.0.R8_DATA = $in.0.R8_DATA;
+	$out.0.R8_TIPO = $in.0.R8_TIPO;
+	$out.0.R8_DATAINI = $in.0.R8_DATAINI;
+	if ($in.0.R8_DATAFIM == "        "){
+		$out.0.R8_DATAFIM = str2date('19900101','yyyyMMdd');
+	}else {
+		$out.0.R8_DATAFIM = str2date($in.0.R8_DATAFIM,'yyyyMMdd');
+	}	
+	$out.0.COUNT = $in.0.COUNT;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata8" outPort="Port 0 (out)" toNode="GD_AFASTADO_WRITER:0"/>
+</Phase>
+<Phase number="9">
+<Node dataset="dataset.statusafastado" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.statusafastado&quot;,&quot;datasetTitle&quot;:&quot;Status Afastado&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.statusafastado.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;attr_statusafastado_ra_sitfolh&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusafastado.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;R8_TIPO&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusafastado.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;R8_TIPO&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;R8_MAT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data.date&quot;,&quot;title&quot;:&quot;Date (DATA)&quot;,&quot;prettyId&quot;:&quot;data&quot;,&quot;assignedMetadataField&quot;:&quot;R8_DATAFIM&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.statusafastado.count&quot;,&quot;title&quot;:&quot;COUNT&quot;,&quot;prettyId&quot;:&quot;count&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;COUNT&quot;}}],&quot;dateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Afastado Writer" guiX="606" guiY="121" id="GD_AFASTADO_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

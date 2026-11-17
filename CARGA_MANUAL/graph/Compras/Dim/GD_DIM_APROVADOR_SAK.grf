@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Sun May 28 13:33:57 BRT 2023" guiVersion="3.4.4.P" id="1685364445602" licenseType="Commercial" modified="Mon Jun 02 21:34:39 BRT 2025" modifiedBy="Guilherme" name="GD_DIM_APROVADOR_SAK" revision="1.7" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="GD_DIM_APROVADOR_GH" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CHAVE_APROVADOR" nullable="true" shift="0" size="12" type="string"/>
+<Field eofAsDelimiter="false" name="AK_NOME" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="20" guiY="21" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  CHAVE_APROVADOR,
+      AK_NOME
+FROM [dbo].[GD_DIM_APROVADOR_GH]]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="1">
+<Node dataset="dataset.gd_dim_aprovador_gh" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_dim_aprovador_gh&quot;,&quot;datasetTitle&quot;:&quot;GD_DIM_APROVADOR_GH&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_aprovador_gh.ak_nome&quot;,&quot;title&quot;:&quot;AK_NOME&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_aprovador_gh_ak_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.ak_nome&quot;,&quot;title&quot;:&quot;AK_NOME&quot;,&quot;prettyId&quot;:&quot;ak_nome&quot;,&quot;assignedMetadataField&quot;:&quot;AK_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.ak_nome&quot;,&quot;title&quot;:&quot;AK_NOME&quot;,&quot;prettyId&quot;:&quot;ak_nome&quot;,&quot;assignedMetadataField&quot;:&quot;AK_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_aprovador_gh_chave_aprovador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;chave_aprovador&quot;,&quot;assignedMetadataField&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_aprovador_gh.chave_aprovador&quot;,&quot;title&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;prettyId&quot;:&quot;chave_aprovador&quot;,&quot;assignedMetadataField&quot;:&quot;CHAVE_APROVADOR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="415" guiY="87" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

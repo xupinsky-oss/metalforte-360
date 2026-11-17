@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561991721370" licenseType="Commercial" modified="Mon Jun 02 20:41:59 BRT 2025" modifiedBy="Guilherme" name="Pré OP Estoque - SZB" revision="1.10" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata6" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SZB010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="ZB_NUM" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_ITEM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_PRODUTO" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_SALDO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="ZB_LOCAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="ZB_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="ZB_OBS" nullable="true" shift="0" size="50" type="string"/>
+<Field name="ZB_GRUPO" type="string"/>
+<Field format="yyyyMMdd" name="ZB_DATDESE" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SZB010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="ZB_NUM" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_ITEM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_PRODUTO" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="ZB_SALDO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="ZB_LOCAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="ZB_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="ZB_OBS" nullable="true" shift="0" size="50" type="string"/>
+<Field name="ZB_GRUPO" type="string"/>
+<Field format="yyyyMMdd" name="ZB_DATDESE" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SZB Pré OP Estoque " guiX="7" guiY="9" id="SZB_PRE_OP_ESTOQUE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  ZB_NUM, 
+	  ZB_ITEM, 
+	  ZB_PRODUTO, 
+	  ZB_SALDO, 
+	  ZB_LOCAL, 
+	  ZB_EMISSAO, 
+	  ZB_OBS, 
+	  ZB_GRUPO, 
+	  ZB_DATDESE
+FROM dbo.GD_FATO_PRE_OP_ESTOQUE_SZB]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SZB_PRE_OP_ESTOQUE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="REFORMAT3:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="215" guiY="75" id="REFORMAT3" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.ZB_NUM = $in.0.ZB_NUM;
+	$out.0.ZB_ITEM = $in.0.ZB_ITEM;
+	$out.0.ZB_PRODUTO = $in.0.ZB_PRODUTO;
+	$out.0.ZB_SALDO = $in.0.ZB_SALDO;
+	$out.0.ZB_LOCAL = $in.0.ZB_LOCAL;
+	$out.0.ZB_EMISSAO = $in.0.ZB_EMISSAO;
+	$out.0.ZB_OBS = $in.0.ZB_OBS;
+	$out.0.ZB_GRUPO = $in.0.ZB_GRUPO;
+	$out.0.ZB_DATDESE = $in.0.ZB_DATDESE;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="GD_SZB_PRE_OP_ESTOQUE_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.preopestoqueszb" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.preopestoqueszb&quot;,&quot;datasetTitle&quot;:&quot;Pré OP Estoque - SZB&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.preopestoqueszb.zb_item&quot;,&quot;title&quot;:&quot;ZB_ITEM_Item Pre OP&quot;,&quot;prettyId&quot;:&quot;attr_preopestoqueszb_zb_item&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_item&quot;,&quot;title&quot;:&quot;ZB_ITEM_Item Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_item&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_item&quot;,&quot;title&quot;:&quot;ZB_ITEM_Item Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_item&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.preopestoqueszb.zb_local&quot;,&quot;title&quot;:&quot;ZB_LOCAL_Local Pre OP&quot;,&quot;prettyId&quot;:&quot;attr_preopestoqueszb_zb_local&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_local&quot;,&quot;title&quot;:&quot;ZB_LOCAL_Local Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_local&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_LOCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_local&quot;,&quot;title&quot;:&quot;ZB_LOCAL_Local Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_local&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_LOCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.preopestoqueszb.zb_num&quot;,&quot;title&quot;:&quot;ZB_NUM_Pedido Pre OP&quot;,&quot;prettyId&quot;:&quot;attr_preopestoqueszb_zb_num&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_num&quot;,&quot;title&quot;:&quot;ZB_NUM_Pedido Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_num&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_NUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_num&quot;,&quot;title&quot;:&quot;ZB_NUM_Pedido Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_num&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_NUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.preopestoqueszb.zb_obs&quot;,&quot;title&quot;:&quot;ZB_OBS_Observação Pre OP&quot;,&quot;prettyId&quot;:&quot;attr_preopestoqueszb_zb_obs&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_obs&quot;,&quot;title&quot;:&quot;ZB_OBS_Observação Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_obs&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_OBS&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.preopestoqueszb.zb_obs&quot;,&quot;title&quot;:&quot;ZB_OBS_Observação Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_obs&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_OBS&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;ZB_GRUPO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;ZB_PRODUTO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datadeemissaoordemproducaosc2.date&quot;,&quot;title&quot;:&quot;Date (Data de Emissão OP SC2)&quot;,&quot;prettyId&quot;:&quot;datadeemissaoordemproducaosc2&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadeemissaoordemproducaosc2.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data de Emissão OP SC2)&quot;,&quot;prettyId&quot;:&quot;datadeemissaoordemproducaosc2_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadeemissaoordemproducaosc2.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data de Emissão OP SC2)&quot;,&quot;prettyId&quot;:&quot;datadeemissaoordemproducaosc2_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;dataprevisaoentrega.date&quot;,&quot;title&quot;:&quot;Date (Data Previsão Entrega)&quot;,&quot;prettyId&quot;:&quot;dataprevisaoentrega&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_DATDESE&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;dataprevisaoentrega.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Previsão Entrega)&quot;,&quot;prettyId&quot;:&quot;dataprevisaoentrega_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;dataprevisaoentrega.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Previsão Entrega)&quot;,&quot;prettyId&quot;:&quot;dataprevisaoentrega_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.preopestoqueszb.zb_saldo&quot;,&quot;title&quot;:&quot;ZB_SALDO_Saldo Pre OP&quot;,&quot;prettyId&quot;:&quot;zb_saldo&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;ZB_SALDO&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[]}}" enabled="enabled" guiName="GD SZB Pré OP Estoque Writer" guiX="446" guiY="141" id="GD_SZB_PRE_OP_ESTOQUE_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

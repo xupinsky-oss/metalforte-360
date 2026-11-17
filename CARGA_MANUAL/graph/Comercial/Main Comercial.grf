@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993267366" licenseType="Commercial" modified="Mon Dec 15 19:21:56 BRST 2025" modifiedBy="Guilherme" name="Main Comercial" revision="1.16" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Comercial/FATO Fat. e Margem - SD2 SD1.grf" guiName="FATO Fat. e Margem - SD2 SD1" guiX="8" guiY="7" id="FATO_FAT_E_MARGEM_SD2_SD1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/FATO Cabeçalho NF - SF2.grf" guiName="FATO Cabeçalho NF - SF2" guiX="218" guiY="7" id="FATO_CABECALHO_NF_SF2" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Contabil/DIM NF SAIDA SF2 GH.grf" guiName="DIM NF SAIDA SF2 GH" guiX="393" guiY="7" id="DIM_NF_SAIDA_SF2_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Contabil/DIM NF SAIDA SD2 GH.grf" guiName="DIM NF SAIDA SD2 GH" guiX="561" guiY="7" id="DIM_NF_SAIDA_SD2_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/FATO Meta de Vendas - SCT.grf" guiName="FATO Meta de Vendas - SCT" guiX="8" guiY="115" id="FATO_META_DE_VENDAS_SCT" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/FATO Clientes - SA1.grf" guiName="FATO Clientes - SA1" guiX="198" guiY="115" id="FATO_CLIENTES_SA1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/GD_FATO_DIAS_UTEIS_POR_DIA_GH.grf" guiName="GD_FATO_DIAS_UTEIS_POR_DIA_GH" guiX="344" guiY="115" id="GD_FATO_DIAS_UTEIS_POR_DIA_GH" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

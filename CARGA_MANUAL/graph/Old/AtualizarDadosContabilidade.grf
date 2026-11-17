@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Administrador" created="Wed Mar 15 11:50:28 CDT 2017" guiVersion="3.4.4.P" id="1489600513074" licenseType="Commercial" modified="Mon May 01 16:10:40 CDT 2017" modifiedBy="Administrador" name="AtualizarDadosContabilidade" revision="1.4" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabilidade.grf" guiName="Contabilidade" guiX="51" guiY="61" id="CONTABILIDADE" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Logistica .grf" guiName="Logistica" guiX="317" guiY="61" id="LOGISTICA" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

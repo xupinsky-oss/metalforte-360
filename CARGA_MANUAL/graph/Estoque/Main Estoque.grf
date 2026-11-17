@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Mon Mar 27 14:30:08 BRT 2023" guiVersion="3.4.4.P" id="1679948853067" licenseType="Commercial" modified="Mon Apr 10 16:08:15 BRT 2023" modifiedBy="Guilherme" name="Main Estoque" revision="1.2" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_CONFORMIDADE_ESTOQUE.grf" guiName="GD_FATO_CONFORMIDADE_ESTOQUE" guiX="23" guiY="9" id="GD_FATO_CONFORMIDADE_ESTOQUE" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/GD_DIM_GRUPO_PROD_GH.grf" guiName="GD_DIM_GRUPO_PROD_GH" guiX="271" guiY="9" id="GD_DIM_GRUPO_PROD_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_CONFORMIDADE_ESTOQUE_PROD.grf" guiName="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" guiX="471" guiY="9" id="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

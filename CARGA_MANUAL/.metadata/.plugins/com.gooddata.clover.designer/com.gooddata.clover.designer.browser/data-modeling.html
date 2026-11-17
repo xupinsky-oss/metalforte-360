@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		
+		<title>Getting started with Data Modeling using GoodData CloudConnect</title>
+		
+		<link rel="stylesheet" href="assets/styles.css">
+	</head>
+	<body class="subpage">
+		<div class="header">
+			<h1><img src="images/gd_logo_icon.png" width="40"> GoodData CloudConnect</h1>
+			
+			<p class="welcome-help">To open this page again, choose <strong>Help &rarr; Welcome</strong> in the menu.</p>
+		</div>
+		<div class="content">
+			<p><a href="index.html">&lt; Back to the welcome page</a></p>
+			
+			<h2>Getting started with Data Modeling</h2>
+			
+			<p>The logical data model (LDM) maps the relationship among the attributes and facts in a GoodData project. This mapping allows you to build metrics and reports, so it should be built with your reporting requirements in mind.</p>
+
+			<p>In GoodData, an LDM consists of the following major components:</p>
+			<ul>
+				<li>Attributes are qualitative characteristics of your data (e.g. Region, Zip code).</li>
+				<li>Facts are numerical values that may be used in computation (e.g. Revenue, Cost).</li>
+				<li>Datasets are logical groupings of attributes and facts.</li>
+				<li>Date datasets, or date dimensions, are predefined collections of date-related attributes. Date datasets provide complex date filtering functionality without requiring additional effort.</li>
+			</ul>
+
+			<p style="margin-top: 1em;">LDMs are built using CloudConnect Designer, part of the GoodData Data Integration Service. A single logical data model may be applied to multiple GoodData projects.</p>
+		
+			<h3>Learn more about the Logical Data Model</h3>
+			
+			<ul>
+				<li><a href="https://developer.gooddata.com/docs/data-modeling#tutorials?utm_source=cc&utm_campaign=dm-header&utm_medium=welcome-page">Data modeling tutorials</a></li>
+				<li><a href="https://support.gooddata.com/entries/23963471-CloudConnect-LDM-Modeler-Guide?utm_source=cc&utm_campaign=dm-guide-header&utm_medium=welcome-page">Logical Data Model guide (PDF)</a></li>
+			</ul>
+			
+			<hr>
+			
+			<div class="row">
+				<div class="main-content">
+					<h3>Creating the Logical Data Model</h3>
+					
+					<ul class="steps">
+						<li>
+							<h4><span>1</span> Create an LDM diagram</h4>
+							<p>To do that, go to the <strong>File → New menu</strong></p>
+							<p>
+								<img src="images/modeling.png" class="nofloat">
+							</p>
+						</li>
+						<li>
+							<h4><span>2</span> Add datasets</h4>
+							<p>When nothing is selected in the model, click the <strong>Add dataset</strong> action in the <strong>Details</strong> panel on the right.</p>
+							<p>
+								<img src="images/add-datasets.png" class="nofloat">
+							</p>
+						</li>
+						<li>
+							<h4><span>3</span> Upload the model to server</h4>
+							<p>After you are done creating the model, click <strong>Publish model</strong> to server in the <strong>Details</strong> panel to publish it to server.</p>
+						</li>
+					</ul>
+					
+					<a href="https://developer.gooddata.com/getting-started/tutorial/creating-data-model?utm_source=cc&utm_campaign=dm-learn-more&utm_medium=welcome-page" class="btn btn-primary">Learn more</a>
+				</div>
+				<div class="sidebar">
+					<h3>Tips and tricks</h3>
+					
+					<h4>Keyboard shortcuts</h4>
+
+					<table>
+						<thead>
+							<tr><th colspan="2">In diagram</th></tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>Control + Alt + 1</th>
+								<td>Creates a Dataset</td>
+							</tr>
+							<tr>
+								<th>Control + Alt + 2</th>
+								<td>Creates a Date</td>
+							</tr>
+						</tbody>
+					</table>
+					
+					<table>
+						<thead>
+							<tr><th colspan="2">With when a dataset is selected</th></tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>Control + +</th>
+								<td>Add Attribute</td>
+							</tr>
+							<tr>
+								<th>Control + -</th>
+								<td>Add Fact</td>
+							</tr>
+							<tr>
+								<th>Control + Enter</th>
+								<td>Edit Dataset</td>
+							</tr>
+							<tr>
+								<th>Control + D</th>
+								<td>Duplicate Dataset</td>
+							</tr>
+							<tr>
+								<th>Escape</th>
+								<td>Deselect Dataset</td>
+							</tr>
+						</tbody>
+					</table>
+					
+					<h4>Adding more attributes or facts</h4>
+					
+					<p style="margin: 1em 0 0;">Copy and paste a list of names for adding multiple attributes or facts at once.</p>
+					<img src="images/more-attributes.png">
+				</div>
+			</div>
+		</div>
+		<footer>
+			<div class="row">
+				<div>
+					<h2>Learn more about CloudConnect</h2>
+					<p>The Developer Portal contains plenty of guides, tutorials, and recommended practices for using CloudConnect and other developer tools:</p>
+					<ul>
+						<li><a href="http://developer.gooddata.com/getting-started?utm_source=cc&utm_campaign=dm-footer&utm_medium=welcome-page">Basic concepts and user interface of CloudConnect</a></li>
+						<li><a href="http://developer.gooddata.com/cloudconnect/usersGuide">CloudConnect User Manual (PDF)</a></li>
+						<li><a href="http://support.gooddata.com/entries/23963471-CloudConnect-LDM-Modeler-Guide?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">Logical Data Model guide (PDF)</a></li>
+						<li><a href="http://developer.gooddata.com/docs/data-loading#tutorials?utm_source=cc&utm_campaign=dm-footer&utm_medium=welcome-page">Data loading tutorials</a></li>
+						<li><a href="http://developer.gooddata.com/docs/data-modeling#tutorials?utm_source=cc&utm_campaign=dm-footer&utm_medium=welcome-page">Data modeling tutorials</a></li>
+					</ul>
+				</div>
+				<div>
+					<h2>Need help?</h2>
+					<p>Please feel free to contact <a href="http://support.gooddata.com?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">GoodData Customer Support</a>.</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

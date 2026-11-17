@@ -1,0 +1,8 @@
+#Fri Jan 10 18:54:38 BRST 2014
+# No parametro de nome e senha de usuário é necessário substituir @ por %40 para correta interpretação da URL, exemplo, USER_PWD_SECURE_DI=michel.zetun%40strategylab.com.br:senha
+
+YEARS_HISTORY=2
+STORAGE_PATH=project-uploads/${GDC_PROJECT_ID}/
+USER_PWD_SECURE_DI=suporte%40metalforte.com.br:mtf2016
+STORAGE_HOST_WEBDAV=na1-di.gooddata.com:443
+STORAGE_PATH_TODAY=project-uploads/${GDC_PROJECT_ID}/today

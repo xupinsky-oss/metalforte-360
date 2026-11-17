@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993954927" licenseType="Commercial" modified="Wed Sep 13 18:35:14 BRT 2023" modifiedBy="Guilherme" name="Main Financeiro" revision="1.3" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/FATO Contas a Receber - SE1.grf" guiName="FATO Contas a Receber - SE1" guiX="11" guiY="7" id="FATO_CONTAS_A_RECEBER_SE1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/FATO Contas a Receber PDD - SE1.grf" guiName="FATO Contas a Receber PDD - SE1" guiX="214" guiY="7" id="FATO_CONTAS_A_RECEBER_PDD_SE1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/FATO Saldo a Receber PDD - SE1.grf" guiName="FATO Saldo a Receber PDD - SE1" guiX="444" guiY="7" id="FATO_SALDO_A_RECEBER_PDD_SE1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/FATO Contas a Pagar - SE2.grf" guiName="FATO Contas a Pagar - SE2" guiX="663" guiY="7" id="FATO_CONTAS_A_PAGAR_SE2" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561991682884" licenseType="Commercial" modified="Mon Jun 02 20:40:26 BRT 2025" modifiedBy="Guilherme" name="FATO Estoque Retalho - SB1 SB2 SB9" revision="1.12" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata4">
+<Record fieldDelimiter=";" name="SB2_SB1_SB9010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="B9_COD" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="B9_QINI" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="B1_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="B9_DATA" nullable="true" shift="0" size="23" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter=";" name="SB2_SB1_SB9010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="B9_COD" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="B9_QINI" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="B1_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="B9_DATA" nullable="true" shift="0" size="23" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Estoque Retalho Customizado SB2/SB1/SB9" guiX="6" guiY="13" id="ESTOQUE_RETALHO_CUSTOMIZADO_SB2_SB1_SB9" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  B9_COD, 
+	  B9_QINI, 
+	  B1_GRUPO, 
+	  B9_DATA
+FROM dbo.GD_FATO_ESTOQUE_RETALHO_SB1_SB2_SB9]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="ESTOQUE_RETALHO_CUSTOMIZADO_SB2_SB1_SB9:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="329" guiY="85" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.B9_COD = $in.0.B9_COD;
+	$out.0.B9_QINI = $in.0.B9_QINI;
+	$out.0.B1_GRUPO = $in.0.B1_GRUPO;
+	$out.0.B9_DATA = $in.0.B9_DATA;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="GD_ESTOQUE_RETALHO_CUSTOMIZADO_SB2_SB1_SB9_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.estoqueretalhocustomizadosb2sb1sb9" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.estoqueretalhocustomizadosb2sb1sb9&quot;,&quot;datasetTitle&quot;:&quot;Estoque Retalho Customizado SB2/SB1/SB9&quot;,&quot;attributes&quot;:[],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;B1_GRUPO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;B9_COD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date&quot;,&quot;title&quot;:&quot;Date (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw&quot;,&quot;assignedMetadataField&quot;:&quot;B9_DATA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.estoqueretalhocustomizadosb2sb1sb9.b9_qini_estoqueretalho&quot;,&quot;title&quot;:&quot;B9_QINI_Estoque Retalho&quot;,&quot;prettyId&quot;:&quot;b9_qini_estoqueretalho&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;B9_QINI&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[]}}" enabled="enabled" guiName="GD Estoque Retalho Customizado SB2/SB1/SB9 Writer" guiX="510" guiY="151" id="GD_ESTOQUE_RETALHO_CUSTOMIZADO_SB2_SB1_SB9_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

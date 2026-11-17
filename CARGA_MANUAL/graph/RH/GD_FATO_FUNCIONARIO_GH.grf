@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Aug 02 05:11:47 BRT 2022" guiVersion="3.4.4.P" id="1659429708747" licenseType="Commercial" modified="Mon Jun 02 21:17:10 BRT 2025" modifiedBy="Guilherme" name="GD_FATO_FUNCIONARIO_GH" revision="1.6" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_FUNCIONARIO_GH" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CHAVE_SRA" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="RA_SALARIO" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="RA_QTDE" nullable="true" shift="0" size="10" type="integer"/>
+<Field name="RA_IDADE" type="integer"/>
+<Field name="RA_TEMPO_DE_CASA" type="integer"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="20" guiY="18" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  CHAVE_SRA,
+      RA_SALARIO,
+      RA_QTDE,
+	  RA_IDADE,
+	  RA_TEMPO_DE_CASA
+FROM [dbo].[GD_FATO_FUNCIONARIO_GH]]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="1">
+<Node dataset="dataset.gd_fato_funcionario_gh" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_fato_funcionario_gh&quot;,&quot;datasetTitle&quot;:&quot;GD_FATO_FUNCIONARIO_GH&quot;,&quot;attributes&quot;:[],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_funcionario_gh.chave_sra&quot;,&quot;title&quot;:&quot;CHAVE_SRA&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_funcionario_gh_chave_sra&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_funcionario_gh.chave_sra&quot;,&quot;title&quot;:&quot;CHAVE_SRA&quot;,&quot;prettyId&quot;:&quot;gd_dim_funcionario_gh__chave_sra&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CHAVE_SRA&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_funcionario_gh.chave_sra&quot;,&quot;title&quot;:&quot;CHAVE_SRA&quot;,&quot;prettyId&quot;:&quot;gd_dim_funcionario_gh__chave_sra&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_funcionario_gh.ra_idade&quot;,&quot;title&quot;:&quot;RA_IDADE&quot;,&quot;prettyId&quot;:&quot;ra_idade&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RA_IDADE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_funcionario_gh.ra_qtde&quot;,&quot;title&quot;:&quot;RA_QTDE&quot;,&quot;prettyId&quot;:&quot;ra_qtde&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RA_QTDE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_funcionario_gh.ra_salario&quot;,&quot;title&quot;:&quot;RA_SALARIO&quot;,&quot;prettyId&quot;:&quot;ra_salario&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SALARIO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_funcionario_gh.ra_tempo_de_casa&quot;,&quot;title&quot;:&quot;RA_TEMPO_DE_CASA&quot;,&quot;prettyId&quot;:&quot;ra_tempo_de_casa&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;RA_TEMPO_DE_CASA&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="377" guiY="84" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

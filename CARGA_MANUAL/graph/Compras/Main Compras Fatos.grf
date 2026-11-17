@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Fri Jan 03 12:18:55 BRST 2025" guiVersion="3.4.4.P" id="1736185594787" licenseType="Commercial" modified="Mon Jan 06 15:48:35 BRST 2025" modifiedBy="Guilherme" name="Main Compras Fatos" revision="1.1" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_DOC_ENTRADA_NF.grf" guiName="GD_FATO_DOC_ENTRADA_NF" guiX="18" guiY="13" id="GD_FATO_DOC_ENTRADA_NF" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_ORC_X_REALIZADO_ORCAMENTO.grf" guiName="GD_FATO_ORC_X_REALIZADO_ORCAMENTO" guiX="224" guiY="13" id="GD_FATO_ORC_X_REALIZADO_ORCAMENTO" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_ORC_X_REALIZADO_PEDIDO.grf" guiName="GD_FATO_ORC_X_REALIZADO_PEDIDO" guiX="505" guiY="13" id="GD_FATO_ORC_X_REALIZADO_PEDIDO" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_ORC_X_REALIZADO_TITULO.grf" guiName="GD_FATO_ORC_X_REALIZADO_TITULO" guiX="760" guiY="13" id="GD_FATO_ORC_X_REALIZADO_TITULO" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_PEDIDO_COMPRA_PC.grf" guiName="GD_FATO_PEDIDO_COMPRA_PC" guiX="18" guiY="125" id="GD_FATO_PEDIDO_COMPRA_PC" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_SOLIC_ARMAZEM_SA.grf" guiName="GD_FATO_SOLIC_ARMAZEM_SA" guiX="238" guiY="125" id="GD_FATO_SOLIC_ARMAZEM_SA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_SOLIC_COMPRA_SC.grf" guiName="GD_FATO_SOLIC_COMPRA_SC" guiX="457" guiY="125" id="GD_FATO_SOLIC_COMPRA_SC" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993988057" licenseType="Commercial" modified="Wed Mar 04 11:21:37 BRT 2026" modifiedBy="Guilherme" name="Main Produção" revision="1.7" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/FATO Estoque Retalho - SB1 SB2 SB9.grf" guiName="FATO Estoque Retalho - SB1 SB2 SB9" guiX="11" guiY="5" id="FATO_ESTOQUE_RETALHO_SB1_SB2_SB9" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/FATO Mov. Internas - SD3.grf" guiName="FATO Mov. Internas - SD3" guiX="255" guiY="5" id="FATO_MOV_INTERNAS_SD3" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Produção/FATO Ordem de Produção - SC2.grf" guiName="FATO Ordem de Produção - SC2" guiX="437" guiY="5" id="FATO_ORDEM_DE_PRODUCAO_SC2" ignoreGraphFail="false" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/FATO Pré OP Estoque - SZB.grf" guiName="FATO Pré OP Estoque - SZB" guiX="11" guiY="114" id="FATO_PRE_OP_ESTOQUE_SZB" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/FATO Apontamentos OP SD3.grf" guiName="FATO Apontamentos OP SD3" guiX="200" guiY="114" id="FATO_APONTAMENTOS_OP_SD3" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

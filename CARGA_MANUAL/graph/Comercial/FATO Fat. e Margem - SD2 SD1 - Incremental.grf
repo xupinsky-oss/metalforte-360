@@ -1,0 +1,2329 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561989363797" licenseType="Commercial" modified="Tue Sep 01 17:02:06 BRT 2026" modifiedBy="Guilherme" name="Faturamento | Margem de Contribuição" revision="1.173" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="_2Dates" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field format="yyyyMMdd" name="Min_Date" type="date"/>
+<Field format="yyyyMMdd" name="Max_Date" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SD2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="FK_SD2" type="string"/>
+<Field name="FK_SF2" type="string"/>
+<Field name="D2_CF_NUM" type="string"/>
+<Field name="D2_CF" type="string"/>
+<Field name="DESC_CODIGO_FISCAL" type="string"/>
+<Field name="D2_TES" type="string"/>
+<Field name="F4_ESTOQUE" type="string"/>
+<Field name="F4_DUPLIC" type="string"/>
+<Field name="F4_XCTR" type="string"/>
+<Field name="F4_TEXTO" type="string"/>
+<Field eofAsDelimiter="false" name="D2_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" name="D2_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="A3_COD" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="A3_NOME" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="B1_COD" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="B1_CUSTO" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="Custo" nullable="true" shift="0" size="15" type="decimal"/>
+<Field name="B1_CUSTO_DESC" type="string"/>
+<Field eofAsDelimiter="false" name="B1_DESC" nullable="true" shift="0" size="52" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D2_QUANT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_TOTAL" nullable="true" scale="3" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="F2_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field format="yyyyMMdd" name="F2_DAUTNFE" type="date"/>
+<Field eofAsDelimiter="false" format="#.###" name="D2_VALICM" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="D2_VALIMP5" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="D2_VALIMP6" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D2_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field name="D1_DOC" type="string"/>
+<Field name="A1_NOME_CLI" type="string"/>
+<Field name="A1_COD_CLI" type="string"/>
+<Field eofAsDelimiter="false" name="CLIENTE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="A1_LOJA" nullable="true" shift="0" size="4" type="string"/>
+<Field name="D2_CLIENTE" type="string"/>
+<Field eofAsDelimiter="false" name="D2_PEDIDO" nullable="true" shift="0" size="6" type="string"/>
+<Field name="D2_ITEM" type="string"/>
+<Field format="#.###" name="D2_VALDEV" type="decimal"/>
+<Field format="#.###" name="D2_QTDEDEV" type="decimal"/>
+<Field format="yyyy-MM-dd HH:mm:ss" name="DATAATUAL" type="date"/>
+<Field name="F2_DOC" type="string"/>
+<Field format="#.###" name="D2_DESCON" type="decimal"/>
+<Field format="#.###" name="D2_PESO" type="decimal"/>
+<Field name="A1_GRPTRIB" type="string"/>
+<Field name="NOTA_FISCAL" type="string"/>
+<Field format="#.###" name="D2_BASEICM" type="decimal"/>
+<Field name="D2_PRODUTIVIDADE" type="string"/>
+<Field format="yyyyMMdd" name="D1_DTDIGIT" type="date"/>
+<Field name="D2_VALIPI" type="decimal"/>
+<Field name="D2_ICMSRET" type="decimal"/>
+<Field name="D2_SEGURO" type="decimal"/>
+<Field name="F2_FRETE_EXTRA" type="decimal"/>
+<Field name="DATA_ULTIMA_NF" type="string"/>
+<Field name="DATA_PEN_ULTIMA_NF" type="string"/>
+<Field name="DATA_ANT_PEN_ULTIMA_NF" type="string"/>
+<Field name="E_ULTIMA_NF" type="string"/>
+<Field name="E_PEN_ULTIMA_NF" type="string"/>
+<Field name="E_ANT_PEN_ULTIMA_NF" type="string"/>
+<Field name="D2_RECEITA_FRETE" type="decimal"/>
+<Field name="D2_DESPESA_FRETE" type="decimal"/>
+<Field name="TEM_LIBERACAO" type="string"/>
+<Field name="F2_CARGA" type="string"/>
+<Field name="F2_SEQCAR" type="string"/>
+<Field name="D2_ALQICM" type="string"/>
+<Field name="D2_BASIMP5" type="decimal"/>
+<Field name="D2_ALQIMP5" type="string"/>
+<Field name="D2_BASIMP6" type="decimal"/>
+<Field name="D2_ALQIMP6" type="string"/>
+<Field name="TIPO_MOVI" type="string"/>
+<Field name="D2_DATA_CARGA" type="string"/>
+<Field name="TIPO_MOVI2" type="string"/>
+<Field name="D1_VLRDEV" type="number"/>
+<Field name="CT1_CONTA" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata14" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SD2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="FK_SD2" type="string"/>
+<Field name="FK_SF2" type="string"/>
+<Field eofAsDelimiter="false" name="D2_CF_NUM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="D2_CF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="DESC_CODIGO_FISCAL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="D2_TES" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="F4_ESTOQUE" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="F4_DUPLIC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="F4_XCTR" nullable="true" shift="0" size="0" type="string"/>
+<Field name="F4_TEXTO" type="string"/>
+<Field eofAsDelimiter="false" name="D2_GRUPO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="D2_FILIAL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A3_COD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A3_NOME" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="B1_COD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="B1_CUSTO" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="Custo" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field name="B1_CUSTO_DESC" type="string"/>
+<Field eofAsDelimiter="false" name="B1_DESC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_QUANT" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_TOTAL" nullable="true" scale="3" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="F2_EMISSAO" nullable="true" shift="0" size="0" type="date"/>
+<Field format="yyyyMMdd" name="F2_DAUTNFE" type="date"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_VALICM" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_VALIMP5" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_VALIMP6" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="D2_DOC" nullable="true" shift="0" size="0" type="string"/>
+<Field name="D1_DOC" type="string"/>
+<Field eofAsDelimiter="false" name="D2_DOC2" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NOME_CLI" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_COD_CLI" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="CLIENTE" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_LOJA" nullable="true" shift="0" size="0" type="string"/>
+<Field name="D2_CLIENTE" type="string"/>
+<Field eofAsDelimiter="false" name="D2_PEDIDO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="D2_ITEM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_VALDEV" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_QTDEDEV" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="yyyy-MM-dd HH:mm:ss" name="DATAATUAL" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="F2_EMISSAOII" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" name="F2_DOC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_DESCON" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_PESO" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="A1_GRPTRIB" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="NOTA_FISCAL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="D2_BASEICM" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="D2_PRODUTIVIDADE" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D1_DTDIGIT" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" length="12" name="D2_VALIPI" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field name="D2_ICMSRET" type="decimal"/>
+<Field name="D2_SEGURO" type="decimal"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="F2_EMISSAOIII" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" length="12" name="F2_FRETE_EXTRA" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="DATA_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="DATA_PEN_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="DATA_ANT_PEN_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="E_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="E_PEN_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="E_ANT_PEN_ULTIMA_NF" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D2_EMISSAO" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" length="12" name="D2_RECEITA_FRETE" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" length="12" name="D2_DESPESA_FRETE" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="TEM_LIBERACAO" nullable="true" shift="0" size="0" type="string"/>
+<Field format="yyyyMMdd" name="D3_EMISSAO" type="date"/>
+<Field name="F2_CARGA" type="string"/>
+<Field name="F2_SEQCAR" type="string"/>
+<Field name="D2_PEDIDO2" type="string"/>
+<Field name="D2_ALQICM" type="string"/>
+<Field name="D2_BASIMP5" type="decimal"/>
+<Field name="D2_ALQIMP5" type="string"/>
+<Field name="D2_BASIMP6" type="decimal"/>
+<Field name="D2_ALQIMP6" type="string"/>
+<Field format="yyyyMMdd" name="F2_EMISSAO_FLUXO" type="date"/>
+<Field name="FK_FILIAL" type="string"/>
+<Field name="TIPO_MOVI" type="string"/>
+<Field format="yyyyMMdd" name="DATA_FUNIL" type="date"/>
+<Field name="FK_GRUPO_PROD" type="string"/>
+<Field name="D2_DATA_CARGA" type="string"/>
+<Field name="TIPO_MOVI2" type="string"/>
+<Field name="D1_VLRDEV" type="number"/>
+<Field name="CT1_CONTA" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="sintax" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="syntax_content" nullable="true" shift="0" size="0" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Faturamento / Margem de Contribuição " guiX="5" guiY="15" id="FATURAMENTO_MARGEM_DE_CONTRIBUICAO" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  D2_FILIAL + D2_DOC + D2_SERIE + D2_CLIENTE2 + D2_LOJA + D2_COD + D2_ITEM AS FK_SD2,
+	  D2_FILIAL + D2_DOC + D2_SERIE + D2_CLIENTE2 + D2_LOJA                    AS FK_SF2,
+	  D2_CF_NUM,
+	  D2_CF,
+	  DESC_CODIGO_FISCAL,
+	  D2_TES,
+	  F4_ESTOQUE,
+	  F4_DUPLIC,
+	  F4_XCTR,
+	  F4_TEXTO,
+
+	  D2_GRUPO, 
+	  D2_FILIAL,
+	  A3_COD, 
+	  A3_NOME, 
+	  B1_COD,
+	  B1_CUSTO,
+	  CUSTO,
+	  B1_CUSTO_DESC,
+	  B1_DESC, 
+	  D2_QUANT, 
+	  D2_TOTAL, 
+	  F2_EMISSAO,
+	  CASE
+		  WHEN F2_DAUTNFE = ' ' THEN NULL
+		  ELSE F2_DAUTNFE
+	  END AS F2_DAUTNFE,
+	  D2_VALICM, 
+	  D2_VALIMP5,
+	  D2_VALIMP6,
+	  D2_DOC,
+	  D1_DOC,
+	  A1_NOME_CLI,
+	  A1_COD_CLI,
+	  CLIENTE,
+	  A1_LOJA, 
+	  D2_CLIENTE,
+	  D2_PEDIDO,
+	  D2_ITEM,
+	  D2_VALDEV,
+	  D2_QTDEDEV,
+	  DATAATUAL,
+	  F2_DOC,
+	  D2_DESCON,
+	  D2_PESO,
+	  A1_GRPTRIB,
+	  NOTA_FISCAL,
+	  D2_BASEICM,
+	  D2_PRODUTIVIDADE,
+	  D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  F2_FRETE_EXTRA,
+	  SUBSTRING(ULTIMA_NF,1,8)         AS DATA_ULTIMA_NF,
+	  SUBSTRING(PEN_ULTIMA_NF,1,8)     AS DATA_PEN_ULTIMA_NF,
+	  SUBSTRING(ANT_PEN_ULTIMA_NF,1,8) AS DATA_ANT_PEN_ULTIMA_NF,
+	  --------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN LTRIM(RTRIM(SUBSTRING(ULTIMA_NF,10,LEN(ULTIMA_NF))))                 = LTRIM(RTRIM(D2_DOC + '-' + CLIENTE)) THEN 'Sim'
+		  ELSE 'Nao'
+	  END AS E_ULTIMA_NF,
+	  --------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN LTRIM(RTRIM(SUBSTRING(PEN_ULTIMA_NF,10,LEN(PEN_ULTIMA_NF))))         = LTRIM(RTRIM(D2_DOC + '-' + CLIENTE)) THEN 'Sim'
+		  ELSE 'Nao'
+	  END AS E_PEN_ULTIMA_NF,
+	  --------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN LTRIM(RTRIM(SUBSTRING(ANT_PEN_ULTIMA_NF,10,LEN(ANT_PEN_ULTIMA_NF)))) = LTRIM(RTRIM(D2_DOC + '-' + CLIENTE)) THEN 'Sim'
+		  ELSE 'Nao'
+	  END AS E_ANT_PEN_ULTIMA_NF,
+	  --------------------------------------------------------------------------------------------------------------------------------------
+	  D2_RECEITA_FRETE,
+	  D2_DESPESA_FRETE,
+	  TEM_LIBERACAO,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  D2_ALQICM,
+	  D2_BASIMP5,
+	  D2_ALQIMP5,
+	  D2_BASIMP6,
+	  D2_ALQIMP6,
+	  TIPO_MOVI,
+	  'Dia ' + CONVERT(VARCHAR(10), GETDATE(), 103) + ' as ' + CONVERT(VARCHAR(8), GETDATE(), 108) AS D2_DATA_CARGA,
+	  TIPO_MOVI2,
+	  D1_VLRDEV,
+	  CT1_CONTA
+
+FROM(
+SELECT
+	  --SUM(B1_CUSTO) AS B1_CUSTO,
+	  --SUM(CUSTO) AS CUSTO,
+	  --SUM(1) AS SUM_
+	  --/*
+	  D2_CF_NUM,
+	  D2_CF,
+	  DESC_CODIGO_FISCAL,
+	  D2_TES,
+	  F4_ESTOQUE,
+	  F4_DUPLIC,
+	  F4_XCTR,
+	  F4_TEXTO,
+	  ' ' AS ULTIMA_NF,
+	  ' ' AS PEN_ULTIMA_NF,
+	  ' ' AS ANT_PEN_ULTIMA_NF,
+	  D2_CLIENTE,
+	  D2_CLIENTE2,
+	  D2_LOJA,
+	  D2_SERIE,
+	  D2_COD,
+	  /*
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT CAMPO
+	   FROM(
+	   SELECT
+	         D2_EMISSAO,
+			 ROW_NUMBER() OVER (ORDER BY D2_EMISSAO DESC) AS N_LINHA,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				 ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST
+			 END AS CAMPO,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				 ELSE F2_AVALIST
+			 END AS CLIENTE_2
+			 -----------------------------------------------------------------------------------------
+
+	   FROM SD2010 D2, SF4010 F4, SF2010 F2
+       WHERE D2.D_E_L_E_T_ = ' ' AND F4.D_E_L_E_T_ = ' ' AND F2.D_E_L_E_T_ = ' '
+	     AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'S' AND F4_DUPLIC = 'S')                                              OR 
+		                                   (F4_ESTOQUE = 'S' AND F4_XCTR   = 'S')                                              OR 
+										   (F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S' AND D2.D2_CF IN('5101','5924','6101','6924')) OR
+										   (F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND D2.D2_CF IN('5101','5924','6101','6924'))
+ 										  )
+         AND APL.D2_CF        IN('OK','5101','5924','6101','6924')
+		 AND D2_GRUPO NOT IN('0011','0021')
+		 AND SUBSTRING(D2.D2_EMISSAO,1,4) >= '2022'
+		 AND D2_DOC = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+		 AND CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE ELSE F2_AVALIST END = APL.CLIENTE
+	   
+	   GROUP BY D2_EMISSAO, 
+	            CASE WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				     ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST END,
+				CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				     ELSE F2_AVALIST END
+	   )SUB 
+	   WHERE SUB.N_LINHA = 1 
+	   ) AS ULTIMA_NF,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT CAMPO
+	   FROM(
+	   SELECT
+	         D2_EMISSAO,
+			 ROW_NUMBER() OVER (ORDER BY D2_EMISSAO DESC) AS N_LINHA,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				 ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST
+			 END AS CAMPO,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				 ELSE F2_AVALIST
+			 END AS CLIENTE_2
+			 -----------------------------------------------------------------------------------------
+
+	   FROM SD2010 D2, SF4010 F4, SF2010 F2
+       WHERE D2.D_E_L_E_T_ = ' ' AND F4.D_E_L_E_T_ = ' ' AND F2.D_E_L_E_T_ = ' '
+	     AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'S' AND F4_DUPLIC = 'S')                                              OR 
+		                                   (F4_ESTOQUE = 'S' AND F4_XCTR   = 'S')                                              OR 
+										   (F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S' AND D2.D2_CF IN('5101','5924','6101','6924')) OR
+										   (F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND D2.D2_CF IN('5101','5924','6101','6924'))
+ 										  )
+		 AND D2_CF        IN('OK','5101','5924','6101','6924')
+		 AND D2_GRUPO NOT IN('0011','0021')
+		 AND SUBSTRING(D2.D2_EMISSAO,1,4) >= '2022'
+		 AND D2_DOC = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+		 AND CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE ELSE F2_AVALIST END = APL.CLIENTE
+	   
+	   GROUP BY D2_EMISSAO, 
+	            CASE WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				     ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST END,
+				CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				     ELSE F2_AVALIST END
+	   )SUB 
+	   WHERE SUB.N_LINHA = 2 
+	   ) AS PEN_ULTIMA_NF,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT CAMPO
+	   FROM(
+	   SELECT
+	         D2_EMISSAO,
+			 ROW_NUMBER() OVER (ORDER BY D2_EMISSAO DESC) AS N_LINHA,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				 ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST
+			 END AS CAMPO,
+			 -----------------------------------------------------------------------------------------
+			 CASE
+				 WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				 ELSE F2_AVALIST
+			 END AS CLIENTE_2
+			 -----------------------------------------------------------------------------------------
+
+	   FROM SD2010 D2, SF4010 F4, SF2010 F2
+       WHERE D2.D_E_L_E_T_ = ' ' AND F4.D_E_L_E_T_ = ' ' AND F2.D_E_L_E_T_ = ' '
+	     AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'S' AND F4_DUPLIC = 'S')                                              OR 
+		                                   (F4_ESTOQUE = 'S' AND F4_XCTR   = 'S')                                              OR 
+										   (F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S' AND D2.D2_CF IN('5101','5924','6101','6924')) OR
+										   (F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND D2.D2_CF IN('5101','5924','6101','6924'))
+ 										  )
+		 AND D2_CF        IN('OK','5101','5924','6101','6924')
+		 AND D2_GRUPO NOT IN('0011','0021')
+		 AND SUBSTRING(D2.D2_EMISSAO,1,4) >= '2022'
+		 AND D2_DOC = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+		 AND CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE ELSE F2_AVALIST END = APL.CLIENTE
+	   
+	   GROUP BY D2_EMISSAO, 
+	            CASE WHEN F2_AVALIST  = ' ' THEN D2_EMISSAO + '-' + D2_DOC + '-' + D2_CLIENTE
+				     ELSE D2_EMISSAO + '-' + D2_DOC + '-' + F2_AVALIST END,
+				CASE WHEN F2_AVALIST  = ' ' THEN D2_CLIENTE
+				     ELSE F2_AVALIST END
+	   )SUB 
+	   WHERE SUB.N_LINHA = 3 
+	   ) AS ANT_PEN_ULTIMA_NF,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------
+	  */
+	  D2_GRUPO, 
+	  D2_FILIAL,
+	  A3_COD, 
+	  A3_NOME, 
+	  B1_COD,
+	  B1_CUSTO,
+	  CUSTO,
+	  B1_CUSTO_DESC,
+	  B1_DESC, 
+	  D2_QUANT, 
+	  D2_TOTAL,
+	  F2_EMISSAO,
+	  D2_VALICM, 
+	  D2_VALIMP5,
+	  D2_VALIMP6,
+	  D2_DOC,
+	  D1_DOC,
+	  --------------------------------------------------------
+	  ISNULL(
+	  (
+	   SELECT MAX(A1_COD + ' - ' + A1_LOJA + ' - ' + LTRIM(RTRIM(A1_NOME))) AS A1_NOME
+	   FROM SA1010 ZZ WITH (NOLOCK)
+	   WHERE ZZ.D_E_L_E_T_ = ' '
+	     AND ZZ.A1_COD + ZZ.A1_LOJA = APL.CLIENTE
+	  )
+	  ,'0 - Cliente nao encontrado') AS A1_NOME_CLI,
+	  --------------------------------------------------------
+	  CLIENTE AS A1_COD_CLI,
+	  CLIENTE,
+	  A1_LOJA,
+	  C5_LOJAAVA,
+	  D2_PEDIDO,
+	  D2_ITEM,
+	  D2_VALDEV,
+	  D2_QTDEDEV,
+	  DATAATUAL,
+	  F2_DOC,
+	  D2_DESCON,
+	  D2_PESO,
+	  A1_GRPTRIB,
+	  NOTA_FISCAL,
+	  D2_BASEICM,
+	  D2_PRODUTIVIDADE,
+	  D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  F2_FRETE_EXTRA,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN C9_CARGA <> ' ' THEN CAST((C5_PERCFT/100)*D2_TOTAL AS DECIMAL(14,3))
+		  ELSE 0
+	  END AS D2_RECEITA_FRETE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  ISNULL(
+	  CAST(
+	  ((D2_TOTAL)/
+	  (SELECT SUM(C9_QTDLIB * C9_PRCVEN)
+	   FROM SC9010 A WITH (NOLOCK), SC5010 B WITH (NOLOCK), SC6010 C WITH (NOLOCK),SB1010 D WITH (NOLOCK), SF4010 E WITH (NOLOCK)
+       WHERE A.D_E_L_E_T_  = ' ' 
+         AND B.D_E_L_E_T_  = ' '  
+         AND C.D_E_L_E_T_  = ' '  
+         AND D.D_E_L_E_T_  = ' ' 
+         AND E.D_E_L_E_T_  = ' ' 
+         AND SUBSTRING(B.C5_EMISSAO,1,4) >= SUBSTRING(CONVERT(VARCHAR(8), DATEADD(YEAR, -2, GETDATE()), 112),1,4)
+		 AND C.C6_TES = E.F4_CODIGO  AND ((E.F4_ESTOQUE = 'S' AND E.F4_DUPLIC = 'S')                                             OR
+		 	                              (E.F4_ESTOQUE = 'S' AND E.F4_XCTR   = 'S')                                             OR
+		 								  (E.F4_ESTOQUE = 'N' AND E.F4_DUPLIC = 'S' AND C.C6_CF IN('5101','5924','6101','6924')) OR
+		 								  (E.F4_ESTOQUE = 'S' AND E.F4_DUPLIC = 'N' AND C.C6_CF IN('5101','5924','6101','6924'))
+		 								 )
+         AND A.C9_PEDIDO       = C.C6_NUM 
+         AND D.B1_COD          = A.C9_PRODUTO 
+         AND A.C9_PEDIDO       = B.C5_NUM 
+         AND C.C6_ITEM         = A.C9_ITEM 
+         AND A.C9_CLIENTE     <> '000644' 
+         AND B.C5_TIPO         = 'N'
+		 AND A.C9_FILIAL       = SC9.C9_FILIAL
+		 AND A.C9_CARGA        = SC9.C9_CARGA 
+		 AND A.C9_SEQCAR       = SC9.C9_SEQCAR
+		 ) 
+	  )
+	  AS DECIMAL(14,3))
+	  ,0) *
+	  ISNULL(
+	  (SELECT DAK_VLFRET
+	   FROM DAK010 DAK WITH (NOLOCK)
+	   WHERE DAK.D_E_L_E_T_ = ' '
+	     AND DAK.DAK_FILIAL = SC9.C9_FILIAL
+		 AND DAK.DAK_COD    = SC9.C9_CARGA
+		 AND DAK.DAK_SEQCAR = SC9.C9_SEQCAR ) 
+	  ,0) AS D2_DESPESA_FRETE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  ISNULL(C9_PEDIDO,'Sem Liberação') AS TEM_LIBERACAO,
+	  F2_DAUTNFE,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  D2_ALQICM,
+	  D2_BASIMP5,
+	  D2_ALQIMP5,
+	  D2_BASIMP6,
+	  D2_ALQIMP6,
+	  TIPO_MOVI,
+	  TIPO_MOVI2,
+	  D1_VLRDEV,
+	  CT1_CONTA
+	  --*/
+FROM(
+
+SELECT	--Faturamento com TES que movimenta Estoque e Financeiro
+	  D2_CF AS D2_CF_NUM,
+	  'OK' AS D2_CF,
+	  'OK' AS DESC_CODIGO_FISCAL,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  D2_GRUPO,D2_FILIAL,
+	  D2_LOJA,
+	  D2_SERIE,
+	  D2_COD,
+	  ISNULL(A3_COD,'XXXXXX') AS A3_COD,ISNULL(A3_NOME,'Sem Vendedor') AS A3_NOME,
+	  B1_COD,
+	  -------------------------------------------------------------------
+	   /*
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B9_CM1)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT) --((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN B9_CM1 --((B9_CM1)+((B9_CM1)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1 --(B2_CM1+(B2_CM1*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	   END AS B1_CUSTO,
+	   */
+	  -------------------------------------------------------------------
+	  --/*
+	  CASE
+		  WHEN D2_QUANT = 0.0 THEN 0.0
+		  ELSE(D2_CUSTO1/D2_QUANT) 
+	  END AS B1_CUSTO,
+	  --*/
+	  --0.0 AS B1_CUSTO,
+	  -------------------------------------------------------------------
+	  CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B1_CUSTO)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B1_CUSTO
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN ((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND D2_CUSTO1  = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN ((B1_CUSTO)+((B1_CUSTO)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (B1_CUSTO+(B1_CUSTO*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	  END AS CUSTO,
+	  -------------------------------------------------------------------
+	  CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	
+	  	  ----------------------------
+	  	  ELSE 'Sem Custo'
+	   END AS B1_CUSTO_DESC,
+	  -------------------------------------------------------------------
+	  --*/
+	  B1_DESC,D2_QUANT,D2_TOTAL,F2_EMISSAO,F2_DAUTNFE,D2_VALICM,D2_VALIMP5,D2_VALIMP6,D2_DOC,' ' AS D1_DOC,CLIENTE,D2_CLIENTE,D2_CLIENTE2,A1_LOJA,C5_LOJAAVA,D2_PEDIDO,D2_ITEMPV,D2_ITEM,
+	  0.0 AS D2_VALDEV,0.0 AS D2_QTDEDEV,
+	  DATAATUAL,F2_DOC,D2_DESCON,D2_PESO,A1_GRPTRIB,NOTA_FISCAL,D2_BASEICM,
+	  D2_PRODUTIVIDADE,
+	  NULL AS D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  D2_FRETE AS F2_FRETE_EXTRA,
+	  C5_PERCFT,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN D2_VALICM = 0 THEN '00%'
+		  WHEN CAST(((D2_VALICM/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) < 10 THEN '0' + LTRIM(RTRIM(CAST(CAST(((D2_VALICM/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) AS VARCHAR(15)))) + '%'
+		  ELSE LTRIM(RTRIM(CAST(CAST(((D2_VALICM/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) AS VARCHAR(15)))) + '%'
+	  END AS D2_ALQICM,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  D2_BASIMP5,
+	  D2_ALQIMP5,
+	  D2_BASIMP6,
+	  D2_ALQIMP6,
+	  'Saida de NF' AS TIPO_MOVI,
+	  'C'           AS TIPO_MOVI2,
+	  D1_VLRDEV,
+	  ISNULL(CT1_CONTA,'XXX') AS CT1_CONTA
+
+FROM(
+SELECT --| Venda |
+	  D2_GRUPO, 
+	  D2_FILIAL, 
+	  --A3_COD, 
+	  --A3_NOME, 
+	  D2_LOJA,
+	  D2_SERIE,
+	  B1_COD,
+	  B1_DESC, 
+	  D2_QUANT, 
+	  ----------------------------------------------------------------------
+	  CASE
+		  WHEN ROUND(D2_TOTAL,3,1) = 0.00 THEN D2_TOTAL + D2_DESPESA
+		  ELSE ROUND(D2_TOTAL,3,1) + D2_DESPESA
+	  END AS D2_TOTAL,
+	  ----------------------------------------------------------------------
+	  F2_EMISSAO, 
+	  F2_DAUTNFE,
+	  D2_VALICM + D2_DIFAL AS D2_VALICM,
+	  D2_VALIMP5,
+	  D2_VALIMP6,
+	  D2_DOC,
+	  -------------------------------------------------------------------
+	  CASE
+	  	 WHEN F2_AVALIST  = ' ' THEN A1_COD + A1_LOJA
+	  	 WHEN F2_AVALIST <> ' ' THEN F2_AVALIST + C5_LOJAAVA
+	  	 ELSE 'INDEFINIDO'
+	  END AS CLIENTE, 
+	  -------------------------------------------------------------------
+	  D2_CLIENTE + ' - ' + A1_LOJA + ' - ' + LTRIM(RTRIM(A1_NOME)) AS  D2_CLIENTE,
+	  D2_CLIENTE AS D2_CLIENTE2,
+	  A1_LOJA, 
+	  C5_LOJAAVA,
+	  D2_PEDIDO, 
+	  D2_ITEMPV,
+	  D2_ITEM,
+	  D2_VALDEV,
+	  D2_QTDEDEV,
+	  GETDATE() AS DATAATUAL,
+	  F2_DOC,
+	  D2_DESCON,
+	  D2_PESO,
+	  A1_GRPTRIB,
+	  F2_DOC AS NOTA_FISCAL,
+	  D2_BASEICM,
+	  D2_COD,D2_LOCAL,D2_CUSTO1,B1_CUSTO,D2_EMISSAO,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN (SELECT MAX(SUBSTRING(C5.C5_EMISSAO,1,6))
+		        FROM SC5010 C5 WITH (NOLOCK)
+				WHERE C5.D_E_L_E_T_  = ' '
+				  AND C5.C5_FILIAL   = D2.D2_FILIAL
+				  AND C5.C5_NUM      = D2.D2_PEDIDO
+			   ) >= SUBSTRING(D2_EMISSAO,1,6) THEN 'Mesmo mes'
+		  ElSE 'Outro mes'
+	  END AS D2_PRODUTIVIDADE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  D2_CF,
+	  F2_VEND1,
+	  (ROUND(D2.D2_TOTAL,3,1)/
+	  (SELECT SUM(ROUND(AAA.D2_TOTAL,3,1))
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) *
+	  F2_FRETE AS D2_FRETE,
+	  ISNULL(C5_PERCFT,0) AS C5_PERCFT,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT COUNT(*)
+	   FROM SD2010 A WITH (NOLOCK)
+	   WHERE A.D_E_L_E_T_ = ' '
+	     AND A.D2_FILIAL  = D2.D2_FILIAL 
+		 AND A.D2_DOC     =	D2.D2_DOC    
+		 AND A.D2_SERIE   =	D2.D2_SERIE  
+		 AND A.D2_CLIENTE =	D2.D2_CLIENTE
+		 AND A.D2_LOJA    = D2.D2_LOJA ) AS D2_QTD_ITEM,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  F2_CARGA,
+	  F2_SEQCAR, 
+	  D2_BASIMP5,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP5 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP5,
+	  D2_BASIMP6,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP6 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP6,
+	  0.0 AS D1_VLRDEV,
+	  D2_CONTA
+
+FROM SD2010 D2 WITH (NOLOCK), SF4010 F4 WITH (NOLOCK), SF2010 F2 WITH (NOLOCK), /*SA3010 A3,*/ SB1010 B1 WITH (NOLOCK), SA1010 A1 WITH (NOLOCK), SC5010 C5 WITH (NOLOCK)/*, CT1010 CT1 WITH (NOLOCK)*/ --, SC6010 C6
+WHERE D2.D_E_L_E_T_ = ' ' AND F4.D_E_L_E_T_ = ' ' AND F2.D_E_L_E_T_ = ' ' /*AND A3.D_E_L_E_T_ = ' '*/ AND B1.D_E_L_E_T_ = ' ' AND C5.D_E_L_E_T_ = ' ' /*AND CT1.D_E_L_E_T_ = ' '*/ --AND C6.D_E_L_E_T_ = ' '
+  --------------------------------------------------------------------------------
+  AND C5_FILIAL = D2_FILIAL AND C5_NUM = D2_PEDIDO
+  --AND CT1.CT1_CONTA  = D2.D2_CONTA
+  AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE   = 'S' AND F4_DUPLIC = 'S') OR (F4_ESTOQUE = 'S' AND F4_XCTR = 'S'))   
+  --AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S'))
+  --AND D2_TES      = F4_CODIGO AND ((F4_DUPLIC = 'S') OR (F4_XCTR = 'S')) 
+  AND D2_DOC      = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+  AND D2_CLIENTE  = A1_COD    AND D2_LOJA  = A1_LOJA
+  --AND F2_VEND1    = A3_COD 
+  AND D2_COD      = B1_COD
+  --AND C6.C6_FILIAL = D2.D2_FILIAL AND C6.C6_NUM = D2.D2_PEDIDO AND C6.C6_ITEM = D2.D2_ITEMPV 
+  --------------------------------------------------------------------------------  
+  AND SUBSTRING(D2_EMISSAO,1,4) >= '2022'--'2015'
+  --AND D2_EMISSAO < '20200304'
+  AND F2_TIPO     = 'N' 
+  AND D2_CF NOT IN('7949')
+  AND D2_DOC NOT IN('000353901')
+  --AND D2_QTDEDEV  = 0
+  --------------------------------------------------------------------------------
+  /*
+  AND D2_CUSTO1  <> 0  
+  AND F2_AVALIST  = ' ' 
+  AND A1_GRPTRIB <> '104'  
+  AND EXISTS (SELECT B9_COD 
+              FROM SB9010 
+              WHERE SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) 
+                AND D2_FILIAL                 = B9_FILIAL 
+                AND D2_LOCAL                  = B9_LOCAL 
+                AND D2_COD                    = B9_COD )
+  */
+  --------------------------------------------------------------------------------
+)APL1
+----------------------------------------------------------------------------------
+LEFT  JOIN SB9010 B9 WITH (NOLOCK) ON B9.D_E_L_E_T_  = ' ' -- Saldos de Fechamentos de Esotque
+                                  AND D2_COD         = B9_COD     
+					              AND D2_FILIAL      = B9_FILIAL 
+					              AND D2_LOCAL       = B9_LOCAL
+					              AND SUBSTRING(F2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6)
+----------------------------------------------------------------------------------
+LEFT JOIN SB2010 B2 WITH (NOLOCK) ON B2.D_E_L_E_T_  = ' ' -- Saldos Atuais
+                                 AND D2_COD         = B2_COD   
+				                 AND D2_FILIAL      = B2_FILIAL
+				                 AND D2_LOCAL       = B2_LOCAL
+----------------------------------------------------------------------------------
+LEFT JOIN SA3010 A3 WITH (NOLOCK) ON A3.D_E_L_E_T_  = ' ' -- Vendedores
+                                 AND F2_VEND1       = A3.A3_COD
+----------------------------------------------------------------------------------
+LEFT JOIN CT1010 CT1 WITH (NOLOCK) ON CT1.D_E_L_E_T_  = ' ' -- Plano de Contas
+                                  AND D2_CONTA        = CT1.CT1_CONTA
+----------------------------------------------------------------------------------
+
+--------------------
+UNION
+--------------------
+
+SELECT	--Devolução com TES que movimenta Estoque e Financeiro
+	  D2_CF AS D2_CF_NUM,
+	  'OK' AS D2_CF,
+	  'OK' AS DESC_CODIGO_FISCAL,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  D2_GRUPO,D2_FILIAL,
+	  D2_LOJA,
+	  D2_SERIE,
+	  D2_COD,
+	  ISNULL(A3_COD,'XXXXXX') AS A3_COD,ISNULL(A3_NOME,'Sem Vendedor') AS A3_NOME,
+	  B1_COD,
+	  --/*
+	   -------------------------------------------------------------------
+	   /*
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B9_CM1)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT) --((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN B9_CM1 --((B9_CM1)+((B9_CM1)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1 --(B2_CM1+(B2_CM1*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	   END AS B1_CUSTO,
+	   */
+	  -------------------------------------------------------------------
+	  --/*
+	  CASE
+		  WHEN D2_QUANT = 0.0 THEN 0.0
+		  ELSE(D2_CUSTO1/D2_QUANT) 
+	  END AS B1_CUSTO,
+	  --*/
+	  --0.0 AS B1_CUSTO,
+	  -------------------------------------------------------------------
+	   
+	   CASE
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND D2_CUSTO1  <> 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (D2_CUSTO1/D2_QUANT)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND D2_CUSTO1   = 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (B1_CUSTO)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	   	  THEN B1_CUSTO
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB  = '104' 
+	   	   AND D2_CUSTO1  <> 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN ((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB = '104' 
+	   	   AND D2_CUSTO1  = 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (B1_CUSTO)+((B1_CUSTO)*0.07)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB = '104' 
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	   	  THEN (B1_CUSTO+(B1_CUSTO*0.07))
+	   	  ----------------------------
+	   	  ELSE 0
+	   END AS CUSTO,
+	   -------------------------------------------------------------------
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	
+	  	  ----------------------------
+	  	  ELSE 'Sem Custo'
+	   END AS B1_CUSTO_DESC,
+	  -------------------------------------------------------------------
+	   --*/
+	  B1_DESC,
+	  0.0 AS D2_QUANT,0.0 AS D2_TOTAL,D1_DTDIGIT AS F2_EMISSAO,F2_DAUTNFE,
+	  D2_VALICM,
+	  D2_VALIMP5,D2_VALIMP6,
+	  D2_DOC,D1_DOC,CLIENTE,D2_CLIENTE,D2_CLIENTE2,A1_LOJA,C5_LOJAAVA,D2_PEDIDO,D2_ITEMPV,D2_ITEM,
+	  D2_VALDEV,D2_QTDEDEV,
+	  DATAATUAL,F2_DOC,
+	  0.0 AS D2_DESCON,D2_PESO,
+	  A1_GRPTRIB,NOTA_FISCAL,
+	  0.0 AS D2_BASEICM,
+	  D2_PRODUTIVIDADE,
+	  D1_DTDIGIT,
+	  0.0 AS D2_VALIPI,
+	  0.0 AS D2_ICMSRET,
+	  0.0 AS D2_SEGURO,
+	  0.0 AS F2_FRETE_EXTRA,
+	  0.0 AS C5_PERCFT,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  'DEVOLUÇÃO' AS D2_ALQICM,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  D2_BASIMP5,
+	  D2_ALQIMP5,
+	  D2_BASIMP6,
+	  D2_ALQIMP6,
+	  TIPO_MOVI,
+	  'D' AS TIPO_MOVI2,
+	  D1_VLRDEV,
+	  ISNULL(CT1_CONTA,'XXX') AS CT1_CONTA
+FROM(
+SELECT --| Devolução |
+	   D2_GRUPO, 
+	   D2_FILIAL, 
+	   --A3_COD, 
+	   --A3_NOME, 
+	   D2_LOJA,
+	   D2_SERIE,
+	   B1_COD,
+	   B1_DESC,
+	   D2_PRCVEN,
+	   D2_QUANT, 
+	   D2_TOTAL, 
+	   F2_EMISSAO,
+	   ((D1_VALICM+D2_DIFAL) *-1) AS D2_VALICM, 
+	   (D1_VALIMP5*-1) AS D2_VALIMP5, 
+	   (D1_VALIMP6*-1) AS D2_VALIMP6, 
+	   D2_DOC, 
+	   D1_DOC,
+	   -------------------------------------------------------------------
+	   CASE
+	  	 WHEN F2_AVALIST  = ' ' THEN A1_COD + A1_LOJA
+	  	 WHEN F2_AVALIST <> ' ' THEN F2_AVALIST + C5_LOJAAVA
+	  	 ELSE 'INDEFINIDO'
+	  END AS CLIENTE, 
+	   -------------------------------------------------------------------
+	   D2_CLIENTE + ' - ' + A1_LOJA + ' - ' + LTRIM(RTRIM(A1_NOME)) AS  D2_CLIENTE,
+	   D2_CLIENTE AS D2_CLIENTE2,
+	   A1_LOJA,
+	   C5_LOJAAVA, 
+	   D2_PEDIDO, 
+	   D2_ITEMPV,
+	   D2_ITEM,
+	   --D2_VALDEV + D2_VALIPI AS D2_VALDEV,
+	  (D1_TOTAL - D1_VALDESC) + D1_VALIPI + D1_ICMSRET + D2_DESPESA +
+	  ISNULL(
+	  (((D1_TOTAL - D1_VALDESC)/
+	  (SELECT SUM(ROUND(AAA.D2_TOTAL,2,1))
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) * F2_FRETE),0) AS D2_VALDEV,
+	   (D1_TOTAL - D1_VALDESC) AS D1_VLRDEV,
+	   D1_QUANT AS D2_QTDEDEV,
+	   GETDATE() AS DATAATUAL,
+	   F2_DOC,
+	   D2_DESCON,
+	   D2_PESO,
+	   A1_GRPTRIB,
+	   F2_DOC AS NOTA_FISCAL,
+	   D2_BASEICM,
+	   D2_COD,D2_LOCAL,D2_CUSTO1,B1_CUSTO,D2_EMISSAO,F2_DAUTNFE,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	   -------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN (SELECT MAX(SUBSTRING(C5.C5_EMISSAO,1,6))
+		        FROM SC5010 C5 WITH (NOLOCK)
+				WHERE C5.D_E_L_E_T_  = ' '
+				  AND C5.C5_FILIAL   = D2.D2_FILIAL
+				  AND C5.C5_NUM      = D2.D2_PEDIDO
+			   ) >= SUBSTRING(D2_EMISSAO,1,6) THEN 'Mesmo mes'
+		  ElSE 'Outro mes'
+	  END AS D2_PRODUTIVIDADE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  D2_CF,
+	  F2_VEND1,
+	  (D2.D2_TOTAL/
+	  (SELECT SUM(AAA.D2_TOTAL)
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) *
+	  F2_FRETE AS D2_FRETE,
+	  F2_FRETE,
+	  ISNULL(C5_PERCFT,0) AS C5_PERCFT,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT COUNT(*)
+	   FROM SD2010 A WITH (NOLOCK)
+	   WHERE A.D_E_L_E_T_ = ' '
+	     AND A.D2_FILIAL  = D2.D2_FILIAL 
+		 AND A.D2_DOC     =	D2.D2_DOC    
+		 AND A.D2_SERIE   =	D2.D2_SERIE  
+		 AND A.D2_CLIENTE =	D2.D2_CLIENTE
+		 AND A.D2_LOJA    = D2.D2_LOJA ) AS D2_QTD_ITEM,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  D2_BASIMP5,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP5 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP5,
+	  D2_BASIMP6,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP6 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP6,
+	  -----------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN SUBSTRING(D1_DTDIGIT,1,6)  = SUBSTRING(D2_EMISSAO,1,6) THEN 'Devolução mesmo mês'
+		  WHEN SUBSTRING(D1_DTDIGIT,1,6) <> SUBSTRING(D2_EMISSAO,1,6) THEN 'Devolução outro mês'
+		  ELSE 'Erro'
+	  END AS TIPO_MOVI,
+	  -----------------------------------------------------------------------------------------------------
+	  D2_CONTA
+
+FROM SD2010 D2 WITH (NOLOCK), SF4010 F4 WITH (NOLOCK), SF2010 F2 WITH (NOLOCK), /*SA3010 A3,*/ SB1010 B1 WITH (NOLOCK), SA1010 A1 WITH (NOLOCK), SD1010 D1 WITH (NOLOCK), SC5010 C5 WITH (NOLOCK)/*, CT1010 CT1 WITH (NOLOCK)*/
+WHERE D2.D_E_L_E_T_  = ' ' AND F4.D_E_L_E_T_  = ' ' AND F2.D_E_L_E_T_  = ' ' /*AND A3.D_E_L_E_T_  = ' '*/ AND B1.D_E_L_E_T_  = ' ' AND D1.D_E_L_E_T_  = ' ' AND C5.D_E_L_E_T_ = ' ' /*AND CT1.D_E_L_E_T_ = ' '*/ 
+  --------------------------------------------------------------------------------
+  AND C5_FILIAL = D2_FILIAL AND C5_NUM = D2_PEDIDO
+  --AND CT1.CT1_CONTA  = D2.D2_CONTA
+  AND D1_FORNECE  = D2_CLIENTE AND D1_FILIAL = D2_FILIAL 
+  
+  --AND D1_ITEMORI = D2_ITEM
+  AND ((D1_ITEMORI <> '' AND D1_ITEMORI = D2_ITEM) OR (D1_ITEMORI = ' ' AND D1_DOC = '000023915' AND D2_COD = D1_COD)) 
+  
+  AND D1_NFORI = D2_DOC AND D1_SERIORI = D2_SERIE AND D1_LOJA = D2_LOJA 
+  AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE   = 'S' AND F4_DUPLIC = 'S') OR (F4_ESTOQUE = 'S' AND F4_XCTR = 'S'))   
+  --AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S'))
+  --AND D2_TES      = F4_CODIGO  AND ((F4_DUPLIC = 'S') OR (F4_XCTR = 'S')) 
+  AND D2_DOC      = F2_DOC     AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+  AND D2_CLIENTE  = A1_COD     AND D2_LOJA = A1_LOJA
+  --AND F2_VEND1    = A3_COD 
+  AND D2_COD      = B1_COD
+  --------------------------------------------------------------------------------
+  AND SUBSTRING(D2_EMISSAO,1,4) >= '2022'--'2015'
+  --AND D2_EMISSAO < '20200304'
+  AND F2_TIPO     = 'N'
+  AND D2_CF NOT IN('7949')
+  AND D1_QUANT <> 0
+  --AND D2_QTDEDEV <> 0 
+  --------------------------------------------------------------------------------
+  /*
+  AND D2_CUSTO1  <> 0  
+  AND F2_AVALIST  = ' '       
+  AND A1_GRPTRIB <> '104'      
+  AND EXISTS (SELECT B9_COD 
+              FROM SB9010 
+              WHERE SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) 
+                AND D2_FILIAL                 = B9_FILIAL 
+                AND D2_LOCAL                  = B9_LOCAL 
+                AND D2_COD                    = B9_COD )
+  */
+  --------------------------------------------------------------------------------
+)APL2
+----------------------------------------------------------------------------------
+LEFT  JOIN SB9010 B9 WITH (NOLOCK) ON B9.D_E_L_E_T_  = ' ' -- Saldos de Fechamentos de Esotque
+                                  AND D2_COD         = B9_COD     
+					              AND D2_FILIAL      = B9_FILIAL 
+					              AND D2_LOCAL       = B9_LOCAL
+					              AND SUBSTRING(F2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6)
+----------------------------------------------------------------------------------
+LEFT JOIN SB2010 B2 WITH (NOLOCK) ON B2.D_E_L_E_T_  = ' ' -- Saldos Atuais
+                                 AND D2_COD         = B2_COD   
+				                 AND D2_FILIAL      = B2_FILIAL
+				                 AND D2_LOCAL       = B2_LOCAL
+----------------------------------------------------------------------------------
+LEFT JOIN SA3010 A3 WITH (NOLOCK) ON A3.D_E_L_E_T_  = ' ' -- Vendedores
+                                 AND F2_VEND1       = A3.A3_COD
+----------------------------------------------------------------------------------
+LEFT JOIN CT1010 CT1 WITH (NOLOCK) ON CT1.D_E_L_E_T_  = ' ' -- Plano de Contas
+                                  AND D2_CONTA        = CT1.CT1_CONTA
+----------------------------------------------------------------------------------
+
+--------------------
+UNION
+--------------------
+
+SELECT	--Faturamento com TES que movimenta somente Financeiro
+	  D2_CF AS D2_CF_NUM,
+	  D2_CF,DESC_CODIGO_FISCAL,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  D2_GRUPO,D2_FILIAL,
+	  D2_LOJA,
+	  D2_SERIE,
+	  D2_COD,
+	  ISNULL(A3_COD,'XXXXXX') AS A3_COD,ISNULL(A3_NOME,'Sem Vendedor') AS A3_NOME,
+	  B1_COD,
+	  --/*
+	  -------------------------------------------------------------------
+	   /*
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B9_CM1)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT) --((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN B9_CM1 --((B9_CM1)+((B9_CM1)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1 --(B2_CM1+(B2_CM1*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	   END AS B1_CUSTO,
+	   */
+	  -------------------------------------------------------------------
+	  --/*
+	  CASE
+		  WHEN D2_QUANT = 0.0 THEN 0.0
+		  ELSE(D2_CUSTO1/D2_QUANT) 
+	  END AS B1_CUSTO,
+	  --*/
+	  --0.0 AS B1_CUSTO,
+	  -------------------------------------------------------------------
+	  CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B1_CUSTO)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B1_CUSTO
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN ((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND D2_CUSTO1  = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN ((B1_CUSTO)+((B1_CUSTO)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (B1_CUSTO+(B1_CUSTO*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	  END AS CUSTO,
+	  -------------------------------------------------------------------
+	  CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	
+	  	  ----------------------------
+	  	  ELSE 'Sem Custo'
+	   END AS B1_CUSTO_DESC,
+	  -------------------------------------------------------------------
+	  --*/
+	  B1_DESC,D2_QUANT,D2_TOTAL,F2_EMISSAO,F2_DAUTNFE,
+	  
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALICM  AS D2_VALICM,
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALIMP5 AS D2_VALIMP5,
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALIMP6 AS D2_VALIMP6,
+	  
+	  D2_DOC,' ' AS D1_DOC,CLIENTE,D2_CLIENTE,D2_CLIENTE2,A1_LOJA,C5_LOJAAVA,D2_PEDIDO,D2_ITEMPV,D2_ITEM,
+	  0.0 AS D2_VALDEV,0.0 AS D2_QTDEDEV,
+	  DATAATUAL,F2_DOC,D2_DESCON,D2_PESO,A1_GRPTRIB,NOTA_FISCAL,
+	  
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_BASEICM AS D2_BASEICM,
+	  
+	  D2_PRODUTIVIDADE,
+	  NULL AS D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  D2_FRETE AS F2_FRETE_EXTRA,
+	  C5_PERCFT,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN D2_VALICM = 0 THEN '00%'
+		  WHEN CAST((((ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALICM)/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) < 10 THEN '0' + LTRIM(RTRIM(CAST(CAST((((ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALICM)/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) AS VARCHAR(15)))) + '%'
+		  ELSE LTRIM(RTRIM(CAST(CAST((((ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_VALICM)/(D2_TOTAL+D2_VALIPI+D2_FRETE+D2_ICMSRET+D2_SEGURO))*100) AS DECIMAL(15,0)) AS VARCHAR(15)))) + '%'
+	  END AS D2_ALQICM,--Condicionar Campo
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_BASIMP5 AS D2_BASIMP5,
+	  D2_ALQIMP5,
+	  ISNULL((D2_QUANT/NULLIF(D2_QUANT_DIV,0.0)),0.00) * D2_BASIMP6 AS D2_BASIMP6,
+	  D2_ALQIMP6,
+	  'Saida de NF' AS TIPO_MOVI,
+	  'C'           AS TIPO_MOVI2,
+	  D1_VLRDEV,
+	  ISNULL(CT1_CONTA,'XXX') AS CT1_CONTA
+FROM(
+SELECT --| Venda |
+	  D2_GRUPO, 
+	  D2_FILIAL, 
+	  --A3_COD, 
+	  --A3_NOME,
+	  D2_LOJA,
+	  D2_SERIE,
+	  B1_COD,
+	  B1_DESC, 
+	  D2_QUANT,
+	  ----------------------------------------------------------------------
+	  CASE
+		  WHEN ROUND(D2_TOTAL,3,1) = 0.00 THEN D2_TOTAL + D2_DESPESA
+		  ELSE ROUND(D2_TOTAL,3,1) + D2_DESPESA
+	  END AS D2_TOTAL,
+	  ----------------------------------------------------------------------
+	  F2_EMISSAO, 
+	  F2_DAUTNFE,
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_VALICM + D2.D2_DIFAL
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_VALICM + D2.D2_DIFAL
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_VALICM + SD2A.D2_DIFAL) --MAX(D2.D2_QUANT/NULLIF(SD2A.D2_QUANT,0.0))
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_VALICM,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_VALIMP5
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_VALIMP5
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_VALIMP5)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_VALIMP5,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_VALIMP6
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_VALIMP6
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_VALIMP6)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_VALIMP6,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  D2_DOC,
+	  -------------------------------------------------------------------
+	  CASE
+	  	 WHEN F2_AVALIST  = ' ' THEN A1_COD + A1_LOJA
+	  	 WHEN F2_AVALIST <> ' ' THEN F2_AVALIST + C5_LOJAAVA
+	  	 ELSE 'INDEFINIDO'
+	  END AS CLIENTE, 
+	  -------------------------------------------------------------------
+	  D2_CLIENTE + ' - ' + A1_LOJA + ' - ' + LTRIM(RTRIM(A1_NOME)) AS  D2_CLIENTE,
+	  D2_CLIENTE AS D2_CLIENTE2,
+	  A1_LOJA, 
+	  C5_LOJAAVA,
+	  D2_PEDIDO, 
+	  D2_ITEMPV,
+	  D2_ITEM,
+	  D2_VALDEV,
+	  D2_QTDEDEV,
+	  GETDATE() AS DATAATUAL,
+	  F2_DOC,
+	  D2_DESCON,
+	  D2_PESO,
+	  A1_GRPTRIB,
+	  F2_DOC AS NOTA_FISCAL,
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_BASEICM
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_BASEICM
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_BASEICM)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_BASEICM,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  D2_COD,D2_LOCAL,D2_CUSTO1,B1_CUSTO,D2_EMISSAO,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  D2_CF,
+	   (SELECT X5_DESCRI                             
+	    FROM SX5010 WITH (NOLOCK)
+	    WHERE D_E_L_E_T_ = ' '                      
+	   	  AND D2.D2_FILIAL = X5_FILIAL              
+	   	  AND X5_TABELA = '13'                       
+	   	  AND X5_CHAVE = D2.D2_CF)                  AS DESC_CODIGO_FISCAL,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN (SELECT MAX(SUBSTRING(C5.C5_EMISSAO,1,6))
+		        FROM SC5010 C5 WITH (NOLOCK)
+				WHERE C5.D_E_L_E_T_  = ' '
+				  AND C5.C5_FILIAL   = D2.D2_FILIAL
+				  AND C5.C5_NUM      = D2.D2_PEDIDO
+			   ) >= SUBSTRING(D2_EMISSAO,1,6) THEN 'Mesmo mes'
+		  ElSE 'Outro mes'
+	  END AS D2_PRODUTIVIDADE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  F2_VEND1,
+	  (ROUND(D2.D2_TOTAL,3,1)/
+	  (SELECT SUM(ROUND(AAA.D2_TOTAL,3,1))
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) *
+	  F2_FRETE AS D2_FRETE,
+	  ISNULL(C5_PERCFT,0) AS C5_PERCFT,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT COUNT(*)
+	   FROM SD2010 A WITH (NOLOCK)
+	   WHERE A.D_E_L_E_T_ = ' '
+	     AND A.D2_FILIAL  = D2.D2_FILIAL 
+		 AND A.D2_DOC     =	D2.D2_DOC    
+		 AND A.D2_SERIE   =	D2.D2_SERIE  
+		 AND A.D2_CLIENTE =	D2.D2_CLIENTE
+		 AND A.D2_LOJA    = D2.D2_LOJA ) AS D2_QTD_ITEM,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_BASIMP5
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_BASIMP5
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_BASIMP5)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_BASIMP5,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN LTRIM(RTRIM(CAST(CAST(D2.D2_ALQIMP5 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN LTRIM(RTRIM(CAST(CAST(D2.D2_ALQIMP5 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	  	  ELSE ISNULL((SELECT LTRIM(RTRIM(CAST(CAST(MAX(SD2A.D2_ALQIMP5) AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),'0.00%') 
+	  END AS D2_ALQIMP5,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_BASIMP6
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_BASIMP6
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_BASIMP6)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_BASIMP6,  --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN LTRIM(RTRIM(CAST(CAST(D2.D2_ALQIMP6 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN LTRIM(RTRIM(CAST(CAST(D2.D2_ALQIMP6 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	  	  ELSE ISNULL((SELECT LTRIM(RTRIM(CAST(CAST(MAX(SD2A.D2_ALQIMP6) AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%'
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),'0.00%') 
+	  END AS D2_ALQIMP6, --Condicionar Campo	          
+	  ----------------------------------------------------------------------------------------------------
+	  0.0 AS D1_VLRDEV,
+	  ----------------------------------------------------------------------------------------------------
+	  CASE
+	  	  WHEN C6.C6_CONTRAT = ' ' OR C6.C6_CONTRAT IS NULL THEN D2.D2_QUANT
+	  	  WHEN D2_CF IN('5116','5117','6116','6117')        THEN D2.D2_QUANT
+	  	  ELSE ISNULL((SELECT MAX(SD2A.D2_QUANT)
+	            FROM SD2010 SD2A WITH (NOLOCK)
+	            ----------------------------------------------------------------------
+	            INNER JOIN SC6010 SC6A WITH (NOLOCK) ON SC6A.D_E_L_E_T_ = ' '           
+	                                                AND SC6A.C6_FILIAL  = SD2A.D2_FILIAL
+	                                                AND SC6A.C6_NUM     = SD2A.D2_PEDIDO
+	                                                AND SC6A.C6_ITEM    = SD2A.D2_ITEMPV
+	            ----------------------------------------------------------------------
+	            LEFT  JOIN ADB010  ADB WITH (NOLOCK) ON ADB.D_E_L_E_T_  = ' '            
+	                                                AND ADB.ADB_FILIAL  = SD2A.D2_FILIAL
+	                                                AND ADB.ADB_NUMCTR  = SC6A.C6_CONTRAT
+	                                                AND ADB.ADB_ITEM    = SC6A.C6_ITEMCON
+	            ----------------------------------------------------------------------
+	            WHERE SD2A.D_E_L_E_T_ = ' '
+	              AND SC6A.C6_FILIAL  = C6.C6_FILIAL
+	              AND SC6A.C6_CONTRAT = C6.C6_CONTRAT
+	              AND SC6A.C6_ITEMCON = C6.C6_ITEMCON
+	              AND ADB.ADB_PEDCOB  = SC6A.C6_NUM
+	           ),0.00) 
+	  END AS D2_QUANT_DIV, 
+	  --NULL AS D2_QUANT_DIV        
+	  ----------------------------------------------------------------------------------------------------
+	  D2_CONTA
+
+FROM SD2010 D2 WITH (NOLOCK), SF4010 F4 WITH (NOLOCK), SF2010 F2 WITH (NOLOCK), /*SA3010 A3,*/ SB1010 B1 WITH (NOLOCK), SA1010 A1 WITH (NOLOCK), SC5010 C5 WITH (NOLOCK), SC6010 C6 WITH (NOLOCK)/*, CT1010 CT1 WITH (NOLOCK)*/
+WHERE D2.D_E_L_E_T_ = ' ' AND F4.D_E_L_E_T_ = ' ' AND F2.D_E_L_E_T_ = ' ' /*AND A3.D_E_L_E_T_ = ' '*/ AND B1.D_E_L_E_T_ = ' ' AND C5.D_E_L_E_T_ = ' ' AND C6.D_E_L_E_T_ = ' ' /*AND CT1.D_E_L_E_T_ = ' '*/  
+  --------------------------------------------------------------------------------
+  AND C5_FILIAL = D2_FILIAL AND C5_NUM = D2_PEDIDO
+  --AND CT1.CT1_CONTA  = D2.D2_CONTA
+  --AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE   = 'S' AND F4_DUPLIC = 'S') OR (F4_ESTOQUE = 'S' AND F4_XCTR = 'S'))   
+  AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S')OR(F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND F4_XCTR = 'N'))
+  --AND D2_TES      = F4_CODIGO AND ((F4_DUPLIC = 'S') OR (F4_XCTR = 'S')) 
+  AND D2_DOC      = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+  AND D2_CLIENTE  = A1_COD    AND D2_LOJA  = A1_LOJA
+  --AND F2_VEND1    = A3_COD 
+  AND D2_COD      = B1_COD
+  AND C6.C6_FILIAL = D2.D2_FILIAL AND C6.C6_NUM = D2.D2_PEDIDO AND C6.C6_ITEM = D2.D2_ITEMPV 
+  --------------------------------------------------------------------------------  
+  AND SUBSTRING(D2_EMISSAO,1,4) >= '2022'--'2015'
+  --AND D2_EMISSAO < '20200304'
+  AND F2_TIPO     = 'N' 
+  AND D2_CF NOT IN('7949')
+  --AND D2_QTDEDEV  = 0
+  --------------------------------------------------------------------------------
+  /*
+  AND D2_CUSTO1  <> 0  
+  AND F2_AVALIST  = ' ' 
+  AND A1_GRPTRIB <> '104'  
+  AND EXISTS (SELECT B9_COD 
+              FROM SB9010 
+              WHERE SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) 
+                AND D2_FILIAL                 = B9_FILIAL 
+                AND D2_LOCAL                  = B9_LOCAL 
+                AND D2_COD                    = B9_COD )
+  */
+  --------------------------------------------------------------------------------
+)APL3
+----------------------------------------------------------------------------------
+LEFT  JOIN SB9010 B9 WITH (NOLOCK) ON B9.D_E_L_E_T_  = ' ' -- Saldos de Fechamentos de Esotque
+                                  AND D2_COD         = B9_COD     
+					              AND D2_FILIAL      = B9_FILIAL 
+					              AND D2_LOCAL       = B9_LOCAL
+					              AND SUBSTRING(F2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6)
+----------------------------------------------------------------------------------
+LEFT JOIN SB2010 B2 WITH (NOLOCK) ON B2.D_E_L_E_T_  = ' ' -- Saldos Atuais
+                                 AND D2_COD         = B2_COD   
+				                 AND D2_FILIAL      = B2_FILIAL
+				                 AND D2_LOCAL       = B2_LOCAL
+----------------------------------------------------------------------------------
+LEFT JOIN SA3010 A3 WITH (NOLOCK) ON A3.D_E_L_E_T_  = ' ' -- Vendedores
+                                 AND F2_VEND1       = A3.A3_COD
+----------------------------------------------------------------------------------
+LEFT JOIN CT1010 CT1 WITH (NOLOCK) ON CT1.D_E_L_E_T_  = ' ' -- Plano de Contas
+                                  AND D2_CONTA        = CT1.CT1_CONTA
+----------------------------------------------------------------------------------
+
+--------------------
+UNION
+--------------------
+
+SELECT	--Devolução com TES de saida que movimenta somente Financeiro
+	  D2_CF AS D2_CF_NUM,
+	  D2_CF,DESC_CODIGO_FISCAL,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	  D2_GRUPO,D2_FILIAL,
+	  D2_LOJA,
+	  D2_SERIE,
+	  D2_COD,
+	  ISNULL(A3_COD,'XXXXXX') AS A3_COD,ISNULL(A3_NOME,'Sem Vendedor') AS A3_NOME,
+	  B1_COD,
+	  --/*
+	   -------------------------------------------------------------------
+	   /*
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN (B9_CM1)
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN (D2_CUSTO1/D2_QUANT) --((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN B9_CM1 --((B9_CM1)+((B9_CM1)*0.07))
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN B2_CM1 --(B2_CM1+(B2_CM1*0.07))
+	  	  ----------------------------
+	  	  ELSE 0
+	   END AS B1_CUSTO,
+	   */
+	  -------------------------------------------------------------------
+	  --/*
+	  CASE
+		  WHEN D2_QUANT = 0.0 THEN 0.0
+		  ELSE(D2_CUSTO1/D2_QUANT) 
+	  END AS B1_CUSTO,
+	  --*/
+	  --0.0 AS B1_CUSTO,
+	  -------------------------------------------------------------------
+	   CASE
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND D2_CUSTO1  <> 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (D2_CUSTO1/D2_QUANT)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND D2_CUSTO1   = 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (B1_CUSTO)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB <> '104' 
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	   	  THEN B1_CUSTO
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB  = '104' 
+	   	   AND D2_CUSTO1  <> 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN ((D2_CUSTO1/D2_QUANT)+((D2_CUSTO1/D2_QUANT)*0.07))
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB = '104' 
+	   	   AND D2_CUSTO1  = 0
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	   	  THEN (B1_CUSTO)+((B1_CUSTO)*0.07)
+	   	  ----------------------------
+	   	  WHEN A1_GRPTRIB = '104' 
+	   	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	   	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	   	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	   	  THEN (B1_CUSTO+(B1_CUSTO*0.07))
+	   	  ----------------------------
+	   	  ELSE 0
+	   END AS CUSTO,
+	   -------------------------------------------------------------------
+	   CASE
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB <> '104' 
+		   AND D2_CUSTO1   = 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	   	  
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1  <> 0
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'D2_CUSTO1 (Custo na NF)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB = '104' 
+	  	   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NOT NULL--Tem fechamento SB9
+	  	  THEN 'B9_CM1 (Custo no fechamento estoque)'
+	  	  ----------------------------
+	  	  WHEN A1_GRPTRIB  = '104' 
+	  	   AND D2_CUSTO1   = 0
+		   AND (SELECT MAX(B9_COD) FROM SB9010 SB9 WITH (NOLOCK)
+	  	        WHERE SB9.D_E_L_E_T_  = ' ' AND SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) AND B9_DATA >='20150101'
+	  	          AND D2_FILIAL = B9_FILIAL AND D2_LOCAL = B9_LOCAL AND D2_COD = B9_COD) IS NULL--Não Tem fechamento SB9
+	  	  THEN 'B2_CM1 (Custo no saldo atual)'	
+	  	  ----------------------------
+	  	  ELSE 'Sem Custo'
+	   END AS B1_CUSTO_DESC,
+	  -------------------------------------------------------------------
+	   --*/
+	  B1_DESC,
+	  0.0 AS D2_QUANT,0.0 AS D2_TOTAL,D1_DTDIGIT AS F2_EMISSAO,F2_DAUTNFE,
+	  D2_VALICM,
+	  D2_VALIMP5,D2_VALIMP6,
+	  D2_DOC,D1_DOC,CLIENTE,D2_CLIENTE,D2_CLIENTE2,A1_LOJA,C5_LOJAAVA,D2_PEDIDO,D2_ITEMPV,D2_ITEM,
+	  D2_VALDEV,D2_QTDEDEV,
+	  DATAATUAL,F2_DOC,
+	  0.0 AS D2_DESCON,D2_PESO,
+	  A1_GRPTRIB,NOTA_FISCAL,
+	  0.0 AS D2_BASEICM,
+	  D2_PRODUTIVIDADE,
+	  D1_DTDIGIT,
+	  0.0 AS D2_VALIPI,
+	  0.0 AS D2_ICMSRET,
+	  0.0 AS D2_SEGURO,
+	  0.0 AS F2_FRETE_EXTRA,
+	  0.0 AS C5_PERCFT,
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  'DEVOLUÇÃO' AS D2_ALQICM,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	  D2_BASIMP5,
+	  D2_ALQIMP5,
+	  D2_BASIMP6,
+	  D2_ALQIMP6,
+	  TIPO_MOVI,
+	  'D' AS TIPO_MOVI2,
+	  D1_VLRDEV,
+	  ISNULL(CT1_CONTA,'XXX') AS CT1_CONTA
+FROM(
+SELECT --| Devolução |
+	   D2_GRUPO, 
+	   D2_FILIAL, 
+	   --A3_COD, 
+	   --A3_NOME,
+	   D2_LOJA,
+	   D2_SERIE,
+	   B1_COD,
+	   B1_DESC,
+	   D2_PRCVEN,
+	   D2_QUANT, 
+	   D2_TOTAL, 
+	   F2_EMISSAO,
+	   F2_DAUTNFE,
+	   ((D1_VALICM+D2_DIFAL)  *-1) AS D2_VALICM, 
+	   (D1_VALIMP5 *-1) AS D2_VALIMP5, 
+	   (D1_VALIMP6 *-1) AS D2_VALIMP6, 
+	   D2_DOC,
+	   D1_DOC,
+	   -------------------------------------------------------------------
+	   CASE
+	  	 WHEN F2_AVALIST  = ' ' THEN A1_COD + A1_LOJA
+	  	 WHEN F2_AVALIST <> ' ' THEN F2_AVALIST + C5_LOJAAVA
+	  	 ELSE 'INDEFINIDO'
+	  END AS CLIENTE,  
+	   -------------------------------------------------------------------
+	   D2_CLIENTE + ' - ' + A1_LOJA + ' - ' + LTRIM(RTRIM(A1_NOME)) AS  D2_CLIENTE,
+	   D2_CLIENTE AS D2_CLIENTE2,
+	   A1_LOJA, 
+	   C5_LOJAAVA,
+	   D2_PEDIDO, 
+	   D2_ITEMPV,
+	   D2_ITEM,
+	   --D2_VALDEV + D2_VALIPI AS D2_VALDEV,
+	   (D1_TOTAL - D1_VALDESC) + D1_VALIPI + D1_ICMSRET + D2_DESPESA +
+	  ISNULL(
+	  (((D1_TOTAL - D1_VALDESC)/
+	  (SELECT SUM(ROUND(AAA.D2_TOTAL,2,1))
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) * F2_FRETE),0) AS D2_VALDEV,
+	   (D1_TOTAL - D1_VALDESC) AS D1_VLRDEV,
+	   D1_QUANT AS D2_QTDEDEV,
+	   GETDATE() AS DATAATUAL,
+	   F2_DOC,
+	   D2_DESCON,
+	   D2_PESO,
+	   A1_GRPTRIB,
+	   F2_DOC AS NOTA_FISCAL,
+	   D2_BASEICM,
+	   D2_COD,D2_LOCAL,D2_CUSTO1,B1_CUSTO,D2_EMISSAO,D2_TES,F4_ESTOQUE,F4_DUPLIC,F4_XCTR,F4_TEXTO,
+	   D2_CF,
+	   (SELECT X5_DESCRI                             
+	    FROM SX5010 WITH (NOLOCK)                               
+	    WHERE D_E_L_E_T_ = ' '                      
+	   	  AND D2.D2_FILIAL = X5_FILIAL              
+	   	  AND X5_TABELA = '13'                       
+	   	  AND X5_CHAVE = D2.D2_CF)                  AS DESC_CODIGO_FISCAL,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN (SELECT MAX(SUBSTRING(C5.C5_EMISSAO,1,6))
+		        FROM SC5010 C5 WITH (NOLOCK)
+				WHERE C5.D_E_L_E_T_  = ' '
+				  AND C5.C5_FILIAL   = D2.D2_FILIAL
+				  AND C5.C5_NUM      = D2.D2_PEDIDO
+			   ) >= SUBSTRING(D2_EMISSAO,1,6) THEN 'Mesmo mes'
+		  ElSE 'Outro mes'
+	  END AS D2_PRODUTIVIDADE,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  D1_DTDIGIT,
+	  D2_VALIPI,
+	  D2_ICMSRET,
+	  D2_SEGURO,
+	  F2_VEND1,
+	  (D2.D2_TOTAL/
+	  (SELECT SUM(AAA.D2_TOTAL)
+	   FROM SD2010 AAA WITH (NOLOCK)
+	   WHERE AAA.D_E_L_E_T_  = ' '
+	     AND AAA.D2_FILIAL   = D2.D2_FILIAL
+	     AND AAA.D2_DOC      = D2.D2_DOC
+		 AND AAA.D2_SERIE    = D2.D2_SERIE  
+		 AND AAA.D2_CLIENTE  = D2.D2_CLIENTE
+		 AND AAA.D2_LOJA     = D2.D2_LOJA    )) *
+	  F2_FRETE AS D2_FRETE,
+	  F2_FRETE,
+	  ISNULL(C5_PERCFT,0) AS C5_PERCFT,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT COUNT(*)
+	   FROM SD2010 A WITH (NOLOCK)
+	   WHERE A.D_E_L_E_T_ = ' '
+	     AND A.D2_FILIAL  = D2.D2_FILIAL 
+		 AND A.D2_DOC     =	D2.D2_DOC    
+		 AND A.D2_SERIE   =	D2.D2_SERIE  
+		 AND A.D2_CLIENTE =	D2.D2_CLIENTE
+		 AND A.D2_LOJA    = D2.D2_LOJA ) AS D2_QTD_ITEM,
+	  -------------------------------------------------------------------------------------------------------------------------------------------------
+	  F2_CARGA,
+	  F2_SEQCAR,
+	  D2_BASIMP5,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP5 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP5,
+	  D2_BASIMP6,
+	  LTRIM(RTRIM(CAST(CAST(D2_ALQIMP6 AS DECIMAL(15,2)) AS VARCHAR(15)))) + '%' AS D2_ALQIMP6,
+	  -----------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN SUBSTRING(D1_DTDIGIT,1,6)  = SUBSTRING(D2_EMISSAO,1,6) THEN 'Devolução mesmo mês'
+		  WHEN SUBSTRING(D1_DTDIGIT,1,6) <> SUBSTRING(D2_EMISSAO,1,6) THEN 'Devolução outro mês'
+		  ELSE 'Erro'
+	  END AS TIPO_MOVI,
+	  -----------------------------------------------------------------------------------------------------
+	  D2_CONTA
+
+FROM SD2010 D2 WITH (NOLOCK), SF4010 F4 WITH (NOLOCK), SF2010 F2 WITH (NOLOCK), /*SA3010 A3,*/ SB1010 B1 WITH (NOLOCK), SA1010 A1 WITH (NOLOCK), SD1010 D1 WITH (NOLOCK), SC5010 C5 WITH (NOLOCK)/*, CT1010 CT1 WITH (NOLOCK)*/
+WHERE D2.D_E_L_E_T_  = ' ' AND F4.D_E_L_E_T_  = ' ' AND F2.D_E_L_E_T_  = ' ' /*AND A3.D_E_L_E_T_  = ' '*/ AND B1.D_E_L_E_T_  = ' ' AND D1.D_E_L_E_T_  = ' ' AND C5.D_E_L_E_T_ = ' ' /*AND CT1.D_E_L_E_T_ = ' '*/
+  --------------------------------------------------------------------------------
+  AND C5_FILIAL = D2_FILIAL AND C5_NUM = D2_PEDIDO
+  --AND CT1.CT1_CONTA  = D2.D2_CONTA
+  AND D1_FORNECE  = D2_CLIENTE AND D1_FILIAL = D2_FILIAL AND D1_ITEMORI = D2_ITEM AND D1_NFORI = D2_DOC AND D1_SERIORI = D2_SERIE AND D1_LOJA = D2_LOJA 
+  --AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE   = 'S' AND F4_DUPLIC = 'S') OR (F4_ESTOQUE = 'S' AND F4_XCTR = 'S'))   
+  AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S')OR(F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND F4_XCTR = 'N'))
+  --AND D2_TES      = F4_CODIGO  AND ((F4_DUPLIC = 'S') OR (F4_XCTR = 'S')) 
+  AND D2_DOC      = F2_DOC     AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+  AND D2_CLIENTE  = A1_COD     AND D2_LOJA = A1_LOJA
+  --AND F2_VEND1    = A3_COD 
+  AND D2_COD      = B1_COD
+  --------------------------------------------------------------------------------
+  AND SUBSTRING(D2_EMISSAO,1,4) >= '2022'--'2015'
+  --AND D2_EMISSAO < '20200304'
+  AND F2_TIPO     = 'N'
+  AND D2_CF NOT IN('7949')
+  AND D1_QUANT <> 0
+  --AND D2_QTDEDEV <> 0 
+  --------------------------------------------------------------------------------
+  /*
+  AND D2_CUSTO1  <> 0  
+  AND F2_AVALIST  = ' '       
+  AND A1_GRPTRIB <> '104'      
+  AND EXISTS (SELECT B9_COD 
+              FROM SB9010 
+              WHERE SUBSTRING(D2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6) 
+                AND D2_FILIAL                 = B9_FILIAL 
+                AND D2_LOCAL                  = B9_LOCAL 
+                AND D2_COD                    = B9_COD )
+  */
+  --------------------------------------------------------------------------------
+)APL4
+----------------------------------------------------------------------------------
+LEFT  JOIN SB9010 B9 WITH (NOLOCK) ON B9.D_E_L_E_T_  = ' ' -- Saldos de Fechamentos de Esotque
+                                  AND D2_COD         = B9_COD     
+					              AND D2_FILIAL      = B9_FILIAL 
+					              AND D2_LOCAL       = B9_LOCAL
+					              AND SUBSTRING(F2_EMISSAO,1,6) = SUBSTRING(B9_DATA,1,6)
+----------------------------------------------------------------------------------
+LEFT JOIN SB2010 B2 WITH (NOLOCK) ON B2.D_E_L_E_T_  = ' ' -- Saldos Atuais
+                                 AND D2_COD         = B2_COD   
+				                 AND D2_FILIAL      = B2_FILIAL
+				                 AND D2_LOCAL       = B2_LOCAL
+----------------------------------------------------------------------------------
+LEFT JOIN SA3010 A3 WITH (NOLOCK) ON A3.D_E_L_E_T_  = ' ' -- Vendedores
+                                 AND F2_VEND1       = A3.A3_COD
+----------------------------------------------------------------------------------
+LEFT JOIN CT1010 CT1 WITH (NOLOCK) ON CT1.D_E_L_E_T_  = ' ' -- Plano de Contas
+                                  AND D2_CONTA        = CT1.CT1_CONTA
+----------------------------------------------------------------------------------
+
+)APL
+----------------------------------------------------------------------------------------------------------
+LEFT JOIN (SELECT
+                 C9_FILIAL, C9_PEDIDO, C9_ITEM, C9_NFISCAL, C9_CLIENTE, C9_SEQCAR, C9_CARGA,
+				 C9_QTDLIB
+           FROM SC9010 C9 WITH (NOLOCK)
+		   WHERE C9.D_E_L_E_T_  = ' '
+		     AND C9_QTDLIB     <> 0
+			 AND C9_NFISCAL    <> ' '
+		   GROUP BY C9_FILIAL, C9_PEDIDO, C9_ITEM, C9_NFISCAL, C9_CLIENTE, C9_SEQCAR, C9_CARGA,
+					C9_QTDLIB
+		  ) SC9
+          ON D2_DOC     <> ' '
+		 AND C9_FILIAL   = D2_FILIAL
+		 AND C9_PEDIDO   = D2_PEDIDO
+		 AND C9_ITEM     = D2_ITEMPV
+		 AND C9_NFISCAL  = D2_DOC
+		 AND C9_CLIENTE  = D2_CLIENTE
+		 AND C9_QTDLIB   = D2_QUANT
+----------------------------------------------------------------------------------------------------------
+WHERE F2_EMISSAO >= CONVERT(VARCHAR(8), DATEADD(D,-60,GETDATE()), 112)
+--WHERE D2_FILIAL = '02'
+--  AND D2_DOC    = '000164271'
+--  AND D2_ITEM  IN('01','02') 
+)APL10]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="FATURAMENTO_MARGEM_DE_CONTRIBUICAO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="REFORMAT4:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="68" guiY="160" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.D2_GRUPO = $in.0.D2_GRUPO;
+	$out.0.D2_FILIAL = $in.0.D2_FILIAL;
+	$out.0.A3_COD = $in.0.A3_COD;
+	$out.0.A3_NOME = $in.0.A3_NOME;
+	$out.0.B1_COD = $in.0.B1_COD;
+	$out.0.B1_CUSTO = $in.0.B1_CUSTO;
+	$out.0.Custo = $in.0.Custo;
+	$out.0.B1_DESC = $in.0.B1_DESC;
+	$out.0.D2_QUANT = $in.0.D2_QUANT;
+	$out.0.F2_EMISSAOII = $in.0.F2_EMISSAO;
+	$out.0.D2_TOTAL = $in.0.D2_TOTAL;
+	$out.0.F2_EMISSAO = $in.0.F2_EMISSAO;
+	$out.0.D2_VALICM = $in.0.D2_VALICM;
+	$out.0.D2_VALIMP5 = $in.0.D2_VALIMP5;
+	$out.0.D2_VALIMP6 = $in.0.D2_VALIMP6;
+	$out.0.CLIENTE = $in.0.CLIENTE;
+	$out.0.A1_LOJA = $in.0.A1_LOJA;
+	$out.0.D2_PEDIDO = $in.0.D2_PEDIDO;
+	$out.0.D2_ITEM = $in.0.D2_ITEM;
+	$out.0.D2_VALDEV = $in.0.D2_VALDEV;
+	$out.0.D2_QTDEDEV = $in.0.D2_QTDEDEV;
+	$out.0.DATAATUAL = $in.0.DATAATUAL;
+	$out.0.D2_DOC = $in.0.D2_DOC;
+	$out.0.D2_DOC2 = $in.0.D2_DOC;
+	$out.0.F2_DOC = $in.0.F2_DOC;
+	$out.0.D2_DESCON = $in.0.D2_DESCON;
+	$out.0.D2_PESO = $in.0.D2_PESO;
+	$out.0.A1_GRPTRIB = $in.0.A1_GRPTRIB;
+	$out.0.NOTA_FISCAL = $in.0.NOTA_FISCAL;
+	$out.0.D2_BASEICM = $in.0.D2_BASEICM;
+	$out.0.D2_CF = $in.0.D2_CF;
+	$out.0.DESC_CODIGO_FISCAL = $in.0.DESC_CODIGO_FISCAL;
+	$out.0.D2_TES = $in.0.D2_TES;
+	$out.0.F4_ESTOQUE = $in.0.F4_ESTOQUE;
+	$out.0.F4_DUPLIC = $in.0.F4_DUPLIC;
+	$out.0.F4_XCTR = $in.0.F4_XCTR;
+	$out.0.D2_PRODUTIVIDADE = $in.0.D2_PRODUTIVIDADE;
+	$out.0.D1_DTDIGIT = $in.0.D1_DTDIGIT;
+	$out.0.D2_VALIPI = $in.0.D2_VALIPI;
+	$out.0.A1_COD_CLI = $in.0.A1_COD_CLI;
+	$out.0.A1_NOME_CLI = $in.0.A1_NOME_CLI;
+	$out.0.F2_EMISSAOIII = $in.0.F2_EMISSAO;
+	$out.0.D2_CF_NUM = $in.0.D2_CF_NUM;
+	$out.0.F2_FRETE_EXTRA = $in.0.F2_FRETE_EXTRA;
+	$out.0.DATA_ULTIMA_NF = $in.0.DATA_ULTIMA_NF;
+	$out.0.DATA_PEN_ULTIMA_NF = $in.0.DATA_PEN_ULTIMA_NF;
+	$out.0.DATA_ANT_PEN_ULTIMA_NF = $in.0.DATA_ANT_PEN_ULTIMA_NF;
+	$out.0.E_ULTIMA_NF = $in.0.E_ULTIMA_NF;
+	$out.0.E_PEN_ULTIMA_NF = $in.0.E_PEN_ULTIMA_NF;
+	$out.0.E_ANT_PEN_ULTIMA_NF = $in.0.E_ANT_PEN_ULTIMA_NF;
+	$out.0.D2_EMISSAO = $in.0.F2_EMISSAO;
+	$out.0.D2_RECEITA_FRETE = $in.0.D2_RECEITA_FRETE;
+	$out.0.D2_DESPESA_FRETE = $in.0.D2_DESPESA_FRETE;
+	$out.0.TEM_LIBERACAO = $in.0.TEM_LIBERACAO;
+	$out.0.F4_TEXTO = $in.0.F4_TEXTO;
+	$out.0.D2_ICMSRET = $in.0.D2_ICMSRET;
+	$out.0.D2_SEGURO = $in.0.D2_SEGURO;
+	$out.0.D1_DOC = $in.0.D1_DOC;
+	$out.0.FK_SD2 = $in.0.FK_SD2;
+	$out.0.D3_EMISSAO = $in.0.F2_EMISSAO;
+	$out.0.FK_SF2 = $in.0.FK_SF2;
+	$out.0.F2_DAUTNFE = $in.0.F2_DAUTNFE;
+	$out.0.B1_CUSTO_DESC = $in.0.B1_CUSTO_DESC;
+	$out.0.F2_CARGA = $in.0.F2_CARGA;
+	$out.0.F2_SEQCAR = $in.0.F2_SEQCAR;
+	$out.0.D2_PEDIDO2 = $in.0.D2_PEDIDO;
+	$out.0.D2_ALQICM = $in.0.D2_ALQICM;
+	$out.0.D2_BASIMP5 = $in.0.D2_BASIMP5;
+	$out.0.D2_ALQIMP5 = $in.0.D2_ALQIMP5;
+	$out.0.D2_BASIMP6 = $in.0.D2_BASIMP6;
+	$out.0.D2_ALQIMP6 = $in.0.D2_ALQIMP6;
+	$out.0.F2_EMISSAO_FLUXO = $in.0.F2_EMISSAO;
+	$out.0.D2_CLIENTE = $in.0.D2_CLIENTE;
+	$out.0.FK_FILIAL = $in.0.D2_FILIAL;
+	$out.0.TIPO_MOVI = $in.0.TIPO_MOVI;
+	$out.0.DATA_FUNIL = $in.0.F2_EMISSAO;
+	$out.0.FK_GRUPO_PROD = $in.0.D2_GRUPO;
+	$out.0.D2_DATA_CARGA = $in.0.D2_DATA_CARGA;
+	$out.0.TIPO_MOVI2 = $in.0.TIPO_MOVI2;
+	$out.0.D1_VLRDEV = $in.0.D1_VLRDEV;
+	$out.0.CT1_CONTA = $in.0.CT1_CONTA;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge22" inPort="Port 0 (in)" metadata="Metadata14" outPort="Port 0 (out)" toNode="FAST_SORT:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="FastSort" guiX="239" guiY="226" id="FAST_SORT" sortKey="FK_SD2(a);F2_EMISSAO(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata14" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" guiName="SimpleCopy" guiX="409" guiY="318" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Edge debugMode="true" fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata14" outPort="Port 0 (out)" toNode="AGGREGATE:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata14" outPort="Port 1 (out)" toNode="GD_FATURAMENTO_MARGEM_DE_CONTRIBUICAO_WRITER:0"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" guiName="Aggregate" guiX="593" guiY="134" id="AGGREGATE" mapping="$Min_Date:=min($F2_EMISSAO);$Max_Date:=max($F2_EMISSAO);" type="AGGREGATE">
+<attr name="guiDescription"><![CDATA[OBTÉM MAIOR E MENOR DATA]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="AGGREGATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="Reformat" guiX="757" guiY="134" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.syntax_content = 'DELETE FROM {attr.margemdecontribuicao.factsof} WHERE {emissao_mc.date.yyyymmdd} BETWEEN '+'"'+date2str($in.0.Min_Date, "yyyyMMdd")+'" AND "'+date2str($in.0.Max_Date, "yyyyMMdd")+'"';
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="guiDescription"><![CDATA[GERA STATEMENT DE DELETE]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (input)" metadata="Metadata1" outPort="Port 0 (out)" toNode="MAQL_DML_EXECUTE:0"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" guiName="MAQL DML Execute" guiX="931" guiY="134" id="MAQL_DML_EXECUTE" maqlInputField="syntax_content" type="MAQL_DML_EXECUTE">
+<attr name="guiDescription"><![CDATA[DELETA DADOS COM BASE NO STATEMENT]]></attr>
+</Node>
+</Phase>
+<Phase number="7">
+<Node dataset="dataset.margemdecontribuicao" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.margemdecontribuicao&quot;,&quot;datasetTitle&quot;:&quot;Faturamento / Margem de Contribuição&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.a1_cod_cli&quot;,&quot;title&quot;:&quot;A1_COD_CLI&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_a1_cod_cli&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a1_cod_cli&quot;,&quot;title&quot;:&quot;A1_COD_CLI&quot;,&quot;prettyId&quot;:&quot;a1_cod_cli&quot;,&quot;assignedMetadataField&quot;:&quot;A1_COD_CLI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a1_cod_cli&quot;,&quot;title&quot;:&quot;A1_COD_CLI&quot;,&quot;prettyId&quot;:&quot;a1_cod_cli&quot;,&quot;assignedMetadataField&quot;:&quot;A1_COD_CLI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.a1_nome_cli&quot;,&quot;title&quot;:&quot;A1_NOME_CLI&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_a1_nome_cli&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a1_nome_cli&quot;,&quot;title&quot;:&quot;A1_NOME_CLI&quot;,&quot;prettyId&quot;:&quot;a1_nome_cli&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NOME_CLI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a1_nome_cli&quot;,&quot;title&quot;:&quot;A1_NOME_CLI&quot;,&quot;prettyId&quot;:&quot;a1_nome_cli&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NOME_CLI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.a3_nome&quot;,&quot;title&quot;:&quot;A3_NOME&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_a3_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a3_nome&quot;,&quot;title&quot;:&quot;A3_NOME&quot;,&quot;prettyId&quot;:&quot;a3_nome&quot;,&quot;assignedMetadataField&quot;:&quot;A3_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.a3_nome&quot;,&quot;title&quot;:&quot;A3_NOME&quot;,&quot;prettyId&quot;:&quot;a3_nome&quot;,&quot;assignedMetadataField&quot;:&quot;A3_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.b1_custo_desc&quot;,&quot;title&quot;:&quot;B1_CUSTO_DESC&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_b1_custo_desc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.b1_custo_desc&quot;,&quot;title&quot;:&quot;B1_CUSTO_DESC&quot;,&quot;prettyId&quot;:&quot;b1_custo_desc&quot;,&quot;assignedMetadataField&quot;:&quot;B1_CUSTO_DESC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.b1_custo_desc&quot;,&quot;title&quot;:&quot;B1_CUSTO_DESC&quot;,&quot;prettyId&quot;:&quot;b1_custo_desc&quot;,&quot;assignedMetadataField&quot;:&quot;B1_CUSTO_DESC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.custoproduto&quot;,&quot;title&quot;:&quot;Custo Produto&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_custoproduto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.custoproduto&quot;,&quot;title&quot;:&quot;Custo Produto&quot;,&quot;prettyId&quot;:&quot;custoproduto&quot;,&quot;assignedMetadataField&quot;:&quot;Custo&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d1_doc&quot;,&quot;title&quot;:&quot;D1_DOC&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d1_doc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d1_doc&quot;,&quot;title&quot;:&quot;D1_DOC&quot;,&quot;prettyId&quot;:&quot;d1_doc&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d1_doc&quot;,&quot;title&quot;:&quot;D1_DOC&quot;,&quot;prettyId&quot;:&quot;d1_doc&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_alqicm&quot;,&quot;title&quot;:&quot;D2_ALQICM&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_alqicm&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqicm&quot;,&quot;title&quot;:&quot;D2_ALQICM&quot;,&quot;prettyId&quot;:&quot;d2_alqicm&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQICM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqicm&quot;,&quot;title&quot;:&quot;D2_ALQICM&quot;,&quot;prettyId&quot;:&quot;d2_alqicm&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQICM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_alqimp5&quot;,&quot;title&quot;:&quot;D2_ALQIMP5&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_alqimp5&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqimp5&quot;,&quot;title&quot;:&quot;D2_ALQIMP5&quot;,&quot;prettyId&quot;:&quot;d2_alqimp5&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQIMP5&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqimp5&quot;,&quot;title&quot;:&quot;D2_ALQIMP5&quot;,&quot;prettyId&quot;:&quot;d2_alqimp5&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQIMP5&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_alqimp6&quot;,&quot;title&quot;:&quot;D2_ALQIMP6&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_alqimp6&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqimp6&quot;,&quot;title&quot;:&quot;D2_ALQIMP6&quot;,&quot;prettyId&quot;:&quot;d2_alqimp6&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQIMP6&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_alqimp6&quot;,&quot;title&quot;:&quot;D2_ALQIMP6&quot;,&quot;prettyId&quot;:&quot;d2_alqimp6&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ALQIMP6&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_cf&quot;,&quot;title&quot;:&quot;D2_CF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_cf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cf&quot;,&quot;title&quot;:&quot;D2_CF&quot;,&quot;prettyId&quot;:&quot;d2_cf&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cf&quot;,&quot;title&quot;:&quot;D2_CF&quot;,&quot;prettyId&quot;:&quot;d2_cf&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_cf_num&quot;,&quot;title&quot;:&quot;D2_CF_NUM&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_cf_num&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cf_num&quot;,&quot;title&quot;:&quot;D2_CF_NUM&quot;,&quot;prettyId&quot;:&quot;d2_cf_num&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CF_NUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cf_num&quot;,&quot;title&quot;:&quot;D2_CF_NUM&quot;,&quot;prettyId&quot;:&quot;d2_cf_num&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CF_NUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_cliente&quot;,&quot;title&quot;:&quot;D2_CLIENTE&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_cliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cliente&quot;,&quot;title&quot;:&quot;D2_CLIENTE&quot;,&quot;prettyId&quot;:&quot;d2_cliente&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CLIENTE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_cliente&quot;,&quot;title&quot;:&quot;D2_CLIENTE&quot;,&quot;prettyId&quot;:&quot;d2_cliente&quot;,&quot;assignedMetadataField&quot;:&quot;D2_CLIENTE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_data_carga&quot;,&quot;title&quot;:&quot;D2_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_data_carga&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_data_carga&quot;,&quot;title&quot;:&quot;D2_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;d2_data_carga&quot;,&quot;assignedMetadataField&quot;:&quot;D2_DATA_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_data_carga&quot;,&quot;title&quot;:&quot;D2_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;d2_data_carga&quot;,&quot;assignedMetadataField&quot;:&quot;D2_DATA_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_itemitem&quot;,&quot;title&quot;:&quot;D2_Item&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_itemitem&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_itemitem&quot;,&quot;title&quot;:&quot;D2_Item&quot;,&quot;prettyId&quot;:&quot;d2_itemitem&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_pedido&quot;,&quot;title&quot;:&quot;D2_PEDIDO&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_pedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_pedido&quot;,&quot;title&quot;:&quot;D2_PEDIDO&quot;,&quot;prettyId&quot;:&quot;d2_pedido&quot;,&quot;assignedMetadataField&quot;:&quot;D2_PEDIDO2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_pedido&quot;,&quot;title&quot;:&quot;D2_PEDIDO&quot;,&quot;prettyId&quot;:&quot;d2_pedido&quot;,&quot;assignedMetadataField&quot;:&quot;D2_PEDIDO2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_produtividade&quot;,&quot;title&quot;:&quot;D2_PRODUTIVIDADE&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_produtividade&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_produtividade&quot;,&quot;title&quot;:&quot;D2_PRODUTIVIDADE&quot;,&quot;prettyId&quot;:&quot;d2_produtividade&quot;,&quot;assignedMetadataField&quot;:&quot;D2_PRODUTIVIDADE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_produtividade&quot;,&quot;title&quot;:&quot;D2_PRODUTIVIDADE&quot;,&quot;prettyId&quot;:&quot;d2_produtividade&quot;,&quot;assignedMetadataField&quot;:&quot;D2_PRODUTIVIDADE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.d2_tes&quot;,&quot;title&quot;:&quot;D2_TES&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_d2_tes&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_tes&quot;,&quot;title&quot;:&quot;D2_TES&quot;,&quot;prettyId&quot;:&quot;d2_tes&quot;,&quot;assignedMetadataField&quot;:&quot;D2_TES&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.d2_tes&quot;,&quot;title&quot;:&quot;D2_TES&quot;,&quot;prettyId&quot;:&quot;d2_tes&quot;,&quot;assignedMetadataField&quot;:&quot;D2_TES&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.data_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_data_ant_pen_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_ant_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_ANT_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_ant_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_ANT_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.data_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_data_pen_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_pen_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.data_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_data_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.data_ultima_nf&quot;,&quot;title&quot;:&quot;DATA_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;data_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.desc_codigo_fiscal&quot;,&quot;title&quot;:&quot;DESC_CODIGO_FISCAL&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_desc_codigo_fiscal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.desc_codigo_fiscal&quot;,&quot;title&quot;:&quot;DESC_CODIGO_FISCAL&quot;,&quot;prettyId&quot;:&quot;desc_codigo_fiscal&quot;,&quot;assignedMetadataField&quot;:&quot;DESC_CODIGO_FISCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.desc_codigo_fiscal&quot;,&quot;title&quot;:&quot;DESC_CODIGO_FISCAL&quot;,&quot;prettyId&quot;:&quot;desc_codigo_fiscal&quot;,&quot;assignedMetadataField&quot;:&quot;DESC_CODIGO_FISCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.e_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_e_ant_pen_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_ant_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_ANT_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_ant_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_ANT_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_ant_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_ANT_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.e_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_e_pen_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_pen_ultima_nf&quot;,&quot;title&quot;:&quot;E_PEN_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_pen_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_PEN_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.e_ultima_nf&quot;,&quot;title&quot;:&quot;E_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_e_ultima_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_ultima_nf&quot;,&quot;title&quot;:&quot;E_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.e_ultima_nf&quot;,&quot;title&quot;:&quot;E_ULTIMA_NF&quot;,&quot;prettyId&quot;:&quot;e_ultima_nf&quot;,&quot;assignedMetadataField&quot;:&quot;E_ULTIMA_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f2_carga&quot;,&quot;title&quot;:&quot;F2_CARGA&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f2_carga&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f2_carga&quot;,&quot;title&quot;:&quot;F2_CARGA&quot;,&quot;prettyId&quot;:&quot;f2_carga&quot;,&quot;assignedMetadataField&quot;:&quot;F2_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f2_carga&quot;,&quot;title&quot;:&quot;F2_CARGA&quot;,&quot;prettyId&quot;:&quot;f2_carga&quot;,&quot;assignedMetadataField&quot;:&quot;F2_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f2_seqcar&quot;,&quot;title&quot;:&quot;F2_SEQCAR&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f2_seqcar&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f2_seqcar&quot;,&quot;title&quot;:&quot;F2_SEQCAR&quot;,&quot;prettyId&quot;:&quot;f2_seqcar&quot;,&quot;assignedMetadataField&quot;:&quot;F2_SEQCAR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f2_seqcar&quot;,&quot;title&quot;:&quot;F2_SEQCAR&quot;,&quot;prettyId&quot;:&quot;f2_seqcar&quot;,&quot;assignedMetadataField&quot;:&quot;F2_SEQCAR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f4_duplic&quot;,&quot;title&quot;:&quot;F4_DUPLIC&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f4_duplic&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_duplic&quot;,&quot;title&quot;:&quot;F4_DUPLIC&quot;,&quot;prettyId&quot;:&quot;f4_duplic&quot;,&quot;assignedMetadataField&quot;:&quot;F4_DUPLIC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_duplic&quot;,&quot;title&quot;:&quot;F4_DUPLIC&quot;,&quot;prettyId&quot;:&quot;f4_duplic&quot;,&quot;assignedMetadataField&quot;:&quot;F4_DUPLIC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f4_estoque&quot;,&quot;title&quot;:&quot;F4_ESTOQUE&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f4_estoque&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_estoque&quot;,&quot;title&quot;:&quot;F4_ESTOQUE&quot;,&quot;prettyId&quot;:&quot;f4_estoque&quot;,&quot;assignedMetadataField&quot;:&quot;F4_ESTOQUE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_estoque&quot;,&quot;title&quot;:&quot;F4_ESTOQUE&quot;,&quot;prettyId&quot;:&quot;f4_estoque&quot;,&quot;assignedMetadataField&quot;:&quot;F4_ESTOQUE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f4_texto&quot;,&quot;title&quot;:&quot;F4_TEXTO&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f4_texto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_texto&quot;,&quot;title&quot;:&quot;F4_TEXTO&quot;,&quot;prettyId&quot;:&quot;f4_texto&quot;,&quot;assignedMetadataField&quot;:&quot;F4_TEXTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_texto&quot;,&quot;title&quot;:&quot;F4_TEXTO&quot;,&quot;prettyId&quot;:&quot;f4_texto&quot;,&quot;assignedMetadataField&quot;:&quot;F4_TEXTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.f4_xctr&quot;,&quot;title&quot;:&quot;F4_XCTR&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_f4_xctr&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_xctr&quot;,&quot;title&quot;:&quot;F4_XCTR&quot;,&quot;prettyId&quot;:&quot;f4_xctr&quot;,&quot;assignedMetadataField&quot;:&quot;F4_XCTR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.f4_xctr&quot;,&quot;title&quot;:&quot;F4_XCTR&quot;,&quot;prettyId&quot;:&quot;f4_xctr&quot;,&quot;assignedMetadataField&quot;:&quot;F4_XCTR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.filial&quot;,&quot;title&quot;:&quot;Filial&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.filial&quot;,&quot;title&quot;:&quot;Filial&quot;,&quot;prettyId&quot;:&quot;filial&quot;,&quot;assignedMetadataField&quot;:&quot;D2_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.filial&quot;,&quot;title&quot;:&quot;Filial&quot;,&quot;prettyId&quot;:&quot;filial&quot;,&quot;assignedMetadataField&quot;:&quot;D2_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.grupotributario&quot;,&quot;title&quot;:&quot;Grupo Tributario&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_grupotributario&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.grupotributario&quot;,&quot;title&quot;:&quot;Grupo Tributario&quot;,&quot;prettyId&quot;:&quot;grupotributario&quot;,&quot;assignedMetadataField&quot;:&quot;A1_GRPTRIB&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.nota_fiscal&quot;,&quot;title&quot;:&quot;Nota_Fiscal&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_nota_fiscal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.nota_fiscal&quot;,&quot;title&quot;:&quot;Nota_Fiscal&quot;,&quot;prettyId&quot;:&quot;nota_fiscal&quot;,&quot;assignedMetadataField&quot;:&quot;NOTA_FISCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.nota_fiscal&quot;,&quot;title&quot;:&quot;Nota_Fiscal&quot;,&quot;prettyId&quot;:&quot;nota_fiscal&quot;,&quot;assignedMetadataField&quot;:&quot;NOTA_FISCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.numeronota&quot;,&quot;title&quot;:&quot;Numero Nota&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_numeronota&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.numeronota&quot;,&quot;title&quot;:&quot;Numero Nota&quot;,&quot;prettyId&quot;:&quot;numeronota&quot;,&quot;assignedMetadataField&quot;:&quot;D2_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.numeronota1&quot;,&quot;title&quot;:&quot;Numero Nota&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_numeronota1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.numeronota1&quot;,&quot;title&quot;:&quot;Numero Nota&quot;,&quot;prettyId&quot;:&quot;numeronota1&quot;,&quot;assignedMetadataField&quot;:&quot;F2_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.tem_liberacao&quot;,&quot;title&quot;:&quot;TEM_LIBERACAO&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_tem_liberacao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tem_liberacao&quot;,&quot;title&quot;:&quot;TEM_LIBERACAO&quot;,&quot;prettyId&quot;:&quot;tem_liberacao&quot;,&quot;assignedMetadataField&quot;:&quot;TEM_LIBERACAO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tem_liberacao&quot;,&quot;title&quot;:&quot;TEM_LIBERACAO&quot;,&quot;prettyId&quot;:&quot;tem_liberacao&quot;,&quot;assignedMetadataField&quot;:&quot;TEM_LIBERACAO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.tipo_movi&quot;,&quot;title&quot;:&quot;TIPO_MOVI&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_tipo_movi&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tipo_movi&quot;,&quot;title&quot;:&quot;TIPO_MOVI&quot;,&quot;prettyId&quot;:&quot;tipo_movi&quot;,&quot;assignedMetadataField&quot;:&quot;TIPO_MOVI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tipo_movi&quot;,&quot;title&quot;:&quot;TIPO_MOVI&quot;,&quot;prettyId&quot;:&quot;tipo_movi&quot;,&quot;assignedMetadataField&quot;:&quot;TIPO_MOVI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.margemdecontribuicao.tipo_movi2&quot;,&quot;title&quot;:&quot;TIPO_MOVI2&quot;,&quot;prettyId&quot;:&quot;attr_margemdecontribuicao_tipo_movi2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tipo_movi2&quot;,&quot;title&quot;:&quot;TIPO_MOVI2&quot;,&quot;prettyId&quot;:&quot;tipo_movi2&quot;,&quot;assignedMetadataField&quot;:&quot;TIPO_MOVI2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.margemdecontribuicao.tipo_movi2&quot;,&quot;title&quot;:&quot;TIPO_MOVI2&quot;,&quot;prettyId&quot;:&quot;tipo_movi2&quot;,&quot;assignedMetadataField&quot;:&quot;TIPO_MOVI2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CT1_CONTA&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_cod_cliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CLIENTE&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_filial_gh_chave_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_FILIAL&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_grupo_prod_gh_pk_grupo_prod_sbm&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_GRUPO_PROD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_nf_saida_sd2_gh.pk_sd2&quot;,&quot;title&quot;:&quot;PK_SD2&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_nf_saida_sd2_gh_pk_sd2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_nf_saida_sd2_gh.pk_sd2&quot;,&quot;title&quot;:&quot;PK_SD2&quot;,&quot;prettyId&quot;:&quot;gd_dim_nf_saida_sd2_gh__pk_sd2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SD2&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_nf_saida_sd2_gh.pk_sd2&quot;,&quot;title&quot;:&quot;PK_SD2&quot;,&quot;prettyId&quot;:&quot;gd_dim_nf_saida_sd2_gh__pk_sd2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_nf_saida_sf2.pk_sf2&quot;,&quot;title&quot;:&quot;PK_SF2&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_nf_saida_sf2_pk_sf2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_nf_saida_sf2.pk_sf2&quot;,&quot;title&quot;:&quot;PK_SF2&quot;,&quot;prettyId&quot;:&quot;gd_dim_nf_saida_sf2__pk_sf2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SF2&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_nf_saida_sf2.pk_sf2&quot;,&quot;title&quot;:&quot;PK_SF2&quot;,&quot;prettyId&quot;:&quot;gd_dim_nf_saida_sf2__pk_sf2&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D2_GRUPO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;B1_COD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;attr_sc5pedidodevenda_pedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D2_PEDIDO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;attr_vendedor1_cod_vendedor&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;A3_COD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;dataatual.date&quot;,&quot;title&quot;:&quot;Date (Data Atual)&quot;,&quot;prettyId&quot;:&quot;dataatual&quot;,&quot;assignedMetadataField&quot;:&quot;DATAATUAL&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;dataatual.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Atual)&quot;,&quot;prettyId&quot;:&quot;dataatual_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;dataatual.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Atual)&quot;,&quot;prettyId&quot;:&quot;dataatual_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datadevolucaovenda.date&quot;,&quot;title&quot;:&quot;Date (Data Devolução Venda)&quot;,&quot;prettyId&quot;:&quot;datadevolucaovenda&quot;,&quot;assignedMetadataField&quot;:&quot;D1_DTDIGIT&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadevolucaovenda.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Devolução Venda)&quot;,&quot;prettyId&quot;:&quot;datadevolucaovenda_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadevolucaovenda.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Devolução Venda)&quot;,&quot;prettyId&quot;:&quot;datadevolucaovenda_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date&quot;,&quot;title&quot;:&quot;Date (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw&quot;,&quot;assignedMetadataField&quot;:&quot;D3_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;F2_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissaomargemdecontribuicaoii.date&quot;,&quot;title&quot;:&quot;Date (Emissão Margem de Contribuição II)&quot;,&quot;prettyId&quot;:&quot;emissaomargemdecontribuicaoii&quot;,&quot;assignedMetadataField&quot;:&quot;F2_EMISSAOII&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaomargemdecontribuicaoii.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissão Margem de Contribuição II)&quot;,&quot;prettyId&quot;:&quot;emissaomargemdecontribuicaoii_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaomargemdecontribuicaoii.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissão Margem de Contribuição II)&quot;,&quot;prettyId&quot;:&quot;emissaomargemdecontribuicaoii_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date&quot;,&quot;title&quot;:&quot;Date (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao&quot;,&quot;assignedMetadataField&quot;:&quot;F2_EMISSAO_FLUXO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddataclassificacao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Classificacao)&quot;,&quot;prettyId&quot;:&quot;gddataclassificacao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date&quot;,&quot;title&quot;:&quot;Date (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao&quot;,&quot;assignedMetadataField&quot;:&quot;D2_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatad2_emissao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data D2_EMISSAO)&quot;,&quot;prettyId&quot;:&quot;gddatad2_emissao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafiltro.date&quot;,&quot;title&quot;:&quot;Date (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro&quot;,&quot;assignedMetadataField&quot;:&quot;F2_EMISSAOIII&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiltro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiltro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Filtro)&quot;,&quot;prettyId&quot;:&quot;gddatafiltro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafunil.date&quot;,&quot;title&quot;:&quot;Date (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_FUNIL&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatatransmissaonf.date&quot;,&quot;title&quot;:&quot;Date (GD Data Transmissao NF)&quot;,&quot;prettyId&quot;:&quot;gddatatransmissaonf&quot;,&quot;assignedMetadataField&quot;:&quot;F2_DAUTNFE&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatatransmissaonf.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Transmissao NF)&quot;,&quot;prettyId&quot;:&quot;gddatatransmissaonf_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatatransmissaonf.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Transmissao NF)&quot;,&quot;prettyId&quot;:&quot;gddatatransmissaonf_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.confins&quot;,&quot;title&quot;:&quot;CONFINS&quot;,&quot;prettyId&quot;:&quot;confins&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_VALIMP5&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.custo_prod&quot;,&quot;title&quot;:&quot;Custo Produção&quot;,&quot;prettyId&quot;:&quot;custo_prod&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;B1_CUSTO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d1_vlrdev&quot;,&quot;title&quot;:&quot;D1_VLRDEV&quot;,&quot;prettyId&quot;:&quot;d1_vlrdev&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D1_VLRDEV&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_baseicmbasealiquotaicms&quot;,&quot;title&quot;:&quot;D2_BASEICM Base Aliquota ICMS&quot;,&quot;prettyId&quot;:&quot;d2_baseicmbasealiquotaicms&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_BASEICM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_basimp5&quot;,&quot;title&quot;:&quot;D2_BASIMP5&quot;,&quot;prettyId&quot;:&quot;d2_basimp5&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_BASIMP5&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_basimp6&quot;,&quot;title&quot;:&quot;D2_BASIMP6&quot;,&quot;prettyId&quot;:&quot;d2_basimp6&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_BASIMP6&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_desconto&quot;,&quot;title&quot;:&quot;D2_Desconto&quot;,&quot;prettyId&quot;:&quot;d2_desconto&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_DESCON&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_despesa_frete&quot;,&quot;title&quot;:&quot;D2_DESPESA_FRETE&quot;,&quot;prettyId&quot;:&quot;d2_despesa_frete&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_DESPESA_FRETE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_icmsret&quot;,&quot;title&quot;:&quot;D2_ICMSRET&quot;,&quot;prettyId&quot;:&quot;d2_icmsret&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_ICMSRET&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_peso&quot;,&quot;title&quot;:&quot;D2_Peso&quot;,&quot;prettyId&quot;:&quot;d2_peso&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_PESO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_receita_frete&quot;,&quot;title&quot;:&quot;D2_RECEITA_FRETE&quot;,&quot;prettyId&quot;:&quot;d2_receita_frete&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_RECEITA_FRETE&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_seguro&quot;,&quot;title&quot;:&quot;D2_SEGURO&quot;,&quot;prettyId&quot;:&quot;d2_seguro&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_SEGURO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.d2_valipi&quot;,&quot;title&quot;:&quot;D2_VALIPI&quot;,&quot;prettyId&quot;:&quot;d2_valipi&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_VALIPI&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.f2_frete_extra&quot;,&quot;title&quot;:&quot;F2_FRETE_EXTRA&quot;,&quot;prettyId&quot;:&quot;f2_frete_extra&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;F2_FRETE_EXTRA&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.icms_fat&quot;,&quot;title&quot;:&quot;ICMS Faturamento&quot;,&quot;prettyId&quot;:&quot;icms_fat&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_VALICM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.pis&quot;,&quot;title&quot;:&quot;PIS&quot;,&quot;prettyId&quot;:&quot;pis&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_VALIMP6&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.quantidadedadevolucao&quot;,&quot;title&quot;:&quot;Quantidade da Devolução&quot;,&quot;prettyId&quot;:&quot;quantidadedadevolucao&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_QTDEDEV&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.quant_fat&quot;,&quot;title&quot;:&quot;Quantidade Faturamento&quot;,&quot;prettyId&quot;:&quot;quant_fat&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_QUANT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.totaldadevolucao&quot;,&quot;title&quot;:&quot;Total da Devolução&quot;,&quot;prettyId&quot;:&quot;totaldadevolucao&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_VALDEV&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.margemdecontribuicao.total_fat&quot;,&quot;title&quot;:&quot;Total Faturamento&quot;,&quot;prettyId&quot;:&quot;total_fat&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D2_TOTAL&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[]}}" enabled="enabled" guiName="GD Faturamento / Margem de Contribuição  Writer" guiX="757" guiY="378" id="GD_FATURAMENTO_MARGEM_DE_CONTRIBUICAO_WRITER" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993878628" licenseType="Commercial" modified="Sat Jan 04 00:45:00 BRST 2025" modifiedBy="Guilherme" name="Main" revision="1.19" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_SALDOS_ESTOQUE_HIST_GH.grf" guiName="GD_FATO_SALDOS_ESTOQUE_HIST_GH" guiX="699" guiY="179" id="GD_FATO_SALDOS_ESTOQUE_HIST_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Dimensões/Main Dimensões.grf" guiName="Main Dimensões" guiX="9" guiY="11" id="MAIN_DIMENSOES" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/Main Comercial.grf" guiName="Main Comercial" guiX="159" guiY="11" id="MAIN_COMERCIAL" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/Main Pedidos de Vendas.grf" guiName="Main Pedidos de Vendas" guiX="303" guiY="11" id="MAIN_PEDIDOS_DE_VENDAS" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/Main Financeiro.grf" guiName="Main Financeiro" guiX="9" guiY="114" id="MAIN_FINANCEIRO" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/Main Produção.grf" guiName="Main Produção" guiX="159" guiY="114" id="MAIN_PRODUCAO" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Contabil/Main Contabil.grf" guiName="Main Contabil" guiX="303" guiY="114" id="MAIN_CONTABIL" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="7">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/Main RH.grf" guiName="Main RH" guiX="9" guiY="218" id="MAIN_RH" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/FATO Saldo Atual - SB2.grf" guiName="FATO Saldo Atual - SB2" guiX="159" guiY="218" id="FATO_SALDO_ATUAL_SB2" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="9">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/FATO Transferencia Filiais - SD1.grf" guiName="FATO Transferencia Filiais - SD1" guiX="329" guiY="218" id="FATO_TRANSFERENCIA_FILIAIS_SD1" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="10">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/Main Estoque.grf" guiName="Main Estoque" guiX="9" guiY="324" id="MAIN_ESTOQUE" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="14">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Arquivos.grf" guiName="Arquivos" guiX="149" guiY="324" id="ARQUIVOS" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="15">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/Main Cargas .grf" guiName="Main Cargas " guiX="286" guiY="324" id="MAIN_CARGAS" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="16">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_MOVIMENTACOES_ESTOQUE_GH.grf" guiName="GD_FATO_MOVIMENTACOES_ESTOQUE_GH" guiX="420" guiY="324" id="GD_FATO_MOVIMENTACOES_ESTOQUE_GH" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="17">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_FATO_DOC_ENTRADA_NF_PJ.grf" guiName="GD_FATO_DOC_ENTRADA_NF_PJ" guiX="704" guiY="324" id="GD_FATO_DOC_ENTRADA_NF_PJ" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="111">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Main Compras.grf" guiName="Main Compras" guiX="588" guiY="11" id="MAIN_COMPRAS" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="112">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro/FATO Contas a Receber Retroativo.grf" guiName="FATO Contas a Receber Retroativo" guiX="726" guiY="11" id="FATO_CONTAS_A_RECEBER_RETROATIVO" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="113">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/FATO Faturamento Ultimas Vendas.grf" guiName="FATO Faturamento Ultimas Vendas" guiX="954" guiY="11" id="FATO_FATURAMENTO_ULTIMAS_VENDAS" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

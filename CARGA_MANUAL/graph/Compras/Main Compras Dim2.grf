@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Fri Jan 03 12:18:55 BRST 2025" guiVersion="3.4.4.P" id="1736185514246" licenseType="Commercial" modified="Mon Jan 06 15:46:22 BRST 2025" modifiedBy="Guilherme" name="Main Compras Dim2" revision="1.1" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_DIM_DOC_ENTRADA_NF_SF1.grf" guiName="GD_DIM_DOC_ENTRADA_NF_SF1" guiX="21" guiY="13" id="GD_DIM_DOC_ENTRADA_NF_SF1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_DIM_DOC_ENTRADA_NF.grf" guiName="GD_DIM_DOC_ENTRADA_NF" guiX="259" guiY="13" id="GD_DIM_DOC_ENTRADA_NF" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_DIM_PEDIDO_COMPRA_PC.grf" guiName="GD_DIM_PEDIDO_COMPRA_PC" guiX="468" guiY="13" id="GD_DIM_PEDIDO_COMPRA_PC" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_DIM_SOLIC_ARMAZEM_SA.grf" guiName="GD_DIM_SOLIC_ARMAZEM_SA" guiX="21" guiY="138" id="GD_DIM_SOLIC_ARMAZEM_SA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/GD_DIM_SOLIC_COMPRA_SC.grf" guiName="GD_DIM_SOLIC_COMPRA_SC" guiX="259" guiY="138" id="GD_DIM_SOLIC_COMPRA_SC" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

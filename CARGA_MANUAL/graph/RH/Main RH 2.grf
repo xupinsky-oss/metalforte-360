@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Aug 02 05:11:47 BRT 2022" guiVersion="3.4.4.P" id="1659430325407" licenseType="Commercial" modified="Sun Nov 23 23:08:05 BRST 2025" modifiedBy="Guilherme" name="Main RH 2" revision="1.13" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Dimensões/GD_DIM_FILIAL_GH.grf" guiName="GD_DIM_FILIAL_GH" guiX="15" guiY="8" id="GD_DIM_FILIAL_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_DIM_DEPARTAMENTOS_GH.grf" guiName="GD_DIM_DEPARTAMENTOS_GH" guiX="171" guiY="8" id="GD_DIM_DEPARTAMENTOS_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_DIM_FUNCAO_GH.grf" guiName="GD_DIM_FUNCAO_GH" guiX="387" guiY="8" id="GD_DIM_FUNCAO_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_DIM_FUNCIONARIO_GH.grf" guiName="GD_DIM_FUNCIONARIO_GH" guiX="557" guiY="8" id="GD_DIM_FUNCIONARIO_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_DIM_VERBAS_GH.grf" guiName="GD_DIM_VERBAS_GH" guiX="15" guiY="120" id="GD_DIM_VERBAS_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_FATO_FUNCIONARIO_GH.grf" guiName="GD_FATO_FUNCIONARIO_GH" guiX="178" guiY="120" id="GD_FATO_FUNCIONARIO_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_FATO_COMPOSICAO_FOLHA_GH.grf" guiName="GD_FATO_COMPOSICAO_FOLHA_GH" guiX="387" guiY="120" id="GD_FATO_COMPOSICAO_FOLHA_GH1" ignoreGraphFail="false" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="7">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_FATO_HORA_EXTRA_GH.grf" guiName="GD_FATO_HORA_EXTRA_GH" guiX="15" guiY="227" id="GD_FATO_HORA_EXTRA_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_FATO_HORAS_FALTANTES_GH.grf" guiName="GD_FATO_HORAS_FALTANTES_GH" guiX="210" guiY="227" id="GD_FATO_HORAS_FALTANTES_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="9">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/GD_FATO_MOVIMENTACAO_FUNCIONARIO_GH.grf" guiName="GD_FATO_MOVIMENTACAO_FUNCIONARIO_GH" guiX="438" guiY="227" id="GD_FATO_MOVIMENTACAO_FUNCIONARIO_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="10">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Afastamentos SR8.grf" guiName="FATO Afastamentos SR8" guiX="15" guiY="331" id="FATO_AFASTAMENTOS_SR8" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="11">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Contador de Colaboradores SRD.grf" guiName="FATO Contador de Colaboradores SRD" guiX="190" guiY="331" id="FATO_CONTADOR_DE_COLABORADORES_SRD" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="12">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Acumulados Anuais SRD.grf" guiName="FATO Acumulados Anuais SRD" guiX="440" guiY="331" id="FATO_ACUMULADOS_ANUAIS_SRD" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

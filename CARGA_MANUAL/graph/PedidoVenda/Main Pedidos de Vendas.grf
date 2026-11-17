@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561993515306" licenseType="Commercial" modified="Sun Nov 23 22:49:38 BRST 2025" modifiedBy="Guilherme" name="Main Pedidos de Vendas" revision="1.4" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Pedidos de Vendas - SC5.grf" guiName="FATO Pedidos de Vendas - SC5" guiX="7" guiY="7" id="FATO_PEDIDOS_DE_VENDAS_SC5" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Itens Pedidos Vendas - SC6.grf" guiName="FATO Itens Pedidos Vendas - SC6" guiX="209" guiY="7" id="FATO_ITENS_PEDIDOS_VENDAS_SC6" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Pedidos Liberados - SC9.grf" guiName="FATO Pedidos Liberados - SC9" guiX="427" guiY="7" id="FATO_PEDIDOS_LIBERADOS_SC9" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Contabil/FATO Recuperação Frete.grf" guiName="FATO Recuperação Frete" guiX="631" guiY="7" id="FATO_RECUPERACAO_FRETE" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561991649145" licenseType="Commercial" modified="Fri Oct 23 13:40:49 BRST 2026" modifiedBy="Guilherme" name="FATO Mov. Internas - SD3" revision="1.15" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SD3010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="INFO_D3" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="D3_TM" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="D3_OP" nullable="true" shift="0" size="13" type="string"/>
+<Field eofAsDelimiter="false" name="D3_COD" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="D3_UM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_QUANT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_CF" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="D3_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="D3_LOCAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_CUSTO1" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_CC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="D3_ESTORNO" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="D3_NUMSEQ" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="D3_SEGUM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_QTSEGUM" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_TIPO" nullable="true" shift="0" size="2" type="string"/>
+<Field name="D3_USUARIO" type="string"/>
+<Field eofAsDelimiter="false" name="D3_PERDA" nullable="true" shift="0" size="25" type="string"/>
+<Field eofAsDelimiter="false" name="D3_LOCALIZ" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DTINI" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="D3_HRINI" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DTFIM" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="D3_HRFIM" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_MAQUINA" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DINISET" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="D3_HINISET" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DFIMSET" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" name="D3_HFIMSET" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_XOPERAD" nullable="true" shift="0" size="30" type="string"/>
+<Field name="D3_COD2" type="string"/>
+<Field name="D3_DESC" type="string"/>
+<Field name="D3_OPERDA" type="string"/>
+<Field name="BM_GRUPO_ORIGEM_PERDA" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SD3010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="INFO_D3" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="D3_TM" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="D3_OP" nullable="true" shift="0" size="13" type="string"/>
+<Field eofAsDelimiter="false" name="D3_COD" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="D3_UM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_QUANT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_CF" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="D3_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="D3_LOCAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="D3_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_CUSTO1" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_CC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="D3_ESTORNO" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="D3_NUMSEQ" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="D3_SEGUM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="D3_QTSEGUM" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="D3_TIPO" nullable="true" shift="0" size="2" type="string"/>
+<Field name="D3_USUARIO" type="string"/>
+<Field eofAsDelimiter="false" name="D3_PERDA" nullable="true" shift="0" size="25" type="string"/>
+<Field eofAsDelimiter="false" name="D3_LOCALIZ" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_DTINI" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_HRINI" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_DTFIM" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_HRFIM" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_MAQUINA" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_DINISET" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_HINISET" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D3_DFIMSET" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="D3_HFIMSET" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="D3_XOPERAD" nullable="true" shift="0" size="30" type="string"/>
+<Field name="D3_COD2" type="string"/>
+<Field name="D3_DESC" type="string"/>
+<Field name="D3_OPERDA" type="string"/>
+<Field name="BM_GRUPO_ORIGEM_PERDA" type="string"/>
+<Field format="yyyyMMdd" name="DATA_EMISSAO_GERAL" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Movimentos Internos SD3" guiX="8" guiY="15" id="MOVIMENTOS_INTERNOS_SD3" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  INFO_D3, 
+	  D3_FILIAL, 
+	  D3_TM, 
+	  D3_OP, 
+	  D3_COD, 
+	  D3_UM, 
+	  D3_QUANT, 
+	  D3_CF, 
+	  D3_CONTA, 
+	  D3_LOCAL, 
+	  D3_DOC, 
+	  D3_EMISSAO, 
+	  D3_GRUPO, 
+	  D3_CUSTO1, 
+	  D3_CC, 
+	  D3_ESTORNO, 
+	  D3_NUMSEQ, 
+	  D3_SEGUM, 
+	  D3_QTSEGUM, 
+	  D3_TIPO, 
+	  D3_USUARIO, 
+	  D3_PERDA, 
+	  D3_LOCALIZ, 
+	  D3_DTINI, 
+	  D3_HRINI, 
+	  D3_DTFIM, 
+	  D3_HRFIM, 
+	  D3_MAQUINA, 
+	  D3_DINISET, 
+	  D3_HINISET, 
+	  D3_DFIMSET, 
+	  D3_HFIMSET, 
+	  D3_XOPERAD, 
+	  D3_COD2, 
+	  D3_DESC, 
+	  D3_OPERDA,
+	  BM_GRUPO_ORIGEM_PERDA
+
+FROM dbo.GD_FATO_MOVIMENTACOES_INTERNAS_SD3]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="MOVIMENTOS_INTERNOS_SD3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="REFORMAT1:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="239" guiY="81" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.INFO_D3 = $in.0.INFO_D3;
+	$out.0.D3_FILIAL = $in.0.D3_FILIAL;
+	$out.0.D3_TM = $in.0.D3_TM;
+	$out.0.D3_OP = $in.0.D3_OP;
+	$out.0.D3_COD = $in.0.D3_COD;
+	$out.0.D3_UM = $in.0.D3_UM;
+	$out.0.D3_QUANT = $in.0.D3_QUANT;
+	$out.0.D3_CF = $in.0.D3_CF;
+	$out.0.D3_CONTA = $in.0.D3_CONTA;
+	$out.0.D3_LOCAL = $in.0.D3_LOCAL;
+	$out.0.D3_DOC = $in.0.D3_DOC;
+	$out.0.D3_EMISSAO = $in.0.D3_EMISSAO;
+	$out.0.DATA_EMISSAO_GERAL = $in.0.D3_EMISSAO;
+	$out.0.D3_GRUPO = $in.0.D3_GRUPO;
+	$out.0.D3_CUSTO1 = $in.0.D3_CUSTO1;
+	$out.0.D3_CC = $in.0.D3_CC;
+	$out.0.D3_ESTORNO = $in.0.D3_ESTORNO;
+	$out.0.D3_NUMSEQ = $in.0.D3_NUMSEQ;
+	$out.0.D3_SEGUM = $in.0.D3_SEGUM;
+	$out.0.D3_QTSEGUM = $in.0.D3_QTSEGUM;
+	$out.0.D3_TIPO = $in.0.D3_TIPO;
+	$out.0.D3_USUARIO = $in.0.D3_USUARIO;
+	$out.0.D3_PERDA = $in.0.D3_PERDA;
+	$out.0.D3_LOCALIZ = $in.0.D3_LOCALIZ;
+	$out.0.D3_HRINI = $in.0.D3_HRINI;
+	$out.0.D3_HRFIM = $in.0.D3_HRFIM;
+	$out.0.D3_MAQUINA = $in.0.D3_MAQUINA;
+	$out.0.D3_HINISET = $in.0.D3_HINISET;
+	$out.0.D3_HFIMSET = $in.0.D3_HFIMSET;
+	$out.0.D3_XOPERAD = $in.0.D3_XOPERAD;
+	$out.0.D3_COD2 = $in.0.D3_COD2;
+	$out.0.D3_DESC = $in.0.D3_DESC;
+	$out.0.D3_OPERDA = $in.0.D3_OPERDA;
+	$out.0.BM_GRUPO_ORIGEM_PERDA = $in.0.BM_GRUPO_ORIGEM_PERDA;
+	if ($in.0.D3_DTINI == "        "){
+		$out.0.D3_DTINI = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.D3_DTINI = str2date($in.0.D3_DTINI, "yyyyMMdd");
+	}
+       if ($in.0.D3_DTFIM == "        "){
+		$out.0.D3_DTFIM = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.D3_DTFIM = str2date($in.0.D3_DTFIM, "yyyyMMdd");
+	}
+	   if ($in.0.D3_DINISET == "        "){
+		$out.0.D3_DINISET = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.D3_DINISET = str2date($in.0.D3_DINISET, "yyyyMMdd");
+	}
+	  if ($in.0.D3_DFIMSET == "        "){
+		$out.0.D3_DFIMSET = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.D3_DFIMSET = str2date($in.0.D3_DFIMSET, "yyyyMMdd");
+	}
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_MOVIMENTOS_INTERNOS_SD3_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.movimentosinternossd3" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.movimentosinternossd3&quot;,&quot;datasetTitle&quot;:&quot;Movimentos Internos SD3&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.bm_grupo_origem_perda&quot;,&quot;title&quot;:&quot;BM_GRUPO_ORIGEM_PERDA&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_bm_grupo_origem_perda&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.bm_grupo_origem_perda&quot;,&quot;title&quot;:&quot;BM_GRUPO_ORIGEM_PERDA&quot;,&quot;prettyId&quot;:&quot;bm_grupo_origem_perda&quot;,&quot;assignedMetadataField&quot;:&quot;BM_GRUPO_ORIGEM_PERDA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.bm_grupo_origem_perda&quot;,&quot;title&quot;:&quot;BM_GRUPO_ORIGEM_PERDA&quot;,&quot;prettyId&quot;:&quot;bm_grupo_origem_perda&quot;,&quot;assignedMetadataField&quot;:&quot;BM_GRUPO_ORIGEM_PERDA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_cf_tipoderequisicaodevolucao&quot;,&quot;title&quot;:&quot;D3_CF_Tipo de Requisicao-devolucao&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_cf_tipoderequisicaodevolucao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_cf_tipoderequisicaodevolucao&quot;,&quot;title&quot;:&quot;D3_CF_Tipo de Requisicao-devolucao&quot;,&quot;prettyId&quot;:&quot;d3_cf_tipoderequisicaodevolucao&quot;,&quot;assignedMetadataField&quot;:&quot;D3_CF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_cod2_codigoprodutoperda&quot;,&quot;title&quot;:&quot;D3_COD2_Codigo Produto Perda&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_cod2_codigoprodutoperda&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_cod2_codigoprodutoperda&quot;,&quot;title&quot;:&quot;D3_COD2_Codigo Produto Perda&quot;,&quot;prettyId&quot;:&quot;d3_cod2_codigoprodutoperda&quot;,&quot;assignedMetadataField&quot;:&quot;D3_COD2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_desc_descricaoprodutoperda&quot;,&quot;title&quot;:&quot;D3_DESC_Descrição Produto Perda&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_desc_descricaoprodutoperda&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_desc_descricaoprodutoperda&quot;,&quot;title&quot;:&quot;D3_DESC_Descrição Produto Perda&quot;,&quot;prettyId&quot;:&quot;d3_desc_descricaoprodutoperda&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DESC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_doc_numerododocumento&quot;,&quot;title&quot;:&quot;D3_DOC_Numero do Documento&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_doc_numerododocumento&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_doc_numerododocumento&quot;,&quot;title&quot;:&quot;D3_DOC_Numero do Documento&quot;,&quot;prettyId&quot;:&quot;d3_doc_numerododocumento&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_estorno_foiestornadasn&quot;,&quot;title&quot;:&quot;D3_ESTORNO_Foi Estornada (S/N)&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_estorno_foiestornadasn&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_estorno_foiestornadasn&quot;,&quot;title&quot;:&quot;D3_ESTORNO_Foi Estornada (S/N)&quot;,&quot;prettyId&quot;:&quot;d3_estorno_foiestornadasn&quot;,&quot;assignedMetadataField&quot;:&quot;D3_ESTORNO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_filial_dosistema&quot;,&quot;title&quot;:&quot;D3_FILIAL_do Sistema&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_filial_dosistema&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_filial_dosistema&quot;,&quot;title&quot;:&quot;D3_FILIAL_do Sistema&quot;,&quot;prettyId&quot;:&quot;d3_filial_dosistema&quot;,&quot;assignedMetadataField&quot;:&quot;D3_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_hfimset_horafinalsetup&quot;,&quot;title&quot;:&quot;D3_HFIMSET_Hora Final Setup&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_hfimset_horafinalsetup&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_hfimset_horafinalsetup&quot;,&quot;title&quot;:&quot;D3_HFIMSET_Hora Final Setup&quot;,&quot;prettyId&quot;:&quot;d3_hfimset_horafinalsetup&quot;,&quot;assignedMetadataField&quot;:&quot;D3_HFIMSET&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_hiniset_horainicialsetup&quot;,&quot;title&quot;:&quot;D3_HINISET_Hora Inicial Setup&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_hiniset_horainicialsetup&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_hiniset_horainicialsetup&quot;,&quot;title&quot;:&quot;D3_HINISET_Hora Inicial Setup&quot;,&quot;prettyId&quot;:&quot;d3_hiniset_horainicialsetup&quot;,&quot;assignedMetadataField&quot;:&quot;D3_HINISET&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_hrfim_horafim&quot;,&quot;title&quot;:&quot;D3_HRFIM_Hora Fim&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_hrfim_horafim&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_hrfim_horafim&quot;,&quot;title&quot;:&quot;D3_HRFIM_Hora Fim&quot;,&quot;prettyId&quot;:&quot;d3_hrfim_horafim&quot;,&quot;assignedMetadataField&quot;:&quot;D3_HRFIM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_hrini_horainicio&quot;,&quot;title&quot;:&quot;D3_HRINI_Hora Inicio&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_hrini_horainicio&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_hrini_horainicio&quot;,&quot;title&quot;:&quot;D3_HRINI_Hora Inicio&quot;,&quot;prettyId&quot;:&quot;d3_hrini_horainicio&quot;,&quot;assignedMetadataField&quot;:&quot;D3_HRINI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_local_codigodoarmazem&quot;,&quot;title&quot;:&quot;D3_LOCAL_Codigo do Armazem&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_local_codigodoarmazem&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_local_codigodoarmazem&quot;,&quot;title&quot;:&quot;D3_LOCAL_Codigo do Armazem&quot;,&quot;prettyId&quot;:&quot;d3_local_codigodoarmazem&quot;,&quot;assignedMetadataField&quot;:&quot;D3_LOCAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_localiz_endereco&quot;,&quot;title&quot;:&quot;D3_LOCALIZ_Endereco&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_localiz_endereco&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_localiz_endereco&quot;,&quot;title&quot;:&quot;D3_LOCALIZ_Endereco&quot;,&quot;prettyId&quot;:&quot;d3_localiz_endereco&quot;,&quot;assignedMetadataField&quot;:&quot;D3_LOCALIZ&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_maquina_maquina&quot;,&quot;title&quot;:&quot;D3_MAQUINA_Maquina&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_maquina_maquina&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_maquina_maquina&quot;,&quot;title&quot;:&quot;D3_MAQUINA_Maquina&quot;,&quot;prettyId&quot;:&quot;d3_maquina_maquina&quot;,&quot;assignedMetadataField&quot;:&quot;D3_MAQUINA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_numseq_numeracaosequencial&quot;,&quot;title&quot;:&quot;D3_NUMSEQ_Numeracao Sequencial&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_numseq_numeracaosequencial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_numseq_numeracaosequencial&quot;,&quot;title&quot;:&quot;D3_NUMSEQ_Numeracao Sequencial&quot;,&quot;prettyId&quot;:&quot;d3_numseq_numeracaosequencial&quot;,&quot;assignedMetadataField&quot;:&quot;D3_NUMSEQ&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_op_ordemdeproducao&quot;,&quot;title&quot;:&quot;D3_OP_Ordem de Produção&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_op_ordemdeproducao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_op_ordemdeproducao&quot;,&quot;title&quot;:&quot;D3_OP_Ordem de Produção&quot;,&quot;prettyId&quot;:&quot;d3_op_ordemdeproducao&quot;,&quot;assignedMetadataField&quot;:&quot;D3_OP&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_operda_ordemdeproducaoperda&quot;,&quot;title&quot;:&quot;D3_OPERDA_Ordem de Produção Perda&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_operda_ordemdeproducaoperda&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_operda_ordemdeproducaoperda&quot;,&quot;title&quot;:&quot;D3_OPERDA_Ordem de Produção Perda&quot;,&quot;prettyId&quot;:&quot;d3_operda_ordemdeproducaoperda&quot;,&quot;assignedMetadataField&quot;:&quot;D3_OPERDA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_perda_perdadomovimento&quot;,&quot;title&quot;:&quot;D3_PERDA_Perda do Movimento&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_perda_perdadomovimento&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_perda_perdadomovimento&quot;,&quot;title&quot;:&quot;D3_PERDA_Perda do Movimento&quot;,&quot;prettyId&quot;:&quot;d3_perda_perdadomovimento&quot;,&quot;assignedMetadataField&quot;:&quot;D3_PERDA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_segum_segundaunidadedemedida&quot;,&quot;title&quot;:&quot;D3_SEGUM_Segunda Unidade de Medida&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_segum_segundaunidadedemedida&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_segum_segundaunidadedemedida&quot;,&quot;title&quot;:&quot;D3_SEGUM_Segunda Unidade de Medida&quot;,&quot;prettyId&quot;:&quot;d3_segum_segundaunidadedemedida&quot;,&quot;assignedMetadataField&quot;:&quot;D3_SEGUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_tipo_tipodomaterial&quot;,&quot;title&quot;:&quot;D3_TIPO_Tipo do Material&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_tipo_tipodomaterial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_tipo_tipodomaterial&quot;,&quot;title&quot;:&quot;D3_TIPO_Tipo do Material&quot;,&quot;prettyId&quot;:&quot;d3_tipo_tipodomaterial&quot;,&quot;assignedMetadataField&quot;:&quot;D3_TIPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_tm_tipodemovimento&quot;,&quot;title&quot;:&quot;D3_TM_Tipo de Movimento&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_tm_tipodemovimento&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_tm_tipodemovimento&quot;,&quot;title&quot;:&quot;D3_TM_Tipo de Movimento&quot;,&quot;prettyId&quot;:&quot;d3_tm_tipodemovimento&quot;,&quot;assignedMetadataField&quot;:&quot;D3_TM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_um_unidadedemedida&quot;,&quot;title&quot;:&quot;D3_UM_Unidade de Medida&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_um_unidadedemedida&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_um_unidadedemedida&quot;,&quot;title&quot;:&quot;D3_UM_Unidade de Medida&quot;,&quot;prettyId&quot;:&quot;d3_um_unidadedemedida&quot;,&quot;assignedMetadataField&quot;:&quot;D3_UM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_usuario_usuarioresppdigitacao&quot;,&quot;title&quot;:&quot;D3_USUARIO_Usuario resp p/digitacao&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_usuario_usuarioresppdigitacao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_usuario_usuarioresppdigitacao&quot;,&quot;title&quot;:&quot;D3_USUARIO_Usuario resp p/digitacao&quot;,&quot;prettyId&quot;:&quot;d3_usuario_usuarioresppdigitacao&quot;,&quot;assignedMetadataField&quot;:&quot;D3_USUARIO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.d3_xoperad_operador&quot;,&quot;title&quot;:&quot;D3_XOPERAD_Operador&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_d3_xoperad_operador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.d3_xoperad_operador&quot;,&quot;title&quot;:&quot;D3_XOPERAD_Operador&quot;,&quot;prettyId&quot;:&quot;d3_xoperad_operador&quot;,&quot;assignedMetadataField&quot;:&quot;D3_XOPERAD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.movimentosinternossd3.info_d3_informacaocustomizadad3&quot;,&quot;title&quot;:&quot;INFO_D3_Informacao Customizada D3&quot;,&quot;prettyId&quot;:&quot;attr_movimentosinternossd3_info_d3_informacaocustomizadad3&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.movimentosinternossd3.info_d3_informacaocustomizadad3&quot;,&quot;title&quot;:&quot;INFO_D3_Informacao Customizada D3&quot;,&quot;prettyId&quot;:&quot;info_d3_informacaocustomizadad3&quot;,&quot;assignedMetadataField&quot;:&quot;INFO_D3&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D3_CONTA&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_custo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D3_CC&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D3_GRUPO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;D3_COD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datafimproducao.date&quot;,&quot;title&quot;:&quot;Date (Data Fim Produção)&quot;,&quot;prettyId&quot;:&quot;datafimproducao&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DTFIM&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datafimproducao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Fim Produção)&quot;,&quot;prettyId&quot;:&quot;datafimproducao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datafimproducao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Fim Produção)&quot;,&quot;prettyId&quot;:&quot;datafimproducao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datafimsetup.date&quot;,&quot;title&quot;:&quot;Date (Data Fim Setup)&quot;,&quot;prettyId&quot;:&quot;datafimsetup&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DFIMSET&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datafimsetup.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Fim Setup)&quot;,&quot;prettyId&quot;:&quot;datafimsetup_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datafimsetup.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Fim Setup)&quot;,&quot;prettyId&quot;:&quot;datafimsetup_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datainiciodaproducao.date&quot;,&quot;title&quot;:&quot;Date (Data Inicio da Produção)&quot;,&quot;prettyId&quot;:&quot;datainiciodaproducao&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DTINI&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datainiciodaproducao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Inicio da Produção)&quot;,&quot;prettyId&quot;:&quot;datainiciodaproducao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datainiciodaproducao.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Inicio da Produção)&quot;,&quot;prettyId&quot;:&quot;datainiciodaproducao_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datainiciosetup.date&quot;,&quot;title&quot;:&quot;Date (Data Inicio Setup)&quot;,&quot;prettyId&quot;:&quot;datainiciosetup&quot;,&quot;assignedMetadataField&quot;:&quot;D3_DINISET&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datainiciosetup.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Inicio Setup)&quot;,&quot;prettyId&quot;:&quot;datainiciosetup_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datainiciosetup.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Inicio Setup)&quot;,&quot;prettyId&quot;:&quot;datainiciosetup_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date&quot;,&quot;title&quot;:&quot;Date (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw&quot;,&quot;assignedMetadataField&quot;:&quot;D3_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datarealizacaofinalordemdeproducaoscw.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Produção SC2/SD3)&quot;,&quot;prettyId&quot;:&quot;datarealizacaofinalordemdeproducaoscw_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_EMISSAO_GERAL&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.movimentosinternossd3.d3_custo1_custo&quot;,&quot;title&quot;:&quot;D3_CUSTO1_Custo&quot;,&quot;prettyId&quot;:&quot;d3_custo1_custo&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D3_CUSTO1&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.movimentosinternossd3.d3_qtsegum_qtdenasegundaunidade&quot;,&quot;title&quot;:&quot;D3_QTSEGUM_Qtde na Segunda Unidade&quot;,&quot;prettyId&quot;:&quot;d3_qtsegum_qtdenasegundaunidade&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D3_QTSEGUM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.movimentosinternossd3.d3_quant_quantidadedomovimento&quot;,&quot;title&quot;:&quot;D3_QUANT_Quantidade do Movimento&quot;,&quot;prettyId&quot;:&quot;d3_quant_quantidadedomovimento&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;D3_QUANT&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Movimentos Internos SD3 Writer" guiX="435" guiY="147" id="GD_MOVIMENTOS_INTERNOS_SD3_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

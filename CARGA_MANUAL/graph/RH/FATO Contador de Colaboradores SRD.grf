@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636344698716" licenseType="Commercial" modified="Mon Jun 02 21:19:30 BRT 2025" modifiedBy="Guilherme" name="FATO Contador de Colaboradores SRD" revision="1.6" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata9">
+<Record fieldDelimiter=";" name="Contador_Colaborador" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="QTDE_COLABORADOR" nullable="true" shift="0" size="10" type="integer"/>
+<Field eofAsDelimiter="false" name="RD_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="RD_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DATA_CONTAGEM" nullable="true" shift="0" size="23" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="4">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Contador de Colaboradores" guiX="14" guiY="12" id="CONTADOR_DE_COLABORADORES" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  QTDE_COLABORADOR,
+      RD_FILIAL,
+      RD_MAT,
+      DATA_CONTAGEM
+FROM GD_FATO_QTDCOLABORADORES_SRD]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CONTADOR_DE_COLABORADORES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="Reformat" guiX="352" guiY="55" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.QTDE_COLABORADOR = $in.0.QTDE_COLABORADOR;
+	$out.0.RD_FILIAL = $in.0.RD_FILIAL;
+	$out.0.RD_MAT = $in.0.RD_MAT;
+	$out.0.DATA_CONTAGEM = $in.0.DATA_CONTAGEM;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="GD_CONTADOR_COLABORADORES_WRITER:0"/>
+</Phase>
+<Phase number="6">
+<Node dataset="dataset.quantidadedecolaboradores" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.quantidadedecolaboradores&quot;,&quot;datasetTitle&quot;:&quot;Quantidade de Colaboradores&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.quantidadedecolaboradores.filial_colaboradores&quot;,&quot;title&quot;:&quot;Filial_Colaboradores&quot;,&quot;prettyId&quot;:&quot;attr_quantidadedecolaboradores_filial_colaboradores&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.quantidadedecolaboradores.filial_colaboradores&quot;,&quot;title&quot;:&quot;Filial_Colaboradores&quot;,&quot;prettyId&quot;:&quot;filial_colaboradores&quot;,&quot;assignedMetadataField&quot;:&quot;RD_FILIAL&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;RD_MAT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data.date&quot;,&quot;title&quot;:&quot;Date (DATA)&quot;,&quot;prettyId&quot;:&quot;data&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_CONTAGEM&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.quantidadedecolaboradores.quantidadedecolaboradores&quot;,&quot;title&quot;:&quot;Quantidade de Colaboradores&quot;,&quot;prettyId&quot;:&quot;quantidadedecolaboradores&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;QTDE_COLABORADOR&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[]}}" enabled="enabled" guiName="GD Contador Colaboradores Writer" guiX="626" guiY="130" id="GD_CONTADOR_COLABORADORES_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

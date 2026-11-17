@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561989965509" licenseType="Commercial" modified="Fri Jul 17 16:05:18 BRT 2026" modifiedBy="Guilherme" name="Cadastro de Clientes - SA1" revision="1.37" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SA1010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="A1_COD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NOME" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_LOJA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_PESSOA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NREDUZ" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TIPO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_CGC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_INSCR" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_CEP" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_END" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_MUN" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_BAIRRO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TEL" nullable="true" shift="0" size="0" type="string"/>
+<Field name="A1_VEND1" type="string"/>
+<Field name="FK_SA3" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TABELA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_METR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_PRICOM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_ULTCOM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NROCOM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_SALDUP" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_NROPAG" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_SALPED" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_ATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_VACUM" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_MATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_PAGATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_SALPEDB" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_GRPTRIB" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_SATIV1" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_EMAIL" nullable="true" shift="0" size="0" type="string"/>
+<Field delimiter=";" eofAsDelimiter="false" name="A1_DTCAD" nullable="true" shift="0" type="string"/>
+<Field format="#.###" name="A1_LC" type="decimal"/>
+<Field name="A1_EST" type="string"/>
+<Field name="A1_CONTATO" type="string"/>
+<Field name="A1_MSALDO" type="number"/>
+<Field name="A1_MCOMPRA" type="number"/>
+<Field name="A1_VENCLC" type="string"/>
+<Field name="MAX_DATA" type="string"/>
+<Field name="COD_CLIENTE" type="string"/>
+<Field name="A1_XTIPOLO" type="string"/>
+<Field name="A1_XGPECO" type="string"/>
+<Field name="QTDE_DIAS" type="string"/>
+<Field name="FAIXA_COMPRA" type="string"/>
+<Field name="QTDE_DIAS2" type="string"/>
+<Field name="D2_INFO_ULT_NF" type="string"/>
+<Field name="F2_VEND1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata9" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SA1010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="A1_COD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NOME" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_LOJA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_PESSOA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_NREDUZ" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TIPO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_CGC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_INSCR" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_CEP" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_END" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_MUN" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_BAIRRO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TEL" nullable="true" shift="0" size="0" type="string"/>
+<Field name="A1_VEND1" type="string"/>
+<Field name="FK_SA3" type="string"/>
+<Field eofAsDelimiter="false" name="A1_TABELA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_METR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_PRICOM" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_ULTCOM" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" name="A1_NROCOM" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_SALDUP" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_NROPAG" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_SALPED" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_ATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_VACUM" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_MATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_PAGATR" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_SALPEDB" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" name="A1_GRPTRIB" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_SATIV1" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="A1_EMAIL" nullable="true" shift="0" size="0" type="string"/>
+<Field delimiter=";" eofAsDelimiter="false" format="yyyyMMdd" name="A1_DTCAD" nullable="true" shift="0" type="date"/>
+<Field format="#.###" name="A1_LC" type="decimal"/>
+<Field name="A1_EST" type="string"/>
+<Field name="A1_CONTATO" type="string"/>
+<Field format="#.###" name="A1_MSALDO" type="decimal"/>
+<Field format="#.###" name="A1_MCOMPRA" type="decimal"/>
+<Field format="yyyyMMdd" name="A1_VENCLC" type="date"/>
+<Field name="MAX_DATA" type="string"/>
+<Field name="COD_CLIENTE" type="string"/>
+<Field name="A1_XTIPOLO" type="string"/>
+<Field name="A1_XGPECO" type="string"/>
+<Field name="QTDE_DIAS" type="string"/>
+<Field name="FAIXA_COMPRA" type="string"/>
+<Field name="QTDE_DIAS2" type="string"/>
+<Field name="D2_INFO_ULT_NF" type="string"/>
+<Field name="F2_VEND1" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Cadastro de Clientes SA1" guiX="5" guiY="20" id="CADASTRO_DE_CLIENTES_SA1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  A1_COD, 
+	  A1_NOME, 
+	  A1_LOJA, 
+	  A1_PESSOA, 
+	  A1_NREDUZ, 
+	  A1_TIPO, 
+	  A1_CGC, 
+	  A1_INSCR, 
+	  A1_CEP, 
+	  A1_END, 
+	  A1_MUN, 
+	  A1_BAIRRO, 
+	  A1_TEL, 
+	  A1_VEND,
+	  FK_SA3,
+	  A1_TABELA, 
+	  A1_METR, 
+	  A1_PRICOM, 
+	  A1_ULTCOM, 
+	  A1_NROCOM, 
+	  A1_SALDUP, 
+	  A1_NROPAG, 
+	  A1_SALPED, 
+	  A1_ATR, 
+	  A1_VACUM, 
+	  A1_MATR, 
+	  A1_PAGATR, 
+	  A1_SALPEDB, 
+	  A1_GRPTRIB, 
+	  A1_SATIV1, 
+	  A1_EMAIL, 
+	  A1_DTCAD, 
+	  A1_LC, 
+	  A1_EST, 
+	  A1_CONTATO, 
+	  A1_MSALDO, 
+	  A1_MCOMPRA, 
+	  A1_VENCLC,
+	  MAX_DATA,
+	  COD_CLIENTE,
+	  A1_XTIPOLO,
+	  A1_XGPECO,
+	  QTDE_DIAS,	  
+	  -----------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE 
+		  WHEN QTDE_DIAS <> -1 AND QTDE_DIAS <= 30                      THEN 'Até 30 Dias'
+		  WHEN QTDE_DIAS <> -1 AND QTDE_DIAS  > 30 AND QTDE_DIAS <= 60  THEN 'De 31 à 60 Dias'
+		  WHEN QTDE_DIAS <> -1 AND QTDE_DIAS  > 60 AND QTDE_DIAS <= 90  THEN 'De 61 à 90 Dias'
+		  WHEN QTDE_DIAS <> -1 AND QTDE_DIAS  > 90 AND QTDE_DIAS <= 180 THEN 'De 91 à 180 Dias'
+		  WHEN QTDE_DIAS <> -1 AND QTDE_DIAS > 180                      THEN 'Mais de 180 Dias'
+		  WHEN QTDE_DIAS  = -1 THEN 'Sem Compra'
+		  ELSE 'Faixa não Identificada'
+	  END AS FAIXA_COMPRA,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------
+	  CASE
+		  WHEN LEN(CAST(QTDE_DIAS AS VARCHAR(12))) = 1 THEN '0000' + CAST(QTDE_DIAS AS VARCHAR(12))
+		  WHEN LEN(CAST(QTDE_DIAS AS VARCHAR(12))) = 2 THEN '000'  + CAST(QTDE_DIAS AS VARCHAR(12))
+		  WHEN LEN(CAST(QTDE_DIAS AS VARCHAR(12))) = 3 THEN '00'   + CAST(QTDE_DIAS AS VARCHAR(12))
+		  WHEN LEN(CAST(QTDE_DIAS AS VARCHAR(12))) = 4 THEN '0'    + CAST(QTDE_DIAS AS VARCHAR(12))
+	      WHEN LEN(CAST(QTDE_DIAS AS VARCHAR(12))) = 5 THEN CAST(QTDE_DIAS AS VARCHAR(12))
+	  END AS QTDE_DIAS2,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT MAX('| Filial: ' + D2.D2_FILIAL + ' | NF: ' + D2.D2_DOC + ' | Serie: ' + D2.D2_SERIE + ' |')
+	   FROM SD2010 D2, SF2010 F2
+       WHERE D2.D_E_L_E_T_ = ' ' 
+	     AND F2.D_E_L_E_T_ = ' '
+		 AND D2_DOC        = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+		 AND D2.D2_CLIENTE + D2.D2_LOJA = APL2.A1_COD
+		 AND D2.R_E_C_N_O_              = APL2.MAX_RECNO) AS D2_INFO_ULT_NF,
+	  -----------------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT MAX(F2.F2_VEND1 + ' - ' + LTRIM(RTRIM(A3.A3_NREDUZ)))
+	   FROM SD2010 D2, SF2010 F2, SA3010 A3
+       WHERE D2.D_E_L_E_T_ = ' ' 
+	     AND F2.D_E_L_E_T_ = ' '
+		 AND A3.D_E_L_E_T_ = ' '
+		 AND D2_DOC        = F2_DOC    AND D2_SERIE = F2_SERIE AND D2_CLIENTE = F2_CLIENTE AND D2_LOJA = F2_LOJA AND D2_FILIAL = F2_FILIAL
+		 AND F2_VEND1      = A3_COD 
+		 AND D2.D2_CLIENTE + D2.D2_LOJA = APL2.A1_COD
+		 AND D2.R_E_C_N_O_              = APL2.MAX_RECNO) AS F2_VEND1
+	  -----------------------------------------------------------------------------------------------------------------------------------------------
+FROM(
+SELECT 
+	  A1_COD,
+	  A1_NOME,
+	  A1_LOJA,
+	  A1_PESSOA,
+	  A1_NREDUZ,
+	  A1_TIPO,
+	  A1_CGC,
+	  A1_INSCR,
+	  A1_CEP,
+	  A1_END,
+	  A1_MUN,
+	  A1_BAIRRO,
+	  A1_TEL,
+	  A1_VEND,
+	  FK_SA3,
+	  A1_TABELA,
+	  A1_METR,
+	  A1_PRICOM,
+	  CASE WHEN MAX_DATA IS NULL THEN '19890101' ELSE MAX_DATA END AS A1_ULTCOM,
+	  A1_NROCOM,
+	  A1_SALDUP,
+	  A1_NROPAG,
+	  A1_SALPED,
+	  A1_ATR,
+	  A1_VACUM,
+	  A1_MATR,
+	  A1_PAGATR,
+	  A1_SALPEDB,
+	  A1_GRPTRIB,
+	  A1_SATIV1,
+	  A1_EMAIL,
+	  A1_DTCAD,
+	  A1_LC,
+	  A1_EST,
+	  A1_CONTATO,
+	  A1_MSALDO,
+	  A1_MCOMPRA,
+	  A1_VENCLC,
+	  MAX_DATA,
+	  COD_CLIENTE,
+	  A1_XTIPOLO,
+	  A1_XGPECO,
+	  -----------------------------------------------------------------------------------------
+	  CASE
+		  WHEN MAX_DATA IS NOT NULL  THEN DATEDIFF(DAY,MAX_DATA,GETDATE())
+		  ELSE -1
+	  END AS QTDE_DIAS,
+	  -----------------------------------------------------------------------------------------
+	  MAX_RECNO
+FROM(
+SELECT 
+	  A1_COD + A1_LOJA AS A1_COD,
+	  LTRIM(RTRIM(A1_NOME)) AS A1_NOME,
+	  A1_LOJA,
+	  A1_PESSOA,
+	  A1_NREDUZ,
+	  A1_TIPO,
+	  A1_CGC,
+	  A1_INSCR,
+	  A1_CEP,
+	  A1_END,
+	  A1_MUN,
+	  A1_BAIRRO,
+	  A1_TEL,
+	  ISNULL(A3_COD,'YYYYYY') AS A1_VEND,--Vend
+	  ISNULL(A3_COD,'YYYYYY') AS FK_SA3,--Vend
+	  A1_TABELA,
+	  A1_METR,
+	  A1_PRICOM,
+	  --CASE WHEN A1_ULTCOM = '' THEN '19890101' ELSE A1_ULTCOM END AS A1_ULTCOM,
+	  NULL AS A1_ULTCOM,
+	  A1_NROCOM,
+	  A1_SALDUP,
+	  A1_NROPAG,
+	  A1_SALPED,
+	  A1_ATR,
+	  A1_VACUM,
+	  A1_MATR,
+	  A1_PAGATR,
+	  A1_SALPEDB,
+	  LTRIM(RTRIM(A1_GRPTRIB)) + ' - ' + LTRIM(RTRIM(ISNULL(SX.X5_DESCRI,'Sem Grupo na SX5'))) AS A1_GRPTRIB,
+	  ISNULL(SX55.X5_CHAVE,'XX') AS A1_SATIV1,--x5
+	  A1_EMAIL,
+	  A1_XDTCAD AS A1_DTCAD,
+	  A1_LC,
+	  A1_EST,
+	  A1_CONTATO,
+	  A1_MSALDO,
+	  A1_MCOMPRA,
+	  A1_VENCLC,
+	  ---------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT MAX(D2.R_E_C_N_O_)
+	   FROM SD2010 D2, SF4010 F4
+	   WHERE D2.D_E_L_E_T_ = ' ' 
+	     AND F4.D_E_L_E_T_ = ' '
+	     AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'S' AND F4_DUPLIC = 'S')                                              OR
+	                                       (F4_ESTOQUE = 'S' AND F4_XCTR   = 'S')                                              OR
+	   								       (F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S' AND D2.D2_CF IN('5101','5924','6101','6924')) OR
+	   								       (F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND D2.D2_CF IN('5101','5924','6101','6924'))
+	   								      )
+	   	 AND D2.D2_CLIENTE = SA1.A1_COD
+		 AND D2.D2_LOJA    = SA1.A1_LOJA
+	  ) AS MAX_RECNO,
+	  ---------------------------------------------------------------------------------------------------------------------------------------
+	  (SELECT MAX(D2_EMISSAO)
+	   FROM SD2010 D2, SF4010 F4
+	   WHERE D2.D_E_L_E_T_ = ' ' 
+	     AND F4.D_E_L_E_T_ = ' '
+	     AND D2_TES      = F4_CODIGO  AND ((F4_ESTOQUE = 'S' AND F4_DUPLIC = 'S')                                              OR
+	                                       (F4_ESTOQUE = 'S' AND F4_XCTR   = 'S')                                              OR
+	   								       (F4_ESTOQUE = 'N' AND F4_DUPLIC = 'S' AND D2.D2_CF IN('5101','5924','6101','6924')) OR
+	   								       (F4_ESTOQUE = 'S' AND F4_DUPLIC = 'N' AND D2.D2_CF IN('5101','5924','6101','6924'))
+	   								      )
+	   	 AND D2.D2_CLIENTE = SA1.A1_COD
+		 AND D2.D2_LOJA    = SA1.A1_LOJA
+	  ) AS MAX_DATA,
+	  ---------------------------------------------------------------------------------------------------------------------------------------
+	  A1_COD AS COD_CLIENTE,
+	  -----------------------------------------------------------------------------------------
+	  --CASE
+		--  WHEN A1_XTIPOLO = '01' THEN '01 - Industrias Metalúrgicas'
+		--  WHEN A1_XTIPOLO = '02' THEN '02 - Construtora Metálica/Estrutureiro'
+		--  WHEN A1_XTIPOLO = '03' THEN '03 - Serralheiro'
+		--  WHEN A1_XTIPOLO = '04' THEN '04 - Agronegócio'
+		-- WHEN A1_XTIPOLO = '05' THEN '05 - Industrias Geral'
+		--  WHEN A1_XTIPOLO = '06' THEN '06 - Construtora Civil'
+		--  WHEN A1_XTIPOLO = '07' THEN '07 - Consumidor Final'
+		--  WHEN A1_XTIPOLO = '08' THEN '08 - Revendedor'
+		--  WHEN A1_XTIPOLO = '09' THEN '09 - Comunicacao / Sinalizacao'
+		--  ELSE 'xx - Sem Tipologia'
+	  --END AS A1_XTIPOLO, --Tipologia
+	  --LTRIM(RTRIM(A1_XTIPOLO)) + ' - ' + LTRIM(RTRIM(ISNULL(SM.X5_DESCRI,'Sem Tipologia'))) AS A1_XTIPOLO, --Tipologia
+	  UPPER(LTRIM(RTRIM(ISNULL(SM.X5_DESCRI,'SEM TIPOLOGIA')))) AS A1_XTIPOLO, --Tipologia
+	  -----------------------------------------------------------------------------------------
+	  CASE
+		  WHEN A1_XGPECO = ' '      THEN 'xx - Sem Grupo Economico'
+		  WHEN A1_XGPECO = '  '     THEN 'xx - Sem Grupo Economico'
+		  WHEN A1_XGPECO = '   '    THEN 'xx - Sem Grupo Economico'
+		  WHEN A1_XGPECO = '    '   THEN 'xx - Sem Grupo Economico'
+		  WHEN A1_XGPECO = '     '  THEN 'xx - Sem Grupo Economico'
+		  WHEN A1_XGPECO = '      ' THEN 'xx - Sem Grupo Economico'
+		  ELSE LTRIM(RTRIM(A1_XGPECO)) + ' - Cadastrar Descrição'
+	  END AS A1_XGPECO   --Grupo Economico
+	  -----------------------------------------------------------------------------------------
+
+FROM SA1010 SA1 --50'236
+-----------------------------------------------------------
+LEFT JOIN SA3010 SA3 ON SA3.D_E_L_E_T_ = ' ' 
+                    AND SA3.A3_COD     = SA1.A1_VEND
+-----------------------------------------------------------
+LEFT JOIN (SELECT DISTINCT
+            	  X5_CHAVE,
+            	  LTRIM(RTRIM(X5_DESCRI)) AS X5_DESCRI 
+           FROM SX5010 
+           WHERE X5_TABELA  = 'T3'
+             AND D_E_L_E_T_ = ' ' ) SX55 
+         
+         ON SX55.X5_CHAVE   = SA1.A1_SATIV1
+------------------------------------------------------------
+LEFT JOIN SX5010 SX  ON SX.D_E_L_E_T_  = ' ' 
+                    AND SX.X5_FILIAL   = ' '
+					AND SX.X5_TABELA   = 'Z2'
+					AND SX.X5_CHAVE    = SA1.A1_GRPTRIB
+-----------------------------------------------------------
+LEFT JOIN SX5010 SM  ON SM.D_E_L_E_T_  = ' ' 
+                    AND SM.X5_FILIAL   = '01'
+					AND SM.X5_TABELA   = 'TL'
+					AND SM.X5_CHAVE    = SA1.A1_XTIPOLO
+-----------------------------------------------------------
+WHERE SA1.D_E_L_E_T_ = ' ' 
+
+
+) APL1
+) APL2
+
+UNION ALL
+
+SELECT 
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  'INDEFINIDO',
+	  '',
+	  '',
+	  '',
+	  '',
+	  '',
+	  '',
+	  '',
+	  'YYYYYY',
+	  'YYYYYY',
+	  0.0,
+	  FORMAT(CAST(GETDATE() AS DATE),'yyyyMMdd'),
+	  FORMAT(CAST(GETDATE() AS DATE),'yyyyMMdd'),
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  0.0,
+	  '',
+	  '',
+	  '',
+	  FORMAT(CAST(GETDATE() AS DATE),'yyyyMMdd'),
+	  0.0,
+	  '',
+	  '',
+	  0.0,
+	  0.0,
+	  FORMAT(CAST(GETDATE() AS DATE),'yyyyMMdd'), 
+	  FORMAT(CAST(GETDATE() AS DATE),'yyyyMMdd'),
+	  '', --39
+	  'SEM TIPOLOGIA',
+	  '',
+	  0,
+	  '',
+	  '',
+	  '',
+	  '']]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CADASTRO_DE_CLIENTES_SA1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="203" guiY="89" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.A1_COD = $in.0.A1_COD;
+	$out.0.A1_NOME = $in.0.A1_NOME;
+	$out.0.A1_LOJA = $in.0.A1_LOJA;
+	$out.0.A1_PESSOA = $in.0.A1_PESSOA;
+	$out.0.A1_NREDUZ = $in.0.A1_NREDUZ;
+	$out.0.A1_TIPO = $in.0.A1_TIPO;
+	$out.0.A1_CGC = $in.0.A1_CGC;
+	$out.0.A1_INSCR = $in.0.A1_INSCR;
+	$out.0.A1_CEP = $in.0.A1_CEP;
+	$out.0.A1_VEND1 = $in.0.A1_VEND1;
+	$out.0.FK_SA3 = $in.0.FK_SA3; 
+	$out.0.A1_END = $in.0.A1_END;
+	$out.0.A1_MUN = $in.0.A1_MUN;
+	$out.0.A1_BAIRRO = $in.0.A1_BAIRRO;
+	$out.0.A1_TEL = $in.0.A1_TEL;
+	$out.0.A1_TABELA = $in.0.A1_TABELA;
+	$out.0.A1_METR = $in.0.A1_METR;
+	$out.0.A1_NROCOM = $in.0.A1_NROCOM;
+	$out.0.A1_SALDUP = $in.0.A1_SALDUP;
+	$out.0.A1_NROPAG = $in.0.A1_NROPAG;
+	$out.0.A1_SALPED = $in.0.A1_SALPED;
+	$out.0.A1_ATR = $in.0.A1_ATR;
+	$out.0.A1_VACUM = $in.0.A1_VACUM;
+	$out.0.A1_MATR = $in.0.A1_MATR;
+	$out.0.A1_PAGATR = $in.0.A1_PAGATR;
+	$out.0.A1_SALPEDB = $in.0.A1_SALPEDB;
+	$out.0.A1_GRPTRIB = $in.0.A1_GRPTRIB;
+	$out.0.A1_SATIV1 = $in.0.A1_SATIV1;
+	$out.0.A1_EMAIL = $in.0.A1_EMAIL;
+	$out.0.A1_LC = $in.0.A1_LC;
+	$out.0.A1_EST = $in.0.A1_EST;
+	$out.0.A1_CONTATO = $in.0.A1_CONTATO;
+	$out.0.A1_MSALDO = $in.0.A1_MSALDO;
+    $out.0.A1_MCOMPRA = $in.0.A1_MCOMPRA;
+    
+    $out.0.MAX_DATA = $in.0.MAX_DATA;
+    
+    $out.0.COD_CLIENTE = $in.0.COD_CLIENTE;
+    $out.0.A1_XTIPOLO = $in.0.A1_XTIPOLO;
+    $out.0.A1_XGPECO = $in.0.A1_XGPECO;
+    
+    $out.0.QTDE_DIAS = $in.0.QTDE_DIAS;
+    $out.0.FAIXA_COMPRA = $in.0.FAIXA_COMPRA;
+    $out.0.QTDE_DIAS2 = $in.0.QTDE_DIAS2;
+    $out.0.D2_INFO_ULT_NF = $in.0.D2_INFO_ULT_NF;
+    $out.0.F2_VEND1 = $in.0.F2_VEND1;    
+    
+    
+    if ($in.0.A1_DTCAD == "        "){
+		$out.0.A1_DTCAD = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.A1_DTCAD = str2date($in.0.A1_DTCAD, "yyyyMMdd");
+	}
+	if ($in.0.A1_ULTCOM == "        "){
+		$out.0.A1_ULTCOM = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.A1_ULTCOM = str2date($in.0.A1_ULTCOM, "yyyyMMdd");
+	}
+	if ($in.0.A1_PRICOM == "        "){
+		$out.0.A1_PRICOM = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.A1_PRICOM = str2date($in.0.A1_PRICOM, "yyyyMMdd");
+	}
+	if ($in.0.A1_VENCLC == "        "){
+		$out.0.A1_VENCLC = str2date('19890101', "yyyyMMdd");
+	}else {
+		$out.0.A1_VENCLC = str2date($in.0.A1_VENCLC, "yyyyMMdd");
+	}
+
+	
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="FAST_SORT:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="FastSort" guiX="398" guiY="89" id="FAST_SORT" sortKey="A1_COD(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="GD_CADASTRO_DE_CLIENTES_SA1_WRITER:0"/>
+</Phase>
+<Phase number="3">
+<Node dataset="dataset.clienteII" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.clienteII&quot;,&quot;datasetTitle&quot;:&quot;Cadastro de Clientes SA1&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_atratrasos&quot;,&quot;title&quot;:&quot;A1_ATR Atrasos&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_atratrasos&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_atratrasos&quot;,&quot;title&quot;:&quot;A1_ATR Atrasos&quot;,&quot;prettyId&quot;:&quot;a1_atratrasos&quot;,&quot;assignedMetadataField&quot;:&quot;A1_ATR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_bairrobairro&quot;,&quot;title&quot;:&quot;A1_BAIRRO Bairro&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_bairrobairro&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_bairrobairro&quot;,&quot;title&quot;:&quot;A1_BAIRRO Bairro&quot;,&quot;prettyId&quot;:&quot;a1_bairrobairro&quot;,&quot;assignedMetadataField&quot;:&quot;A1_BAIRRO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_cepcep&quot;,&quot;title&quot;:&quot;A1_CEP CEP&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_cepcep&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_cepcep&quot;,&quot;title&quot;:&quot;A1_CEP CEP&quot;,&quot;prettyId&quot;:&quot;a1_cepcep&quot;,&quot;assignedMetadataField&quot;:&quot;A1_CEP&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_cgccpfcnpj&quot;,&quot;title&quot;:&quot;A1_CGC CPF/CNPJ&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_cgccpfcnpj&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_cgccpfcnpj&quot;,&quot;title&quot;:&quot;A1_CGC CPF/CNPJ&quot;,&quot;prettyId&quot;:&quot;a1_cgccpfcnpj&quot;,&quot;assignedMetadataField&quot;:&quot;A1_CGC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_emailemail&quot;,&quot;title&quot;:&quot;A1_EMAIL Email&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_emailemail&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_emailemail&quot;,&quot;title&quot;:&quot;A1_EMAIL Email&quot;,&quot;prettyId&quot;:&quot;a1_emailemail&quot;,&quot;assignedMetadataField&quot;:&quot;A1_EMAIL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_endendereco&quot;,&quot;title&quot;:&quot;A1_END Endereco&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_endendereco&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_endendereco&quot;,&quot;title&quot;:&quot;A1_END Endereco&quot;,&quot;prettyId&quot;:&quot;a1_endendereco&quot;,&quot;assignedMetadataField&quot;:&quot;A1_END&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_grptribgrupotributario&quot;,&quot;title&quot;:&quot;A1_GRPTRIB Grupo Tributario&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_grptribgrupotributario&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_grptribgrupotributario&quot;,&quot;title&quot;:&quot;A1_GRPTRIB Grupo Tributario&quot;,&quot;prettyId&quot;:&quot;a1_grptribgrupotributario&quot;,&quot;assignedMetadataField&quot;:&quot;A1_GRPTRIB&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_inscrinscricao&quot;,&quot;title&quot;:&quot;A1_INSCR Inscricao&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_inscrinscricao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_inscrinscricao&quot;,&quot;title&quot;:&quot;A1_INSCR Inscricao&quot;,&quot;prettyId&quot;:&quot;a1_inscrinscricao&quot;,&quot;assignedMetadataField&quot;:&quot;A1_INSCR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_matrmediaatraso&quot;,&quot;title&quot;:&quot;A1_MATR Media Atraso&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_matrmediaatraso&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_matrmediaatraso&quot;,&quot;title&quot;:&quot;A1_MATR Media Atraso&quot;,&quot;prettyId&quot;:&quot;a1_matrmediaatraso&quot;,&quot;assignedMetadataField&quot;:&quot;A1_MATR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_metrmediaatraso&quot;,&quot;title&quot;:&quot;A1_METR Media Atraso&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_metrmediaatraso&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_metrmediaatraso&quot;,&quot;title&quot;:&quot;A1_METR Media Atraso&quot;,&quot;prettyId&quot;:&quot;a1_metrmediaatraso&quot;,&quot;assignedMetadataField&quot;:&quot;A1_METR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_munestado&quot;,&quot;title&quot;:&quot;A1_MUN Municipio&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_munestado&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_munestado&quot;,&quot;title&quot;:&quot;A1_MUN Municipio&quot;,&quot;prettyId&quot;:&quot;a1_munestado&quot;,&quot;assignedMetadataField&quot;:&quot;A1_MUN&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_nreduznomereduz&quot;,&quot;title&quot;:&quot;A1_NREDUZ Nome Reduz&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_nreduznomereduz&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_nreduznomereduz&quot;,&quot;title&quot;:&quot;A1_NREDUZ Nome Reduz&quot;,&quot;prettyId&quot;:&quot;a1_nreduznomereduz&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NREDUZ&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_nrocomnumerocompras&quot;,&quot;title&quot;:&quot;A1_NROCOM Numero Compras&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_nrocomnumerocompras&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_nrocomnumerocompras&quot;,&quot;title&quot;:&quot;A1_NROCOM Numero Compras&quot;,&quot;prettyId&quot;:&quot;a1_nrocomnumerocompras&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NROCOM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_nropagnumeropagamento&quot;,&quot;title&quot;:&quot;A1_NROPAG Numero Pagamento&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_nropagnumeropagamento&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_nropagnumeropagamento&quot;,&quot;title&quot;:&quot;A1_NROPAG Numero Pagamento&quot;,&quot;prettyId&quot;:&quot;a1_nropagnumeropagamento&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NROPAG&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_pagatrpagamentoematraso&quot;,&quot;title&quot;:&quot;A1_PAGATR Pagamento em Atraso&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_pagatrpagamentoematraso&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_pagatrpagamentoematraso&quot;,&quot;title&quot;:&quot;A1_PAGATR Pagamento em Atraso&quot;,&quot;prettyId&quot;:&quot;a1_pagatrpagamentoematraso&quot;,&quot;assignedMetadataField&quot;:&quot;A1_PAGATR&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_pessoafisicajuridica&quot;,&quot;title&quot;:&quot;A1_PESSOA Fisica/Juridica&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_pessoafisicajuridica&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_pessoafisicajuridica&quot;,&quot;title&quot;:&quot;A1_PESSOA Fisica/Juridica&quot;,&quot;prettyId&quot;:&quot;a1_pessoafisicajuridica&quot;,&quot;assignedMetadataField&quot;:&quot;A1_PESSOA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_saldupsaldoduplicata&quot;,&quot;title&quot;:&quot;A1_SALDUP Saldo Duplicata&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_saldupsaldoduplicata&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_saldupsaldoduplicata&quot;,&quot;title&quot;:&quot;A1_SALDUP Saldo Duplicata&quot;,&quot;prettyId&quot;:&quot;a1_saldupsaldoduplicata&quot;,&quot;assignedMetadataField&quot;:&quot;A1_SALDUP&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_salpedbsaldopedidobloq&quot;,&quot;title&quot;:&quot;A1_SALPEDB Saldo Pedido Bloq&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_salpedbsaldopedidobloq&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_salpedbsaldopedidobloq&quot;,&quot;title&quot;:&quot;A1_SALPEDB Saldo Pedido Bloq&quot;,&quot;prettyId&quot;:&quot;a1_salpedbsaldopedidobloq&quot;,&quot;assignedMetadataField&quot;:&quot;A1_SALPEDB&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_salpedsaldopedido&quot;,&quot;title&quot;:&quot;A1_SALPED Saldo Pedido&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_salpedsaldopedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_salpedsaldopedido&quot;,&quot;title&quot;:&quot;A1_SALPED Saldo Pedido&quot;,&quot;prettyId&quot;:&quot;a1_salpedsaldopedido&quot;,&quot;assignedMetadataField&quot;:&quot;A1_SALPED&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_tabelatabela&quot;,&quot;title&quot;:&quot;A1_TABELA Tabela&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_tabelatabela&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_tabelatabela&quot;,&quot;title&quot;:&quot;A1_TABELA Tabela&quot;,&quot;prettyId&quot;:&quot;a1_tabelatabela&quot;,&quot;assignedMetadataField&quot;:&quot;A1_TABELA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_teltelefone&quot;,&quot;title&quot;:&quot;A1_TEL Telefone&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_teltelefone&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_teltelefone&quot;,&quot;title&quot;:&quot;A1_TEL Telefone&quot;,&quot;prettyId&quot;:&quot;a1_teltelefone&quot;,&quot;assignedMetadataField&quot;:&quot;A1_TEL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_tipotipocliente&quot;,&quot;title&quot;:&quot;A1_TIPO Tipo Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_tipotipocliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_tipotipocliente&quot;,&quot;title&quot;:&quot;A1_TIPO Tipo Cliente&quot;,&quot;prettyId&quot;:&quot;a1_tipotipocliente&quot;,&quot;assignedMetadataField&quot;:&quot;A1_TIPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.a1_vacumvaloracumulado&quot;,&quot;title&quot;:&quot;A1_VACUM Valor Acumulado&quot;,&quot;prettyId&quot;:&quot;attr_cliente_a1_vacumvaloracumulado&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.a1_vacumvaloracumulado&quot;,&quot;title&quot;:&quot;A1_VACUM Valor Acumulado&quot;,&quot;prettyId&quot;:&quot;a1_vacumvaloracumulado&quot;,&quot;assignedMetadataField&quot;:&quot;A1_VACUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_cod_cliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cod_cliente&quot;,&quot;assignedMetadataField&quot;:&quot;A1_COD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cod_cliente&quot;,&quot;assignedMetadataField&quot;:&quot;A1_COD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.loja&quot;,&quot;title&quot;:&quot;Loja_Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_loja&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.loja&quot;,&quot;title&quot;:&quot;Loja_Cliente&quot;,&quot;prettyId&quot;:&quot;loja&quot;,&quot;assignedMetadataField&quot;:&quot;A1_LOJA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.loja&quot;,&quot;title&quot;:&quot;Loja_Cliente&quot;,&quot;prettyId&quot;:&quot;loja&quot;,&quot;assignedMetadataField&quot;:&quot;A1_LOJA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.nome&quot;,&quot;title&quot;:&quot;Nome Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.nome&quot;,&quot;title&quot;:&quot;Nome Cliente&quot;,&quot;prettyId&quot;:&quot;nome&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.nome&quot;,&quot;title&quot;:&quot;Nome Cliente&quot;,&quot;prettyId&quot;:&quot;nome&quot;,&quot;assignedMetadataField&quot;:&quot;A1_NOME&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.a1_contatocontato&quot;,&quot;title&quot;:&quot;A1_CONTATO Contato&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_a1_contatocontato&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_contatocontato&quot;,&quot;title&quot;:&quot;A1_CONTATO Contato&quot;,&quot;prettyId&quot;:&quot;a1_contatocontato&quot;,&quot;assignedMetadataField&quot;:&quot;A1_CONTATO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.a1_estestado&quot;,&quot;title&quot;:&quot;A1_EST Estado&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_a1_estestado&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_estestado&quot;,&quot;title&quot;:&quot;A1_EST Estado&quot;,&quot;prettyId&quot;:&quot;a1_estestado&quot;,&quot;assignedMetadataField&quot;:&quot;A1_EST&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.a1_xgpeco&quot;,&quot;title&quot;:&quot;A1_XGPECO&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_a1_xgpeco&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_xgpeco&quot;,&quot;title&quot;:&quot;A1_XGPECO&quot;,&quot;prettyId&quot;:&quot;a1_xgpeco&quot;,&quot;assignedMetadataField&quot;:&quot;A1_XGPECO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_xgpeco&quot;,&quot;title&quot;:&quot;A1_XGPECO&quot;,&quot;prettyId&quot;:&quot;a1_xgpeco&quot;,&quot;assignedMetadataField&quot;:&quot;A1_XGPECO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.a1_xtipolo&quot;,&quot;title&quot;:&quot;A1_XTIPOLO&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_a1_xtipolo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_xtipolo&quot;,&quot;title&quot;:&quot;A1_XTIPOLO&quot;,&quot;prettyId&quot;:&quot;a1_xtipolo&quot;,&quot;assignedMetadataField&quot;:&quot;A1_XTIPOLO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.a1_xtipolo&quot;,&quot;title&quot;:&quot;A1_XTIPOLO&quot;,&quot;prettyId&quot;:&quot;a1_xtipolo&quot;,&quot;assignedMetadataField&quot;:&quot;A1_XTIPOLO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.cod_cliente2&quot;,&quot;title&quot;:&quot;COD_CLIENTE2&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_cod_cliente2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.cod_cliente2&quot;,&quot;title&quot;:&quot;COD_CLIENTE2&quot;,&quot;prettyId&quot;:&quot;cod_cliente2&quot;,&quot;assignedMetadataField&quot;:&quot;COD_CLIENTE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.d2_info_ult_nf&quot;,&quot;title&quot;:&quot;D2_INFO_ULT_NF&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_d2_info_ult_nf&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.d2_info_ult_nf&quot;,&quot;title&quot;:&quot;D2_INFO_ULT_NF&quot;,&quot;prettyId&quot;:&quot;d2_info_ult_nf&quot;,&quot;assignedMetadataField&quot;:&quot;D2_INFO_ULT_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.d2_info_ult_nf&quot;,&quot;title&quot;:&quot;D2_INFO_ULT_NF&quot;,&quot;prettyId&quot;:&quot;d2_info_ult_nf&quot;,&quot;assignedMetadataField&quot;:&quot;D2_INFO_ULT_NF&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.f2_vend1&quot;,&quot;title&quot;:&quot;F2_VEND1&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_f2_vend1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.f2_vend1&quot;,&quot;title&quot;:&quot;F2_VEND1&quot;,&quot;prettyId&quot;:&quot;f2_vend1&quot;,&quot;assignedMetadataField&quot;:&quot;F2_VEND1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.f2_vend1&quot;,&quot;title&quot;:&quot;F2_VEND1&quot;,&quot;prettyId&quot;:&quot;f2_vend1&quot;,&quot;assignedMetadataField&quot;:&quot;F2_VEND1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.faixa_compra&quot;,&quot;title&quot;:&quot;FAIXA_COMPRA&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_faixa_compra&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.faixa_compra&quot;,&quot;title&quot;:&quot;FAIXA_COMPRA&quot;,&quot;prettyId&quot;:&quot;faixa_compra&quot;,&quot;assignedMetadataField&quot;:&quot;FAIXA_COMPRA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.faixa_compra&quot;,&quot;title&quot;:&quot;FAIXA_COMPRA&quot;,&quot;prettyId&quot;:&quot;faixa_compra&quot;,&quot;assignedMetadataField&quot;:&quot;FAIXA_COMPRA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.max_data&quot;,&quot;title&quot;:&quot;MAX_DATA&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_max_data&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.max_data&quot;,&quot;title&quot;:&quot;MAX_DATA&quot;,&quot;prettyId&quot;:&quot;max_data&quot;,&quot;assignedMetadataField&quot;:&quot;MAX_DATA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.max_data&quot;,&quot;title&quot;:&quot;MAX_DATA&quot;,&quot;prettyId&quot;:&quot;max_data&quot;,&quot;assignedMetadataField&quot;:&quot;MAX_DATA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.qtde_dias&quot;,&quot;title&quot;:&quot;QTDE_DIAS&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_qtde_dias&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.qtde_dias&quot;,&quot;title&quot;:&quot;QTDE_DIAS&quot;,&quot;prettyId&quot;:&quot;qtde_dias&quot;,&quot;assignedMetadataField&quot;:&quot;QTDE_DIAS&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.qtde_dias&quot;,&quot;title&quot;:&quot;QTDE_DIAS&quot;,&quot;prettyId&quot;:&quot;qtde_dias&quot;,&quot;assignedMetadataField&quot;:&quot;QTDE_DIAS&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clienteii.qtde_dias2&quot;,&quot;title&quot;:&quot;QTDE_DIAS2&quot;,&quot;prettyId&quot;:&quot;attr_clienteii_qtde_dias2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.qtde_dias2&quot;,&quot;title&quot;:&quot;QTDE_DIAS2&quot;,&quot;prettyId&quot;:&quot;qtde_dias2&quot;,&quot;assignedMetadataField&quot;:&quot;QTDE_DIAS2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clienteii.qtde_dias2&quot;,&quot;title&quot;:&quot;QTDE_DIAS2&quot;,&quot;prettyId&quot;:&quot;qtde_dias2&quot;,&quot;assignedMetadataField&quot;:&quot;QTDE_DIAS2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_vendedor_cliente_sa3.pk_sa3&quot;,&quot;title&quot;:&quot;PK_SA3&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_vendedor_cliente_sa3_pk_sa3&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_vendedor_cliente_sa3.pk_sa3&quot;,&quot;title&quot;:&quot;PK_SA3&quot;,&quot;prettyId&quot;:&quot;gd_dim_vendedor_cliente_sa3__pk_sa3&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SA3&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_vendedor_cliente_sa3.pk_sa3&quot;,&quot;title&quot;:&quot;PK_SA3&quot;,&quot;prettyId&quot;:&quot;gd_dim_vendedor_cliente_sa3__pk_sa3&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;attr_sx5_x5_chave&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;sx5__x5_chave&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;A1_SATIV1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;sx5__x5_chave&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;attr_vendedor1_cod_vendedor&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;A1_VEND1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;a1_datacadastro.date&quot;,&quot;title&quot;:&quot;Date (A1_Data Cadastro)&quot;,&quot;prettyId&quot;:&quot;a1_datacadastro&quot;,&quot;assignedMetadataField&quot;:&quot;A1_DTCAD&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_datacadastro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Data Cadastro)&quot;,&quot;prettyId&quot;:&quot;a1_datacadastro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_datacadastro.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Data Cadastro)&quot;,&quot;prettyId&quot;:&quot;a1_datacadastro_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;a1_primeiracompra.date&quot;,&quot;title&quot;:&quot;Date (A1_Primeira Compra)&quot;,&quot;prettyId&quot;:&quot;a1_primeiracompra&quot;,&quot;assignedMetadataField&quot;:&quot;A1_PRICOM&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_primeiracompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Primeira Compra)&quot;,&quot;prettyId&quot;:&quot;a1_primeiracompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_primeiracompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Primeira Compra)&quot;,&quot;prettyId&quot;:&quot;a1_primeiracompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;a1_ultimacompra.date&quot;,&quot;title&quot;:&quot;Date (A1_Ultima Compra)&quot;,&quot;prettyId&quot;:&quot;a1_ultimacompra&quot;,&quot;assignedMetadataField&quot;:&quot;A1_ULTCOM&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_ultimacompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Ultima Compra)&quot;,&quot;prettyId&quot;:&quot;a1_ultimacompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;a1_ultimacompra.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Ultima Compra)&quot;,&quot;prettyId&quot;:&quot;a1_ultimacompra_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datadevencimentodelimitedecredito.date&quot;,&quot;title&quot;:&quot;Date (A1_Data de Venc de Limite de Credito)&quot;,&quot;prettyId&quot;:&quot;datadevencimentodelimitedecredito&quot;,&quot;assignedMetadataField&quot;:&quot;A1_VENCLC&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadevencimentodelimitedecredito.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Data de Venc de Limite de Credito)&quot;,&quot;prettyId&quot;:&quot;datadevencimentodelimitedecredito_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datadevencimentodelimitedecredito.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (A1_Data de Venc de Limite de Credito)&quot;,&quot;prettyId&quot;:&quot;datadevencimentodelimitedecredito_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.clienteii.a1_lclimetedecredito&quot;,&quot;title&quot;:&quot;A1_LC Limite de Credito&quot;,&quot;prettyId&quot;:&quot;a1_lclimetedecredito&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;A1_LC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.clienteii.a1_1&quot;,&quot;title&quot;:&quot;A1_MCOMPRA_Maior Compra&quot;,&quot;prettyId&quot;:&quot;a1_1&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;A1_MCOMPRA&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.clienteii.a1_&quot;,&quot;title&quot;:&quot;A1_MSALDO_Maior Saldo&quot;,&quot;prettyId&quot;:&quot;a1_&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;A1_MSALDO&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[]}}" enabled="enabled" guiName="GD Cadastro de Clientes SA1 Writer" guiX="591" guiY="168" id="GD_CADASTRO_DE_CLIENTES_SA1_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

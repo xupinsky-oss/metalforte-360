@@ -1,0 +1,5 @@
+#Default GoodData Connection in CloverETL Designer
+#Mon Jun 10 13:33:17 BRT 2019
+GDC_HOSTNAME=analytics.totvs.com.br
+GDC_PASSWORD=y6PPVbBAXkdKrUCWjBTmXQ\=\=
+GDC_USERNAME=lucas.mendonca@2mi.com.br

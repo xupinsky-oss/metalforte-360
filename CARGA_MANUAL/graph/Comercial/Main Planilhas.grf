@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Wed May 15 13:55:13 BRT 2024" guiVersion="3.4.4.P" id="1715830027422" licenseType="Commercial" modified="Thu May 16 00:28:08 BRT 2024" modifiedBy="Guilherme" name="Main Planilhas" revision="1.1" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/GD_FATO_PREVISAO_VENDAS_GH.grf" guiName="GD_FATO_PREVISAO_VENDAS_GH" guiX="16" guiY="7" id="GD_FATO_PREVISAO_VENDAS_GH" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Comercial/GD_FATO_DIAS_UTEIS_POR_DIA_GH.grf" guiName="GD_FATO_DIAS_UTEIS_POR_DIA_GH" guiX="244" guiY="7" id="GD_FATO_DIAS_UTEIS_POR_DIA_GH" type="RUN_GRAPH"/>
+</Phase>
+</Graph>
