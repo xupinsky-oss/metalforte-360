@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Administrador" created="Thu Nov 24 08:15:20 BRST 2016" guiVersion="3.4.4.P" id="1480002863670" licenseType="Commercial" modified="Mon Jun 24 11:47:18 BRT 2019" modifiedBy="Astec" name="Atualizar Dados " revision="1.8" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Faturamento.grf" guiName="Faturamento" guiX="36" guiY="73" id="FATURAMENTO" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

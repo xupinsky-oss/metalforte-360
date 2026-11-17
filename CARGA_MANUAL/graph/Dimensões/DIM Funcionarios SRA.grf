@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636343973536" licenseType="Commercial" modified="Mon Jun 02 17:41:07 BRT 2025" modifiedBy="Guilherme" name="DIM Funcionarios SRA" revision="1.8" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRAFuncionario" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="RA_NOME" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DESCRIC" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="RJ_DESC" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="X5_DESCRI" nullable="true" shift="0" size="55" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_ADMISSA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_DEMISSA" nullable="true" shift="0" size="8" type="date"/>
+<Field name="RA_SITFOLH" type="string"/>
+<Field format="#.###" name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRAFuncionario" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_DEMISSA" nullable="true" shift="0" size="8" type="date"/>
+<Field name="RA_SITFOLH" type="string"/>
+<Field format="#.###" name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRAFuncionario" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_ADMISSA" nullable="true" shift="0" size="8" type="date"/>
+<Field name="RA_SITFOLH" type="string"/>
+<Field format="#.###" name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SRAFuncionario" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="RA_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="RA_MAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="RA_NOME" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="QB_DESCRIC" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="RJ_DESC" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="X5_DESCRI" nullable="true" shift="0" size="55" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_ADMISSA" nullable="true" shift="0" size="8" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="RA_DEMISSA" nullable="true" shift="0" size="8" type="string"/>
+<Field name="RA_SITFOLH" type="string"/>
+<Field format="#.###" name="COUNT" type="integer"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="10">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SRA- Funcionário" guiX="10" guiY="6" id="SRA_FUNCIONARIO" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  RA_FILIAL,
+      RA_MAT,
+      RA_NOME,
+      CTT_DESC01,
+      QB_DESCRIC,
+      RJ_DESC,
+      X5_DESCRI,
+      RA_ADMISSA,
+      RA_DEMISSA,
+      RA_SITFOLH,
+      COUNT_
+FROM GD_FATO_FUNCIONARIO_SRA]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SRA_FUNCIONARIO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="11">
+<Node enabled="enabled" guiName="Reformat" guiX="214" guiY="54" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	if ($in.0.RA_MAT <='000999' || $in.0.RA_MAT >'000999'){
+	$out.0.RA_FILIAL = $in.0.RA_FILIAL;
+	$out.0.RA_MAT = $in.0.RA_MAT;
+	$out.0.RA_NOME = $in.0.RA_NOME;
+	$out.0.CTT_DESC01 = $in.0.CTT_DESC01;
+	$out.0.QB_DESCRIC = $in.0.QB_DESCRIC;
+	$out.0.RJ_DESC = $in.0.RJ_DESC;
+	$out.0.X5_DESCRI = $in.0.X5_DESCRI;
+	$out.0.RA_SITFOLH = $in.0.RA_SITFOLH;	
+	$out.0.COUNT = $in.0.COUNT;
+	if ($in.0.RA_ADMISSA == "        "){
+		$out.0.RA_ADMISSA = str2date('19900101','yyyyMMdd');
+	}else {
+		$out.0.RA_ADMISSA = str2date($in.0.RA_ADMISSA,'yyyyMMdd');
+	}
+	if ($in.0.RA_DEMISSA == "        "){
+		$out.0.RA_DEMISSA = str2date('19900101','yyyyMMdd');
+	}else {
+		$out.0.RA_DEMISSA = str2date($in.0.RA_DEMISSA,'yyyyMMdd');
+	}
+	
+	if ($in.0.RA_SITFOLH == 'D'){
+		$out.1.RA_MAT = $in.0.RA_MAT;
+		$out.1.RA_SITFOLH = $in.0.RA_SITFOLH;	
+		$out.1.COUNT = $in.0.COUNT;
+		if ($in.0.RA_DEMISSA == "        "){
+			$out.1.RA_DEMISSA = str2date('19900101','yyyyMMdd');
+		}else {
+			$out.1.RA_DEMISSA = str2date($in.0.RA_DEMISSA,'yyyyMMdd');
+		}
+	}
+	if ($in.0.RA_SITFOLH <> 'D'){
+		$out.2.RA_MAT = $in.0.RA_MAT;
+		$out.2.RA_SITFOLH = $in.0.RA_SITFOLH;	
+		$out.2.COUNT = $in.0.COUNT;
+		if ($in.0.RA_ADMISSA == "        "){
+			$out.2.RA_ADMISSA = str2date('19900101','yyyyMMdd');
+		}else {
+			$out.2.RA_ADMISSA = str2date($in.0.RA_ADMISSA,'yyyyMMdd');
+		}	
+	}	
+	}
+	
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_FUNCIONARIO_WRITER:0"/>
+<Edge debugMode="true" fromNode="REFORMAT:1" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 1 (out)" toNode="EXT_FILTER:0"/>
+<Edge debugMode="true" fromNode="REFORMAT:2" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 2 (out)" toNode="EXT_FILTER1:0"/>
+</Phase>
+<Phase number="12">
+<Node enabled="enabled" guiName="ExtFilter" guiX="482" guiY="88" id="EXT_FILTER" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.RA_MAT <> null]]></attr>
+</Node>
+<Node enabled="enabled" guiName="ExtFilter" guiX="468" guiY="203" id="EXT_FILTER1" type="EXT_FILTER">
+<attr name="filterExpression"><![CDATA[//#CTL2
+$in.0.RA_MAT <> null]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="EXT_FILTER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (accepted)" toNode="GD_STATUS_DEMITIDO_WRITER:0"/>
+<Edge debugMode="true" fromNode="EXT_FILTER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (accepted)" toNode="GD_STATUS_ATIVOS_WRITER:0"/>
+</Phase>
+<Phase number="13">
+<Node dataset="dataset.srafuncionario" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.srafuncionario&quot;,&quot;datasetTitle&quot;:&quot;SRA - Funcionário&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ctt_desc01&quot;,&quot;title&quot;:&quot;CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ctt_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ctt_desc01&quot;,&quot;title&quot;:&quot;CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ctt_desc01&quot;,&quot;title&quot;:&quot;CTT_DESC01&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.qb_descric&quot;,&quot;title&quot;:&quot;QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_qb_descric&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.qb_descric&quot;,&quot;title&quot;:&quot;QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;qb_descric&quot;,&quot;assignedMetadataField&quot;:&quot;QB_DESCRIC&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.qb_descric&quot;,&quot;title&quot;:&quot;QB_DESCRIC&quot;,&quot;prettyId&quot;:&quot;qb_descric&quot;,&quot;assignedMetadataField&quot;:&quot;QB_DESCRIC&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_filial&quot;,&quot;title&quot;:&quot;RA_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_filial&quot;,&quot;title&quot;:&quot;RA_FILIAL&quot;,&quot;prettyId&quot;:&quot;ra_filial&quot;,&quot;assignedMetadataField&quot;:&quot;RA_FILIAL&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_filial&quot;,&quot;title&quot;:&quot;RA_FILIAL&quot;,&quot;prettyId&quot;:&quot;ra_filial&quot;,&quot;assignedMetadataField&quot;:&quot;RA_FILIAL&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;ra_mat&quot;,&quot;assignedMetadataField&quot;:&quot;RA_MAT&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;ra_mat&quot;,&quot;assignedMetadataField&quot;:&quot;RA_MAT&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_nome&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;ra_nome&quot;,&quot;assignedMetadataField&quot;:&quot;RA_NOME&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_nome&quot;,&quot;title&quot;:&quot;RA_NOME&quot;,&quot;prettyId&quot;:&quot;ra_nome&quot;,&quot;assignedMetadataField&quot;:&quot;RA_NOME&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_sit&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_sit&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_sit&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sit&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_sit&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sit&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.rj_desc&quot;,&quot;title&quot;:&quot;RJ_DESC&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_rj_desc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.rj_desc&quot;,&quot;title&quot;:&quot;RJ_DESC&quot;,&quot;prettyId&quot;:&quot;rj_desc&quot;,&quot;assignedMetadataField&quot;:&quot;RJ_DESC&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.rj_desc&quot;,&quot;title&quot;:&quot;RJ_DESC&quot;,&quot;prettyId&quot;:&quot;rj_desc&quot;,&quot;assignedMetadataField&quot;:&quot;RJ_DESC&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.x5_descri&quot;,&quot;title&quot;:&quot;X5_DESCRI&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_x5_descri&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.x5_descri&quot;,&quot;title&quot;:&quot;X5_DESCRI&quot;,&quot;prettyId&quot;:&quot;x5_descri&quot;,&quot;assignedMetadataField&quot;:&quot;X5_DESCRI&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.x5_descri&quot;,&quot;title&quot;:&quot;X5_DESCRI&quot;,&quot;prettyId&quot;:&quot;x5_descri&quot;,&quot;assignedMetadataField&quot;:&quot;X5_DESCRI&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data_admissa.date&quot;,&quot;title&quot;:&quot;Date (Data_Admissao)&quot;,&quot;prettyId&quot;:&quot;data_admissa&quot;,&quot;assignedMetadataField&quot;:&quot;RA_ADMISSA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_admissa.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data_Admissao)&quot;,&quot;prettyId&quot;:&quot;data_admissa_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_admissa.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data_Admissao)&quot;,&quot;prettyId&quot;:&quot;data_admissa_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data_demissa.date&quot;,&quot;title&quot;:&quot;Date (Data_Demissao)&quot;,&quot;prettyId&quot;:&quot;data_demissa&quot;,&quot;assignedMetadataField&quot;:&quot;RA_DEMISSA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_demissa.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data_Demissao)&quot;,&quot;prettyId&quot;:&quot;data_demissa_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_demissa.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data_Demissao)&quot;,&quot;prettyId&quot;:&quot;data_demissa_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Funcionario Writer" guiX="625" guiY="12" id="GD_FUNCIONARIO_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node dataset="dataset.statusativo" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.statusativo&quot;,&quot;datasetTitle&quot;:&quot;Status Ativo&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.statusativo.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;attr_statusativo_ra_sitfolh&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusativo.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusativo.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;RA_MAT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data.date&quot;,&quot;title&quot;:&quot;Date (DATA)&quot;,&quot;prettyId&quot;:&quot;data&quot;,&quot;assignedMetadataField&quot;:&quot;RA_ADMISSA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.statusativo.count&quot;,&quot;title&quot;:&quot;COUNT&quot;,&quot;prettyId&quot;:&quot;count&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;COUNT&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[]}}" enabled="enabled" guiName="GD Status Ativos Writer" guiX="779" guiY="228" id="GD_STATUS_ATIVOS_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node dataset="dataset.statusdemitido" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.statusdemitido&quot;,&quot;datasetTitle&quot;:&quot;Status Demitido&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.statusdemitido.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;attr_statusdemitido_ra_sitfolh&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusdemitido.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.statusdemitido.ra_sitfolh&quot;,&quot;title&quot;:&quot;RA_SITFOLH&quot;,&quot;prettyId&quot;:&quot;ra_sitfolh&quot;,&quot;assignedMetadataField&quot;:&quot;RA_SITFOLH&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;attr_srafuncionario_ra_mat&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;RA_MAT&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.srafuncionario.ra_mat&quot;,&quot;title&quot;:&quot;RA_MAT&quot;,&quot;prettyId&quot;:&quot;srafuncionario__ra_mat&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data.date&quot;,&quot;title&quot;:&quot;Date (DATA)&quot;,&quot;prettyId&quot;:&quot;data&quot;,&quot;assignedMetadataField&quot;:&quot;RA_DEMISSA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA)&quot;,&quot;prettyId&quot;:&quot;data_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.statusdemitido.count&quot;,&quot;title&quot;:&quot;COUNT&quot;,&quot;prettyId&quot;:&quot;count&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;COUNT&quot;}}],&quot;dateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Status Demitido Writer" guiX="779" guiY="117" id="GD_STATUS_DEMITIDO_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Fri Jan 03 12:18:55 BRST 2025" guiVersion="3.4.4.P" id="1736185403466" licenseType="Commercial" modified="Mon Jan 06 15:44:57 BRST 2025" modifiedBy="Guilherme" name="Main Compras Dim1" revision="1.1" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_APROVADOR_SAK.grf" guiName="GD_DIM_APROVADOR_SAK" guiX="20" guiY="19" id="GD_DIM_APROVADOR_SAK" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_COMPRADOR_SY1.grf" guiName="GD_DIM_COMPRADOR_SY1" guiX="217" guiY="19" id="GD_DIM_COMPRADOR_SY1" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_GRUPO_APROV_SAL.grf" guiName="GD_DIM_GRUPO_APROV_SAL" guiX="412" guiY="19" id="GD_DIM_GRUPO_APROV_SAL" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_PROCESSO_COMPRA.grf" guiName="GD_DIM_PROCESSO_COMPRA" guiX="20" guiY="133" id="GD_DIM_PROCESSO_COMPRA" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_SOLICITANTE.grf" guiName="GD_DIM_SOLICITANTE" guiX="229" guiY="133" id="GD_DIM_SOLICITANTE" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Compras/Dim/GD_DIM_STATUS_COMPRA.grf" guiName="GD_DIM_STATUS_COMPRA" guiX="400" guiY="133" id="GD_DIM_STATUS_COMPRA" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

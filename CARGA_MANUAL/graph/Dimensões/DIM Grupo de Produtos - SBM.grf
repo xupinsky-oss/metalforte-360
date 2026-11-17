@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561989932070" licenseType="Commercial" modified="Mon Jun 02 17:41:51 BRT 2025" modifiedBy="Guilherme" name="Cadastro de Produtos - SBM" revision="1.13" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="Grupo" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="BM_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" name="BM_DESC" nullable="true" shift="0" size="30" type="string"/>
+<Field name="BM_DESC2" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Grupo de Produtos SBM" guiX="9" guiY="11" id="GRUPO_DE_PRODUTOS_SBM" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  BM_GRUPO, 
+	  BM_DESC,
+	  BM_DESC2
+FROM dbo.GD_DIM_GRUPO_PRODUTO_SBM
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="GRUPO_DE_PRODUTOS_SBM:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_GRUPO_DE_PRODUTOS_SBM_WRITER:0"/>
+</Phase>
+<Phase number="1">
+<Node dataset="dataset.grupoproduto" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.grupoproduto&quot;,&quot;datasetTitle&quot;:&quot;Grupo de Produtos SBM&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.bm_desc2&quot;,&quot;title&quot;:&quot;BM_DESC2&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_bm_desc2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.bm_desc2&quot;,&quot;title&quot;:&quot;BM_DESC2&quot;,&quot;prettyId&quot;:&quot;bm_desc2&quot;,&quot;assignedMetadataField&quot;:&quot;BM_DESC2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.bm_desc2&quot;,&quot;title&quot;:&quot;BM_DESC2&quot;,&quot;prettyId&quot;:&quot;bm_desc2&quot;,&quot;assignedMetadataField&quot;:&quot;BM_DESC2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;cod_grupo&quot;,&quot;assignedMetadataField&quot;:&quot;BM_GRUPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.desc_grupo&quot;,&quot;title&quot;:&quot;Descrição Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_desc_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.desc_grupo&quot;,&quot;title&quot;:&quot;Descrição Grupo&quot;,&quot;prettyId&quot;:&quot;desc_grupo&quot;,&quot;assignedMetadataField&quot;:&quot;BM_DESC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Grupo de Produtos SBM Writer" guiX="360" guiY="77" id="GD_GRUPO_DE_PRODUTOS_SBM_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

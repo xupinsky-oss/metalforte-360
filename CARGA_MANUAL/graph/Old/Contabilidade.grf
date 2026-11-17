@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Administrador" created="Wed Mar 01 12:23:53 CST 2017" guiVersion="3.4.4.P" id="1488392736948" licenseType="Commercial" modified="Fri Nov 05 10:24:34 BRST 2021" modifiedBy="Guilherme" name="Contabilidade" revision="1.60" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata2">
+<Record fieldDelimiter=";" name="CT1010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT1_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter=";" name="CT1010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT1_CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_DESC01" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CT1_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="CT2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="TIPO" nullable="true" shift="0" size="7" type="string"/>
+<Field eofAsDelimiter="false" name="CT2_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CT2_DATA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="CT2_DC" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="CT2_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="CT2_HIST" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CLASSE" nullable="true" shift="0" size="9" type="string"/>
+<Field format="yyyyMMdd" name="CT2_DTA" type="date"/>
+<Field name="CT2_DOC" type="string"/>
+<Field name="R_E_C_N_O_" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="CT2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="TIPO" nullable="true" shift="0" size="7" type="string"/>
+<Field eofAsDelimiter="false" name="CT2_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CT2_DATA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="CT2_DC" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CONTA" nullable="true" shift="0" size="20" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="CT2_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="CT2_HIST" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" name="CC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CLASSE" nullable="true" shift="0" size="9" type="string"/>
+<Field format="yyyyMMdd" name="CT2_DTA" type="date"/>
+<Field name="CT2_DOC" type="string"/>
+<Field name="R_E_C_N_O_" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6">
+<Record fieldDelimiter=";" name="CTD010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTD_ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7">
+<Record fieldDelimiter=";" name="CTD010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTD_ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata8">
+<Record fieldDelimiter=";" name="CTH010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTH_CLVL" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata9">
+<Record fieldDelimiter=";" name="CTH010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTH_CLVL" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTH_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="CTT010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1">
+<Record fieldDelimiter=";" name="CTT010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTT_CUSTO" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTT_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://187.32.116.35:1433/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Cadastro de Centro de Custo CTT " guiX="17" guiY="21" id="CADASTRO_DE_CENTRO_DE_CUSTO_CTT" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[ SELECT CTT_CUSTO, CTT_CLASSE, CTT_NORMAL, CTT_DESC01 
+ FROM CTT010  WHERE D_E_L_E_T_ = '' ]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CADASTRO_DE_CENTRO_DE_CUSTO_CTT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="Reformat" guiX="282" guiY="21" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTT_CUSTO = $in.0.CTT_CUSTO;
+	$out.0.CTT_CLASSE = $in.0.CTT_CLASSE;
+	$out.0.CTT_NORMAL = $in.0.CTT_NORMAL;
+	$out.0.CTT_DESC01 = $in.0.CTT_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_CADASTRO_DE_CENTRO_DE_CUSTO_CTT_WRITER:0"/>
+</Phase>
+<Phase number="3">
+<Node dataset="dataset.centrodecusto" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.centrodecusto&quot;,&quot;datasetTitle&quot;:&quot;CENTRO DE CUSTO CTT&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_classe&quot;,&quot;title&quot;:&quot;Classe_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_custo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_custo&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CUSTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_custo&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_CUSTO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_desc01&quot;,&quot;title&quot;:&quot;Descrição_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_normal&quot;,&quot;title&quot;:&quot;Normal_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;ctt_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTT_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Cadastro de Centro de Custo CTT Writer" guiX="494" guiY="27" id="GD_CADASTRO_DE_CENTRO_DE_CUSTO_CTT_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+<Phase number="4">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Cadastro Plano de Contas CT1 " guiX="17" guiY="103" id="CADASTRO_PLANO_DE_CONTAS_CT1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT CT1_CONTA, CT1_DESC01, CT1_CLASSE, CT1_NORMAL 
+FROM CT1010 WHERE D_E_L_E_T_ = '' ]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CADASTRO_PLANO_DE_CONTAS_CT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="REFORMAT1:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="Reformat" guiX="282" guiY="103" id="REFORMAT1" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CT1_CONTA = $in.0.CT1_CONTA;
+	$out.0.CT1_DESC01 = $in.0.CT1_DESC01;
+	$out.0.CT1_CLASSE = $in.0.CT1_CLASSE;
+	$out.0.CT1_NORMAL = $in.0.CT1_NORMAL;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="GD_CADASTRO_PLANO_DE_CONTAS_CT1_WRITER:0"/>
+</Phase>
+<Phase number="6">
+<Node dataset="dataset.cadastroplanodecontas" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.cadastroplanodecontas&quot;,&quot;datasetTitle&quot;:&quot;Cadastro Plano de Contas CT1&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_classe&quot;,&quot;title&quot;:&quot;Classe_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_conta&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_conta&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_CONTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_desc01&quot;,&quot;title&quot;:&quot;Descrição_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_normal&quot;,&quot;title&quot;:&quot;Normal_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;ct1_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CT1_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Cadastro Plano de Contas CT1 Writer" guiX="494" guiY="112" id="GD_CADASTRO_PLANO_DE_CONTAS_CT1_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+<Phase number="7">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Lançamento Contábil CT2" guiX="30" guiY="188" id="LANCAMENTO_CONTABIL_CT2" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 'DEBITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCD AS CC,CT2_ITEMD AS ITEM, CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999' AND CT2_DEBITO <> '1140700001'
+AND CT2_CREDIT = ''
+UNION
+SELECT 'DEBITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCD AS CC,CT2_ITEMD AS ITEM, CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_  
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101' AND CT2_HP <> '999' AND CT2_DEBITO = '1140700001' AND CT2_CCD <> ''
+AND CT2_CREDIT = ''
+UNION
+SELECT 'DEBITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, (SELECT CTT_CUSTO FROM CTT010 WHERE CTT_CUSTO = '2330' AND D_E_L_E_T_ = ''   ) AS CC,CT2_ITEMD AS ITEM, CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999' AND CT2_DEBITO = '1140700001' AND CT2_CCD = ''
+AND CT2_CREDIT = ''
+UNION
+SELECT 'CREDITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCC AS CC, CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_  
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999'AND CT2_CREDIT <> '1140700001'
+AND CT2_DEBITO = '' 
+UNION
+SELECT 'CREDITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCC AS CC, CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999'AND CT2_CREDIT = '1140700001' AND CT2_CCC <>  '' 
+AND CT2_DEBITO = '' 
+UNION 
+SELECT 'CREDITO' AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, (SELECT CTT_CUSTO FROM CTT010 WHERE CTT_CUSTO = '2330' AND D_E_L_E_T_ = ''   ) AS CC, CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999'AND CT2_CREDIT = '1140700001' AND CT2_CCC = '' 
+AND CT2_DEBITO = '' 
+UNION
+SELECT 'DEBITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCD AS CC,CT2_ITEMD AS ITEM,CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101' AND CT2_HP <> '999' AND CT2_DEBITO <> '1140700001'
+AND CT2_DC  = '3'
+UNION
+SELECT 'DEBITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCD AS CC,CT2_ITEMD AS ITEM,CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'AND CT2_HP <> '999' AND CT2_DEBITO = '1140700001' AND CT2_CCD <> ''
+AND CT2_DC  = '3'
+UNION
+SELECT 'DEBITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_DEBITO AS CONTA,CT2_VALOR, CT2_HIST, (SELECT CTT_CUSTO FROM CTT010 WHERE CTT_CUSTO = '2330' AND D_E_L_E_T_ = ''   ) AS CC,CT2_ITEMD AS ITEM,CT2_CLVLDB AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_  
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101' AND CT2_HP <> '999' AND CT2_DEBITO = '1140700001' AND CT2_CCD = '' 
+AND CT2_DC  = '3'
+UNION
+SELECT 'CREDITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCC AS CC,CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_ 
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999' AND CT2_CREDIT <> '1140700001'
+AND CT2_DC  = '3' 
+UNION
+SELECT 'CREDITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, CT2_CCC AS CC,CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_  
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101'  AND CT2_HP <> '999' AND CT2_CREDIT = '1140700001' AND CT2_CCC <> ''
+AND CT2_DC  = '3' 
+UNION
+SELECT 'CREDITO'AS TIPO, CT2_FILIAL, CT2_DATA, CT2_DC, CT2_CREDIT AS CONTA,CT2_VALOR, CT2_HIST, (SELECT CTT_CUSTO FROM CTT010 WHERE CTT_CUSTO = '2330' AND D_E_L_E_T_ = ''   ) AS CC,CT2_ITEMC AS ITEM,CT2_CLVLCR AS CLASSE,DATEADD(DD, -DAY(DATEADD(M, 1, CT2_DATA)), DATEADD(M, 1, CT2_DATA))AS CT2_DTA,CT2_DOC,R_E_C_N_O_  
+FROM CT2010 
+WHERE  D_E_L_E_T_ = ' ' AND CT2_DATA >= '20150101' AND CT2_HP <> '999' AND CT2_CREDIT = '1140700001' AND CT2_CCC = ''
+AND CT2_DC  = '3'
+
+
+
+
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="LANCAMENTO_CONTABIL_CT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" guiName="Reformat" guiX="281" guiY="188" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.TIPO = $in.0.TIPO;
+	$out.0.CT2_FILIAL = $in.0.CT2_FILIAL;
+	$out.0.CT2_DATA = $in.0.CT2_DATA;
+	$out.0.CT2_DC = $in.0.CT2_DC;
+	$out.0.CONTA = $in.0.CONTA;
+	$out.0.CT2_VALOR = $in.0.CT2_VALOR;
+	$out.0.CT2_HIST = $in.0.CT2_HIST;
+	$out.0.CC = $in.0.CC;
+	$out.0.ITEM = $in.0.ITEM;
+	$out.0.CLASSE = $in.0.CLASSE;
+	$out.0.CT2_DTA = $in.0.CT2_DTA;
+	$out.0.CT2_DOC = $in.0.CT2_DOC;
+	$out.0.R_E_C_N_O_ = $in.0.R_E_C_N_O_;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="GD_LANCAMENTO_CONTABIL_CT2_WRITER:0"/>
+</Phase>
+<Phase number="9">
+<Node dataset="dataset.lancamentocontabilct2" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.lancamentocontabilct2&quot;,&quot;datasetTitle&quot;:&quot;Lançamentos Contabil CT2&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.ct2_dc&quot;,&quot;title&quot;:&quot;CT2_Dc_Tipo_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_ct2_dc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_dc&quot;,&quot;title&quot;:&quot;CT2_Dc_Tipo_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_dc&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_DC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_dc&quot;,&quot;title&quot;:&quot;CT2_Dc_Tipo_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_dc&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_DC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.ct2_doc_numerododocumento&quot;,&quot;title&quot;:&quot;CT2_Doc_Numero do Documento&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_ct2_doc_numerododocumento&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_doc_numerododocumento&quot;,&quot;title&quot;:&quot;CT2_Doc_Numero do Documento&quot;,&quot;prettyId&quot;:&quot;ct2_doc_numerododocumento&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.ct2_filial&quot;,&quot;title&quot;:&quot;CT2_Filial_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_ct2_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_filial&quot;,&quot;title&quot;:&quot;CT2_Filial_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_filial&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_filial&quot;,&quot;title&quot;:&quot;CT2_Filial_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_filial&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.ct2_hist&quot;,&quot;title&quot;:&quot;CT2_Hist_Historico_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_ct2_hist&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_hist&quot;,&quot;title&quot;:&quot;CT2_Hist_Historico_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_hist&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_HIST&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_hist&quot;,&quot;title&quot;:&quot;CT2_Hist_Historico_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;ct2_hist&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_HIST&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.ct2_r_e_c_n_o_indentificador&quot;,&quot;title&quot;:&quot;CT2_R_E_C_N_O_Indentificador&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_ct2_r_e_c_n_o_indentificador&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.ct2_r_e_c_n_o_indentificador&quot;,&quot;title&quot;:&quot;CT2_R_E_C_N_O_Indentificador&quot;,&quot;prettyId&quot;:&quot;ct2_r_e_c_n_o_indentificador&quot;,&quot;assignedMetadataField&quot;:&quot;R_E_C_N_O_&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.lancamentocontabilct2.tipomovimento_lancamentocontabil&quot;,&quot;title&quot;:&quot;Tipo Movimento_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;attr_lancamentocontabilct2_tipomovimento_lancamentocontabil&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.lancamentocontabilct2.tipomovimento_lancamentocontabil&quot;,&quot;title&quot;:&quot;Tipo Movimento_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;tipomovimento_lancamentocontabil&quot;,&quot;assignedMetadataField&quot;:&quot;TIPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;attr_cadastroplanodecontas_ct1_conta&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CONTA&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cadastroplanodecontas.ct1_conta&quot;,&quot;title&quot;:&quot;CT1_Conta_Codigo_Plano de Contas&quot;,&quot;prettyId&quot;:&quot;cadastroplanodecontas__ct1_conta&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;attr_centrodecusto_ctt_custo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CC&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.centrodecusto.ctt_custo&quot;,&quot;title&quot;:&quot;CTT_Custo_Codigo_Centro de Custo&quot;,&quot;prettyId&quot;:&quot;centrodecusto__ctt_custo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;CTH_Clvl_Classe_Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_clvl&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;CTH_Clvl_Classe_Valor&quot;,&quot;prettyId&quot;:&quot;classevalorcth__cth_clvl&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CLASSE&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;CTH_Clvl_Classe_Valor&quot;,&quot;prettyId&quot;:&quot;classevalorcth__cth_clvl&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;CTD_Item_Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_item&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;CTD_Item_Contabil&quot;,&quot;prettyId&quot;:&quot;itemcontabilctd__ctd_item&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;ITEM&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;CTD_Item_Contabil&quot;,&quot;prettyId&quot;:&quot;itemcontabilctd__ctd_item&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date&quot;,&quot;title&quot;:&quot;Date (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_DATA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_DTA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.lancamentocontabilct2.valor_lancamentocontabil&quot;,&quot;title&quot;:&quot;CT2_Valor_Lançamento Contábil&quot;,&quot;prettyId&quot;:&quot;valor_lancamentocontabil&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;CT2_VALOR&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Lançamento Contábil CT2 Writer" guiX="495" guiY="200" id="GD_LANCAMENTO_CONTABIL_CT2_WRITER" mode="FULL_LOAD" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+<Phase number="10">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Item Contabil CTD" guiX="49" guiY="266" id="ITEM_CONTABIL_CTD" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT CTD_ITEM,CTD_CLASSE,CTD_NORMAL,CTD_DESC01 
+FROM CTD010 WHERE D_E_L_E_T_ = '' ]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="ITEM_CONTABIL_CTD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="REFORMAT3:0"/>
+</Phase>
+<Phase number="11">
+<Node enabled="enabled" guiName="Reformat" guiX="280" guiY="266" id="REFORMAT3" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTD_ITEM = $in.0.CTD_ITEM;
+	$out.0.CTD_CLASSE = $in.0.CTD_CLASSE;
+	$out.0.CTD_NORMAL = $in.0.CTD_NORMAL;
+	$out.0.CTD_DESC01 = $in.0.CTD_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="GD_ITEM_CONTABIL_CTD_WRITER:0"/>
+</Phase>
+<Phase number="12">
+<Node dataset="dataset.itemcontabilctd" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.itemcontabilctd&quot;,&quot;datasetTitle&quot;:&quot;Item Contábil - CTD&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_item&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_item&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_item&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Item Contabil CTD Writer" guiX="491" guiY="274" id="GD_ITEM_CONTABIL_CTD_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+<Phase number="13">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Classe Valor CTH" guiX="51" guiY="358" id="CLASSE_VALOR_CTH" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT CTH_CLVL,CTH_CLASSE,CTH_NORMAL,CTH_DESC01 
+FROM CTH010 WHERE D_E_L_E_T_ = '' ]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CLASSE_VALOR_CTH:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 0 (in)" metadata="Metadata8" outPort="Port 0 (out)" toNode="REFORMAT4:0"/>
+</Phase>
+<Phase number="14">
+<Node enabled="enabled" guiName="Reformat" guiX="280" guiY="358" id="REFORMAT4" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTH_CLVL = $in.0.CTH_CLVL;
+	$out.0.CTH_CLASSE = $in.0.CTH_CLASSE;
+	$out.0.CTH_NORMAL = $in.0.CTH_NORMAL;
+	$out.0.CTH_DESC01 = $in.0.CTH_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT4:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata9" outPort="Port 0 (out)" toNode="GD_CLASSE_VALOR_CTH_WRITER:0"/>
+</Phase>
+<Phase number="15">
+<Node dataset="dataset.classevalorcth" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.classevalorcth&quot;,&quot;datasetTitle&quot;:&quot;Classe Valor - CTH&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_classe&quot;,&quot;title&quot;:&quot;Classe_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_clvl&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;cth_clvl&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLVL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_clvl&quot;,&quot;title&quot;:&quot;Classe_Valor&quot;,&quot;prettyId&quot;:&quot;cth_clvl&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_CLVL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_desc01&quot;,&quot;title&quot;:&quot;Descrição_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;attr_classevalorcth_cth_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.classevalorcth.cth_normal&quot;,&quot;title&quot;:&quot;Normal_Classe Valor&quot;,&quot;prettyId&quot;:&quot;cth_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTH_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Classe Valor CTH Writer" guiX="496" guiY="367" id="GD_CLASSE_VALOR_CTH_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

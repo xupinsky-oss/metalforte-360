@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+		<item value="C:\Users\astec\Desktop\Metalforte"/>
+	</list>
+	<list key="installedFeatures">
+		<item value="org.eclipse.aether.maven.feature:3.1.0.20140706-2237"/>
+		<item value="org.eclipse.buildship:1.0.21.v20161010-1640"/>
+		<item value="org.eclipse.draw2d:3.10.100.201606061308"/>
+		<item value="org.eclipse.egit.mylyn:4.6.1.201703071140-r"/>
+		<item value="org.eclipse.egit:4.6.1.201703071140-r"/>
+		<item value="org.eclipse.emf.common:2.12.0.v20160420-0247"/>
+		<item value="org.eclipse.emf.databinding.edit:1.4.0.v20160526-0356"/>
+		<item value="org.eclipse.emf.ecore.edit:2.9.0.v20160526-0356"/>
+		<item value="org.eclipse.emf.ecore.editor:2.12.0.v20160526-0356"/>
+		<item value="org.eclipse.emf.ecore:2.12.0.v20160420-0247"/>
+		<item value="org.eclipse.emf.edit:2.12.0.v20160526-0356"/>
+		<item value="org.eclipse.emf.transaction:1.10.0.201606071900"/>
+		<item value="org.eclipse.emf.validation.ocl:1.10.0.201606071713"/>
+		<item value="org.eclipse.emf.validation:1.10.0.201606071713"/>
+		<item value="org.eclipse.emf.workspace:1.10.0.201606071900"/>
+		<item value="org.eclipse.epp.mpc:1.5.4.v20170222-1941"/>
+		<item value="org.eclipse.epp.package.java.feature:4.6.3.20170314-1500"/>
+		<item value="org.eclipse.gef:3.11.0.201606061308"/>
+		<item value="org.eclipse.gmf.runtime.notation:1.10.0.201606071631"/>
+		<item value="org.eclipse.gmf.tooling.runtime:3.3.1.201509291144"/>
+		<item value="org.eclipse.gmf:1.10.0.201606071959"/>
+		<item value="org.eclipse.help:2.2.2.v20170301-0400"/>
+		<item value="org.eclipse.jdt:3.12.3.v20170301-0400"/>
+		<item value="org.eclipse.jgit:4.6.1.201703071140-r"/>
+		<item value="org.eclipse.m2e.feature:1.7.0.20160603-1933"/>
+		<item value="org.eclipse.m2e.logback.feature:1.7.0.20160603-1933"/>
+		<item value="org.eclipse.mylyn.bugzilla_feature:3.21.0.v20160909-1813"/>
+		<item value="org.eclipse.mylyn.builds:1.13.0.v20160725-1817"/>
+		<item value="org.eclipse.mylyn.commons.identity:1.13.0.v20160630-1702"/>
+		<item value="org.eclipse.mylyn.commons.notifications:1.13.0.v20160721-2347"/>
+		<item value="org.eclipse.mylyn.commons.repositories.http:1.13.0.v20160630-1702"/>
+		<item value="org.eclipse.mylyn.commons.repositories:1.13.0.v20160630-1702"/>
+		<item value="org.eclipse.mylyn.commons:3.21.0.v20160707-1856"/>
+		<item value="org.eclipse.mylyn.context_feature:3.21.0.v20160815-2336"/>
+		<item value="org.eclipse.mylyn.discovery:3.21.0.v20160729-1739"/>
+		<item value="org.eclipse.mylyn.git:1.13.0.v20160630-2022"/>
+		<item value="org.eclipse.mylyn.hudson:1.13.0.v20160806-1446"/>
+		<item value="org.eclipse.mylyn.ide_feature:3.21.0.v20160912-1820"/>
+		<item value="org.eclipse.mylyn.java_feature:3.21.0.v20160701-1337"/>
+		<item value="org.eclipse.mylyn.monitor:3.21.0.v20160630-1702"/>
+		<item value="org.eclipse.mylyn.tasks.ide:3.21.0.v20160929-1805"/>
+		<item value="org.eclipse.mylyn.team_feature:3.21.0.v20160701-1337"/>
+		<item value="org.eclipse.mylyn.versions:1.13.0.v20160630-2022"/>
+		<item value="org.eclipse.mylyn.wikitext_feature:2.10.1.v20161129-1925"/>
+		<item value="org.eclipse.mylyn_feature:3.21.0.v20160914-0252"/>
+		<item value="org.eclipse.oomph.p2:1.7.0.v20170228-1751"/>
+		<item value="org.eclipse.oomph.setup.core:1.7.0.v20170301-0747"/>
+		<item value="org.eclipse.oomph.setup:1.7.0.v20170305-1123"/>
+		<item value="org.eclipse.platform:4.6.3.v20170301-0400"/>
+		<item value="org.eclipse.rcp:4.6.3.v20170301-0400"/>
+		<item value="org.eclipse.recommenders.mylyn.rcp.feature:2.4.6.v20170307-1041"/>
+		<item value="org.eclipse.recommenders.rcp.feature:2.4.6.v20170307-1041"/>
+		<item value="org.eclipse.recommenders.snipmatch.rcp.feature:2.4.6.v20170307-1041"/>
+		<item value="org.eclipse.wst.xml_ui.feature:3.8.2.v201702270442"/>
+	</list>
+	<section name="ExternalProjectImportWizard">
+		<item value="false" key="WizardProjectsImportPage.STORE_NESTED_PROJECTS"/>
+		<item value="false" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
+		<item value="false" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
+		<list key="WizardProjectsImportPage.STORE_DIRECTORIES">
+			<item value="\\servidor010\TI\Good Data"/>
+			<item value="\\servidor010\TI\Good Data\Metalforte"/>
+		</list>
+		<list key="WizardProjectsImportPage.STORE_ARCHIVES">
+			<item value=""/>
+		</list>
+	</section>
+	<section name="ResourceNavigator">
+		<item value="" key="ResourceWorkingSetFilter.STORE_WORKING_SET"/>
+		<item value="1" key="ResourceViewer.STORE_SORT_TYPE"/>
+	</section>
+	<section name="WORKBENCH_SETTINGS">
+		<list key="ENABLED_TRANSFERS">
+			<item value="org.eclipse.ui.workingSets"/>
+		</list>
+	</section>
+	<section name="LDM.EditDatasetDialog">
+		<item value="1440" key="DIALOG_WIDTH"/>
+		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
+		<item value="860" key="DIALOG_HEIGHT"/>
+		<item value="8" key="DIALOG_X_ORIGIN"/>
+		<item value="8" key="DIALOG_Y_ORIGIN"/>
+	</section>
+	<section name="ChooseWorkspaceDialogSettings">
+		<item value="658" key="DIALOG_X_ORIGIN"/>
+		<item value="341" key="DIALOG_Y_ORIGIN"/>
+	</section>
+	<section name="SaveAsDialogSettings">
+		<item value="525" key="DIALOG_WIDTH"/>
+		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
+		<item value="580" key="DIALOG_HEIGHT"/>
+		<item value="466" key="DIALOG_X_ORIGIN"/>
+		<item value="52" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

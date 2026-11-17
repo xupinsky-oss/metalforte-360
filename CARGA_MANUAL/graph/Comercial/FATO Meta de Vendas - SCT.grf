@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561990364931" licenseType="Commercial" modified="Fri Dec 12 15:22:56 BRST 2025" modifiedBy="Guilherme" name="Meta de Vendas - SCT" revision="1.19" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata12" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SCT010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CT_SEQUEN" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="CT_DESCRI" nullable="true" shift="0" size="40" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CT_DATA" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="CT_VEND" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="CT_GRUPO" nullable="true" shift="0" size="4" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="CT_QUANT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="DIAS_REALMES" nullable="true" shift="0" size="10" type="integer"/>
+<Field eofAsDelimiter="false" name="DIAS_UTMES" nullable="true" shift="0" size="10" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata13" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SCT010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CT_DOC" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="CT_SEQUEN" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="CT_DESCRI" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="CT_DATA" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" name="CT_VEND" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="CT_GRUPO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" length="12" name="CT_QUANT" nullable="true" scale="2" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="DIAS_REALMES" nullable="true" shift="0" size="0" type="integer"/>
+<Field eofAsDelimiter="false" name="DIAS_UTMES" nullable="true" shift="0" size="0" type="integer"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DTA_EMISSAO" nullable="true" shift="0" size="0" type="date"/>
+<Field name="FK_GRUPO_PROD" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Meta de Vendas  SCT" guiX="9" guiY="13" id="META_DE_VENDAS_SCT" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  CT_DOC, 
+	  CT_SEQUEN, 
+	  CT_DESCRI, 
+	  CT_DATA, 
+	  CT_VEND, 
+	  CT_GRUPO, 
+	  CT_QUANT, 
+	  DIAS_UTEIS, 
+	  DIAS_UTMES
+FROM dbo.GD_FATO_META_VENDA_SCT]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="META_DE_VENDAS_SCT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge18" inPort="Port 0 (in)" metadata="Metadata12" outPort="Port 0 (out)" toNode="REFORMAT3:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="215" guiY="79" id="REFORMAT3" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CT_DOC = $in.0.CT_DOC;
+	$out.0.CT_SEQUEN = $in.0.CT_SEQUEN;
+	$out.0.CT_DESCRI = $in.0.CT_DESCRI;
+	$out.0.CT_DATA = $in.0.CT_DATA;
+	$out.0.DTA_EMISSAO = $in.0.CT_DATA;
+	$out.0.CT_VEND = $in.0.CT_VEND;
+	$out.0.CT_GRUPO = $in.0.CT_GRUPO;
+	$out.0.CT_QUANT = $in.0.CT_QUANT;
+	$out.0.DIAS_REALMES = $in.0.DIAS_REALMES;
+	$out.0.DIAS_UTMES = $in.0.DIAS_UTMES;
+	$out.0.FK_GRUPO_PROD = $in.0.CT_GRUPO;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge20" inPort="Port 0 (in)" metadata="Metadata13" outPort="Port 0 (out)" toNode="GD_META_DE_VENDAS_SCT_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.metasdevenda" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.metasdevenda&quot;,&quot;datasetTitle&quot;:&quot;Metas de Venda SCT&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.metasdevenda.ct_descri&quot;,&quot;title&quot;:&quot;CT_DESCRI&quot;,&quot;prettyId&quot;:&quot;attr_metasdevenda_ct_descri&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_descri&quot;,&quot;title&quot;:&quot;CT_DESCRI&quot;,&quot;prettyId&quot;:&quot;ct_descri&quot;,&quot;assignedMetadataField&quot;:&quot;CT_DESCRI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_descri&quot;,&quot;title&quot;:&quot;CT_DESCRI&quot;,&quot;prettyId&quot;:&quot;ct_descri&quot;,&quot;assignedMetadataField&quot;:&quot;CT_DESCRI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.metasdevenda.ct_doc&quot;,&quot;title&quot;:&quot;CT_DOC&quot;,&quot;prettyId&quot;:&quot;attr_metasdevenda_ct_doc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_doc&quot;,&quot;title&quot;:&quot;CT_DOC&quot;,&quot;prettyId&quot;:&quot;ct_doc&quot;,&quot;assignedMetadataField&quot;:&quot;CT_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_doc&quot;,&quot;title&quot;:&quot;CT_DOC&quot;,&quot;prettyId&quot;:&quot;ct_doc&quot;,&quot;assignedMetadataField&quot;:&quot;CT_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.metasdevenda.ct_sequen&quot;,&quot;title&quot;:&quot;CT_SEQUEN&quot;,&quot;prettyId&quot;:&quot;attr_metasdevenda_ct_sequen&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_sequen&quot;,&quot;title&quot;:&quot;CT_SEQUEN&quot;,&quot;prettyId&quot;:&quot;ct_sequen&quot;,&quot;assignedMetadataField&quot;:&quot;CT_SEQUEN&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.metasdevenda.ct_sequen&quot;,&quot;title&quot;:&quot;CT_SEQUEN&quot;,&quot;prettyId&quot;:&quot;ct_sequen&quot;,&quot;assignedMetadataField&quot;:&quot;CT_SEQUEN&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_grupo_prod_gh_pk_grupo_prod_sbm&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_GRUPO_PROD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;attr_grupoproduto_cod_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CT_GRUPO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.grupoproduto.cod_grupo&quot;,&quot;title&quot;:&quot;Cod_Grupo&quot;,&quot;prettyId&quot;:&quot;grupoproduto__cod_grupo&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;attr_vendedor1_cod_vendedor&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;CT_VEND&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datametadevendas.date&quot;,&quot;title&quot;:&quot;Date (DATA META DE VENDAS)&quot;,&quot;prettyId&quot;:&quot;datametadevendas&quot;,&quot;assignedMetadataField&quot;:&quot;CT_DATA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datametadevendas.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA META DE VENDAS)&quot;,&quot;prettyId&quot;:&quot;datametadevendas_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datametadevendas.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA META DE VENDAS)&quot;,&quot;prettyId&quot;:&quot;datametadevendas_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;DTA_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.metasdevenda.ct_quant&quot;,&quot;title&quot;:&quot;CT_QUANT&quot;,&quot;prettyId&quot;:&quot;ct_quant&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;CT_QUANT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.metasdevenda.dias_realmes&quot;,&quot;title&quot;:&quot;DIAS_REALMES&quot;,&quot;prettyId&quot;:&quot;dias_realmes&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;DIAS_REALMES&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.metasdevenda.dias_utmes&quot;,&quot;title&quot;:&quot;DIAS_UTMES&quot;,&quot;prettyId&quot;:&quot;dias_utmes&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;DIAS_UTMES&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[]}}" enabled="enabled" guiName="GD Meta de Vendas  SCT Writer" guiX="397" guiY="145" id="GD_META_DE_VENDAS_SCT_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636114735011" licenseType="Commercial" modified="Mon Jun 02 17:42:18 BRT 2025" modifiedBy="Guilherme" name="DIM Item Contabil CTD" revision="1.5" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata6">
+<Record fieldDelimiter=";" name="CTD010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTD_ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata7">
+<Record fieldDelimiter=";" name="CTD010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="CTD_ITEM" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_CLASSE" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_NORMAL" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="CTD_DESC01" nullable="true" shift="0" size="40" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="10">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Item Contabil CTD" guiX="23" guiY="8" id="ITEM_CONTABIL_CTD" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  CTD_ITEM,
+      CTD_CLASSE,
+      CTD_NORMAL,
+      CTD_DESC01
+FROM GD_DIM_ITEMCONTABIL_CTD]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="ITEM_CONTABIL_CTD:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata6" outPort="Port 0 (out)" toNode="REFORMAT3:0"/>
+</Phase>
+<Phase number="11">
+<Node enabled="enabled" guiName="Reformat" guiX="275" guiY="54" id="REFORMAT3" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CTD_ITEM = $in.0.CTD_ITEM;
+	$out.0.CTD_CLASSE = $in.0.CTD_CLASSE;
+	$out.0.CTD_NORMAL = $in.0.CTD_NORMAL;
+	$out.0.CTD_DESC01 = $in.0.CTD_DESC01;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (in)" metadata="Metadata7" outPort="Port 0 (out)" toNode="GD_ITEM_CONTABIL_CTD_WRITER:0"/>
+</Phase>
+<Phase number="12">
+<Node dataset="dataset.itemcontabilctd" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.itemcontabilctd&quot;,&quot;datasetTitle&quot;:&quot;Item Contábil - CTD&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_classe&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_classe&quot;,&quot;title&quot;:&quot;Classe_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_classe&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_CLASSE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_desc01&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_desc01&quot;,&quot;title&quot;:&quot;Descrição_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_desc01&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_DESC01&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_item&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_item&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_item&quot;,&quot;title&quot;:&quot;Item_Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_item&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;attr_itemcontabilctd_ctd_normal&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.itemcontabilctd.ctd_normal&quot;,&quot;title&quot;:&quot;Normal_Item Contabil&quot;,&quot;prettyId&quot;:&quot;ctd_normal&quot;,&quot;assignedMetadataField&quot;:&quot;CTD_NORMAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Item Contabil CTD Writer" guiX="523" guiY="140" id="GD_ITEM_CONTABIL_CTD_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

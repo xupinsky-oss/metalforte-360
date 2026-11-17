@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Tue Nov 02 21:23:57 BRST 2021" guiVersion="3.4.4.P" id="1636343855882" licenseType="Commercial" modified="Tue Aug 02 05:52:18 BRT 2022" modifiedBy="Guilherme" name="Main RH" revision="1.3" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Afastamentos SR8.grf" guiName="FATO Afastamentos SR8" guiX="14" guiY="8" id="FATO_AFASTAMENTOS_SR8" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Contador de Colaboradores SRD.grf" guiName="FATO Contador de Colaboradores SRD" guiX="189" guiY="8" id="FATO_CONTADOR_DE_COLABORADORES_SRD" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/RH/FATO Acumulados Anuais SRD.grf" guiName="FATO Acumulados Anuais SRD" guiX="439" guiY="8" id="FATO_ACUMULADOS_ANUAIS_SRD" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

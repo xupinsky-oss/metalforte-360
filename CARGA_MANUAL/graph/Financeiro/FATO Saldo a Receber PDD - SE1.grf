@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561991552127" licenseType="Commercial" modified="Mon Jun 02 19:16:01 BRT 2025" modifiedBy="Guilherme" name="FATO Saldo a Receber PDD - SE1" revision="1.13" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SE1010_SALDO_PDD" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" format="#.###" name="VAL_CTA_RECB_SALDO" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="E1_CLIENTE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DATA" nullable="true" shift="0" size="23" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SE1010_SALDO_PDD" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" format="#.###" name="VAL_CTA_RECB_SALDO" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="E1_CLIENTE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="DATA" nullable="true" shift="0" size="23" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Saldo Contas a Receber PDD SE1" guiX="4" guiY="18" id="SALDO_CONTAS_A_RECEBER_PDD_SE1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  VAL_CTA_RECB_SALDO, 
+	  E1_CLIENTE, 
+	  DATA
+FROM dbo.GD_FATO_SALDO_RECEBER_PDD_SE1]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SALDO_CONTAS_A_RECEBER_PDD_SE1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="271" guiY="84" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.VAL_CTA_RECB_SALDO = $in.0.VAL_CTA_RECB_SALDO;
+	$out.0.E1_CLIENTE = $in.0.E1_CLIENTE;
+	$out.0.DATA = $in.0.DATA;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="GD_SALDO_CONTAS_A_RECEBER_PDD_SE1_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.financeirose1valordototaldofinanceiro1" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.financeirose1valordototaldofinanceiro1&quot;,&quot;datasetTitle&quot;:&quot;Financeiro - SE1 Saldo Contas a Receber&quot;,&quot;attributes&quot;:[],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_cod_cliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;E1_CLIENTE&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;data_pdd.date&quot;,&quot;title&quot;:&quot;Date (DATA_PDD)&quot;,&quot;prettyId&quot;:&quot;data_pdd&quot;,&quot;assignedMetadataField&quot;:&quot;DATA&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_pdd.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA_PDD)&quot;,&quot;prettyId&quot;:&quot;data_pdd_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;data_pdd.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (DATA_PDD)&quot;,&quot;prettyId&quot;:&quot;data_pdd_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.financeirose1valordototaldofinanceiro.valortotaldofinanceiro1&quot;,&quot;title&quot;:&quot;Saldo Total Contas a Receber&quot;,&quot;prettyId&quot;:&quot;valortotaldofinanceiro1&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;VAL_CTA_RECB_SALDO&quot;}}],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[]}}" enabled="enabled" guiName="GD Saldo Contas a Receber PDD SE1 Writer" guiX="481" guiY="150" id="GD_SALDO_CONTAS_A_RECEBER_PDD_SE1_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

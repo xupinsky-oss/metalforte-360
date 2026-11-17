@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561990691943" licenseType="Commercial" modified="Mon May 11 23:51:46 BRT 2026" modifiedBy="Guilherme" name="Itens Pedidos de Vendas - SC6" revision="1.52" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="_2Dates" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" type="delimited">
+<Field format="yyyyMMdd" name="Min_Date" type="date"/>
+<Field format="yyyyMMdd" name="Max_Date" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SC6010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="C6_ITEM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_TIPOPED" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="C6_PRODUTO" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="C6_DESCRI" nullable="true" shift="0" size="50" type="string"/>
+<Field eofAsDelimiter="false" name="C6_UM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_DESCONT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_SEGUM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRCVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_UNSVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDENT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_TES" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C6_ENTREG" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="C6_CF" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="C6_CLI" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_VALDESC" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_NOTA" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="C6_NUM" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRUNIT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_OP" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_BLQ" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_NUMOP" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="C6_CONTRAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDEMP" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_COMPR" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C6_PECAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C6_DIAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_LISTA" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_VEND1" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRC2UM" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_XPERD" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="C6_SUGENTR" nullable="true" shift="0" size="8" type="string"/>
+<Field name="C6_XMOTIVO" type="string"/>
+<Field format="yyyyMMdd" name="C5_EMISSAO" type="date"/>
+<Field name="C6_NUMII" type="string"/>
+<Field name="CONTA_PEDIDO" type="string"/>
+<Field name="FK_GRUPO_PROD" type="string"/>
+<Field name="ZT_MOTIVO" type="string"/>
+<Field name="SC6_CUSTO_MEDIO" type="number"/>
+<Field name="SC6_IMPOSTO_MEDIO" type="number"/>
+<Field name="C6_DATA_CARGA" type="string"/>
+<Field name="FK_SC5" type="string"/>
+<Field name="FK_DELET" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SC6010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="C6_ITEM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_TIPOPED" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="C6_PRODUTO" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="C6_DESCRI" nullable="true" shift="0" size="50" type="string"/>
+<Field eofAsDelimiter="false" name="C6_UM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_DESCONT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_SEGUM" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRCVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_VALOR" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_UNSVEN" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDENT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_TES" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="C6_ENTREG" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" name="C6_CF" nullable="true" shift="0" size="5" type="string"/>
+<Field eofAsDelimiter="false" name="C6_CLI" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_VALDESC" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_NOTA" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="C6_NUM" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRUNIT" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_OP" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_BLQ" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="C6_NUMOP" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="C6_CONTRAT" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_QTDEMP" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_COMPR" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C6_PECAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" name="C6_DIAS" nullable="true" shift="0" size="15" type="number"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_LISTA" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_VEND1" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="#.###" name="C6_PRC2UM" nullable="true" shift="0" size="15" type="decimal"/>
+<Field eofAsDelimiter="false" name="C6_XPERD" nullable="true" shift="0" size="1" type="string"/>
+<Field eofAsDelimiter="false" name="C6_SUGENTR" nullable="true" shift="0" size="8" type="string"/>
+<Field name="C6_XMOTIVO" type="string"/>
+<Field format="yyyyMMdd" name="C5_EMISSAO" type="date"/>
+<Field name="C6_NUMII" type="string"/>
+<Field name="CONTA_PEDIDO" type="string"/>
+<Field format="yyyyMMdd" name="DATA_FUNIL" type="date"/>
+<Field name="C6_XMOTIVO2" type="string"/>
+<Field format="yyyyMMdd" name="DATA_EMISSAO_GERAL" type="date"/>
+<Field name="FK_GRUPO_PROD" type="string"/>
+<Field name="ZT_MOTIVO" type="string"/>
+<Field name="SC6_CUSTO_MEDIO" type="number"/>
+<Field name="SC6_IMPOSTO_MEDIO" type="number"/>
+<Field name="C6_DATA_CARGA" type="string"/>
+<Field name="FK_SC5" type="string"/>
+<Field name="FK_DELET" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="sintax" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="syntax_content" nullable="true" shift="0" size="0" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SC6 Itens do Pedido de Venda" guiX="3" guiY="20" id="SC6_ITENS_DO_PEDIDO_DE_VENDA1" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  C6_ITEM, 
+	  C6_TIPOPED, 
+	  C6_PRODUTO, 
+	  C6_DESCRI, 
+	  C6_UM, 
+	  C6_QTDVEN, 
+	  C6_DESCONT, 
+	  C6_SEGUM, 
+	  C6_PRCVEN, 
+	  C6_VALOR, 
+	  C6_UNSVEN, 
+	  C6_QTDENT, 
+	  C6_TES, 
+	  C6_ENTREG, 
+	  C6_CF, 
+	  C6_CLI, 
+	  C6_VALDESC, 
+	  C6_NOTA, 
+	  C6_NUM, 
+	  C6_PRUNIT, 
+	  C6_OP, 
+	  C6_BLQ, 
+	  C6_NUMOP, 
+	  C6_CONTRAT, 
+	  C6_QTDEMP, 
+	  C6_COMPR, 
+	  C6_PECAS, 
+	  C6_DIAS, 
+	  C6_LISTA, 
+	  C6_VEND1, 
+	  C6_PRC2UM, 
+	  C6_XPERD, 
+	  C6_SUGENTR, 
+	  C6_XMOTIVO, 
+	  C5_EMISSAO, 
+	  C6_NUMII,
+	  CONTA_PEDIDO,
+	  FK_GRUPO_PROD,
+	  ZT_MOTIVO,
+	  SC6_CUSTO_MEDIO,
+	  SC6_IMPOSTO_MEDIO,
+	  C6_DATA_CARGA,
+	  FK_SC5,
+	  FK_DELET
+	  
+FROM dbo.GD_FATO_PEDIDO_VENDA_ITENS_SC6
+WHERE C5_EMISSAO >= CONVERT(VARCHAR(8), DATEADD(D,-60,GETDATE()), 112)]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SC6_ITENS_DO_PEDIDO_DE_VENDA1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="SIMPLE_COPY:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="SimpleCopy" guiX="260" guiY="132" id="SIMPLE_COPY" type="SIMPLE_COPY"/>
+<Edge debugMode="true" fromNode="SIMPLE_COPY:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="AGGREGATE:0"/>
+<Edge debugMode="true" fromNode="SIMPLE_COPY:1" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 1 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="Aggregate" guiX="436" guiY="13" id="AGGREGATE" mapping="$Min_Date:=min($C5_EMISSAO);$Max_Date:=max($C5_EMISSAO);" type="AGGREGATE">
+<attr name="guiDescription"><![CDATA[OBTÉM MAIOR E MENOR DATA]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="AGGREGATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" guiName="Reformat" guiX="600" guiY="13" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	
+	$out.0.syntax_content = 'DELETE FROM {attr.sc6pedidodevenda.factsof} WHERE {emissaopedidosc5.date.yyyymmdd} BETWEEN '+'"'+date2str($in.0.Min_Date, "yyyyMMdd")+'" AND "'+date2str($in.0.Max_Date, "yyyyMMdd")+'"';
+	
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+<attr name="guiDescription"><![CDATA[GERA STATEMENT DE DELETE]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (input)" metadata="Metadata1" outPort="Port 0 (out)" toNode="MAQL_DML_EXECUTE:0"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" guiName="MAQL DML Execute" guiX="774" guiY="13" id="MAQL_DML_EXECUTE" maqlInputField="syntax_content" type="MAQL_DML_EXECUTE">
+<attr name="guiDescription"><![CDATA[DELETA DADOS COM BASE NO STATEMENT]]></attr>
+</Node>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="Reformat" guiX="443" guiY="223" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.C6_ITEM = $in.0.C6_ITEM;
+	$out.0.C6_TIPOPED = $in.0.C6_TIPOPED;
+	$out.0.C6_PRODUTO = $in.0.C6_PRODUTO;
+	$out.0.C6_DESCRI = $in.0.C6_DESCRI;
+	$out.0.C6_UM = $in.0.C6_UM;
+	$out.0.C6_QTDVEN = $in.0.C6_QTDVEN;
+	$out.0.C6_DESCONT = $in.0.C6_DESCONT;
+	$out.0.C6_SEGUM = $in.0.C6_SEGUM;
+	$out.0.C6_PRCVEN = $in.0.C6_PRCVEN;
+	$out.0.C6_VALOR = $in.0.C6_VALOR;
+	$out.0.C6_UNSVEN = $in.0.C6_UNSVEN;
+	$out.0.C6_QTDENT = $in.0.C6_QTDENT;
+	$out.0.C6_TES = $in.0.C6_TES;
+	$out.0.C6_ENTREG = $in.0.C6_ENTREG;
+	$out.0.C6_CF = $in.0.C6_CF;
+	$out.0.C6_CLI = $in.0.C6_CLI;
+	$out.0.C6_VALDESC = $in.0.C6_VALDESC;
+	$out.0.C6_NOTA = $in.0.C6_NOTA;
+	$out.0.C6_NUM = $in.0.C6_NUM;
+	$out.0.C6_PRUNIT = $in.0.C6_PRUNIT;
+	$out.0.C6_OP = $in.0.C6_OP;
+	$out.0.C6_BLQ = $in.0.C6_BLQ;
+	$out.0.C6_NUMOP = $in.0.C6_NUMOP;
+	$out.0.C6_CONTRAT = $in.0.C6_CONTRAT;
+	$out.0.C6_QTDEMP = $in.0.C6_QTDEMP;
+	$out.0.C6_COMPR = $in.0.C6_COMPR;
+	$out.0.C6_PECAS = $in.0.C6_PECAS;
+	$out.0.C6_DIAS = $in.0.C6_DIAS;
+	$out.0.C6_LISTA = $in.0.C6_LISTA;
+	$out.0.C6_VEND1 = $in.0.C6_VEND1;
+	$out.0.C6_PRC2UM = $in.0.C6_PRC2UM;
+	$out.0.C6_XPERD = $in.0.C6_XPERD;
+	$out.0.C6_SUGENTR = $in.0.C6_SUGENTR;
+	$out.0.C6_XMOTIVO = $in.0.C6_XMOTIVO;
+	$out.0.C5_EMISSAO = $in.0.C5_EMISSAO;
+	$out.0.C6_NUMII = $in.0.C6_NUMII;
+	$out.0.CONTA_PEDIDO = $in.0.CONTA_PEDIDO;
+	$out.0.DATA_FUNIL = $in.0.C5_EMISSAO;
+	$out.0.C6_XMOTIVO2 = $in.0.C6_XMOTIVO;
+	$out.0.DATA_EMISSAO_GERAL = $in.0.C5_EMISSAO;
+	$out.0.FK_GRUPO_PROD = $in.0.FK_GRUPO_PROD;
+	$out.0.ZT_MOTIVO = $in.0.ZT_MOTIVO;
+	$out.0.SC6_CUSTO_MEDIO = $in.0.SC6_CUSTO_MEDIO;
+	$out.0.SC6_IMPOSTO_MEDIO = $in.0.SC6_IMPOSTO_MEDIO;
+	$out.0.C6_DATA_CARGA = $in.0.C6_DATA_CARGA;
+	$out.0.FK_SC5 = $in.0.FK_SC5;
+	$out.0.FK_DELET = $in.0.FK_DELET;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="GD_SC6_ITENS_DO_PEDIDO_DE_VENDA_WRITER1:0"/>
+</Phase>
+<Phase number="6">
+<Node dataset="dataset.sc6pedidodevenda" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sc6pedidodevenda&quot;,&quot;datasetTitle&quot;:&quot;SC6 Itens do Pedido de Venda&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_contrato&quot;,&quot;title&quot;:&quot;C6_CONTRATO&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_contrato&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_contrato&quot;,&quot;title&quot;:&quot;C6_CONTRATO&quot;,&quot;prettyId&quot;:&quot;c6_contrato&quot;,&quot;assignedMetadataField&quot;:&quot;C6_DESCRI&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_data_carga&quot;,&quot;title&quot;:&quot;C6_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_data_carga&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_data_carga&quot;,&quot;title&quot;:&quot;C6_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;c6_data_carga&quot;,&quot;assignedMetadataField&quot;:&quot;C6_DATA_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_data_carga&quot;,&quot;title&quot;:&quot;C6_DATA_CARGA&quot;,&quot;prettyId&quot;:&quot;c6_data_carga&quot;,&quot;assignedMetadataField&quot;:&quot;C6_DATA_CARGA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_item&quot;,&quot;title&quot;:&quot;C6_ITEM&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_item&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_item&quot;,&quot;title&quot;:&quot;C6_ITEM&quot;,&quot;prettyId&quot;:&quot;c6_item&quot;,&quot;assignedMetadataField&quot;:&quot;C6_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_item&quot;,&quot;title&quot;:&quot;C6_ITEM&quot;,&quot;prettyId&quot;:&quot;c6_item&quot;,&quot;assignedMetadataField&quot;:&quot;C6_ITEM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_nota&quot;,&quot;title&quot;:&quot;C6_NOTA&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_nota&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_nota&quot;,&quot;title&quot;:&quot;C6_NOTA&quot;,&quot;prettyId&quot;:&quot;c6_nota&quot;,&quot;assignedMetadataField&quot;:&quot;C6_NOTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_nota&quot;,&quot;title&quot;:&quot;C6_NOTA&quot;,&quot;prettyId&quot;:&quot;c6_nota&quot;,&quot;assignedMetadataField&quot;:&quot;C6_NOTA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_num&quot;,&quot;title&quot;:&quot;C6_NUM&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_num&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_num&quot;,&quot;title&quot;:&quot;C6_NUM&quot;,&quot;prettyId&quot;:&quot;c6_num&quot;,&quot;assignedMetadataField&quot;:&quot;C6_NUMII&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_num&quot;,&quot;title&quot;:&quot;C6_NUM&quot;,&quot;prettyId&quot;:&quot;c6_num&quot;,&quot;assignedMetadataField&quot;:&quot;C6_NUMII&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_op&quot;,&quot;title&quot;:&quot;C6_OP&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_op&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_op&quot;,&quot;title&quot;:&quot;C6_OP&quot;,&quot;prettyId&quot;:&quot;c6_op&quot;,&quot;assignedMetadataField&quot;:&quot;C6_OP&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_op&quot;,&quot;title&quot;:&quot;C6_OP&quot;,&quot;prettyId&quot;:&quot;c6_op&quot;,&quot;assignedMetadataField&quot;:&quot;C6_OP&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_perda&quot;,&quot;title&quot;:&quot;C6_PERDA&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_perda&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_perda&quot;,&quot;title&quot;:&quot;C6_PERDA&quot;,&quot;prettyId&quot;:&quot;c6_perda&quot;,&quot;assignedMetadataField&quot;:&quot;C6_XPERD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_residuo&quot;,&quot;title&quot;:&quot;C6_RESIDUO&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_residuo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_residuo&quot;,&quot;title&quot;:&quot;C6_RESIDUO&quot;,&quot;prettyId&quot;:&quot;c6_residuo&quot;,&quot;assignedMetadataField&quot;:&quot;C6_BLQ&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_segum&quot;,&quot;title&quot;:&quot;C6_SEGUM&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_segum&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_segum&quot;,&quot;title&quot;:&quot;C6_SEGUM&quot;,&quot;prettyId&quot;:&quot;c6_segum&quot;,&quot;assignedMetadataField&quot;:&quot;C6_SEGUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_segum&quot;,&quot;title&quot;:&quot;C6_SEGUM&quot;,&quot;prettyId&quot;:&quot;c6_segum&quot;,&quot;assignedMetadataField&quot;:&quot;C6_SEGUM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_tipopedido&quot;,&quot;title&quot;:&quot;C6_TIPO PEDIDO&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_tipopedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_tipopedido&quot;,&quot;title&quot;:&quot;C6_TIPO PEDIDO&quot;,&quot;prettyId&quot;:&quot;c6_tipopedido&quot;,&quot;assignedMetadataField&quot;:&quot;C6_TIPOPED&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_um&quot;,&quot;title&quot;:&quot;C6_UM&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_um&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_um&quot;,&quot;title&quot;:&quot;C6_UM&quot;,&quot;prettyId&quot;:&quot;c6_um&quot;,&quot;assignedMetadataField&quot;:&quot;C6_UM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_um&quot;,&quot;title&quot;:&quot;C6_UM&quot;,&quot;prettyId&quot;:&quot;c6_um&quot;,&quot;assignedMetadataField&quot;:&quot;C6_UM&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.c6_xmotivo2&quot;,&quot;title&quot;:&quot;C6_XMOTIVO2&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_c6_xmotivo2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_xmotivo2&quot;,&quot;title&quot;:&quot;C6_XMOTIVO2&quot;,&quot;prettyId&quot;:&quot;c6_xmotivo2&quot;,&quot;assignedMetadataField&quot;:&quot;C6_XMOTIVO2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.c6_xmotivo2&quot;,&quot;title&quot;:&quot;C6_XMOTIVO2&quot;,&quot;prettyId&quot;:&quot;c6_xmotivo2&quot;,&quot;assignedMetadataField&quot;:&quot;C6_XMOTIVO2&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.conta_pedido&quot;,&quot;title&quot;:&quot;CONTA_PEDIDO&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_conta_pedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.conta_pedido&quot;,&quot;title&quot;:&quot;CONTA_PEDIDO&quot;,&quot;prettyId&quot;:&quot;conta_pedido&quot;,&quot;assignedMetadataField&quot;:&quot;CONTA_PEDIDO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.conta_pedido&quot;,&quot;title&quot;:&quot;CONTA_PEDIDO&quot;,&quot;prettyId&quot;:&quot;conta_pedido&quot;,&quot;assignedMetadataField&quot;:&quot;CONTA_PEDIDO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc6pedidodevenda.zt_motivo&quot;,&quot;title&quot;:&quot;ZT_MOTIVO&quot;,&quot;prettyId&quot;:&quot;attr_sc6pedidodevenda_zt_motivo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.zt_motivo&quot;,&quot;title&quot;:&quot;ZT_MOTIVO&quot;,&quot;prettyId&quot;:&quot;zt_motivo&quot;,&quot;assignedMetadataField&quot;:&quot;ZT_MOTIVO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc6pedidodevenda.zt_motivo&quot;,&quot;title&quot;:&quot;ZT_MOTIVO&quot;,&quot;prettyId&quot;:&quot;zt_motivo&quot;,&quot;assignedMetadataField&quot;:&quot;ZT_MOTIVO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_grupo_prod_gh_pk_grupo_prod_sbm&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_GRUPO_PROD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_pedido_venda_delet.pk_delet&quot;,&quot;title&quot;:&quot;PK_DELET&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_pedido_venda_delet_pk_delet&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_pedido_venda_delet.pk_delet&quot;,&quot;title&quot;:&quot;PK_DELET&quot;,&quot;prettyId&quot;:&quot;gd_dim_pedido_venda_delet__pk_delet&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_DELET&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_pedido_venda_delet.pk_delet&quot;,&quot;title&quot;:&quot;PK_DELET&quot;,&quot;prettyId&quot;:&quot;gd_dim_pedido_venda_delet__pk_delet&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C6_PRODUTO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;attr_sc5pedidodevenda_pedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C6_NUM&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc5pedidodevendadelet.pk_sc5&quot;,&quot;title&quot;:&quot;PK_SC5&quot;,&quot;prettyId&quot;:&quot;attr_sc5pedidodevendadelet_pk_sc5&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevendadelet.pk_sc5&quot;,&quot;title&quot;:&quot;PK_SC5&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevendadelet__pk_sc5&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SC5&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevendadelet.pk_sc5&quot;,&quot;title&quot;:&quot;PK_SC5&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevendadelet__pk_sc5&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sf4tes.cod_tes&quot;,&quot;title&quot;:&quot;Cod_Tes&quot;,&quot;prettyId&quot;:&quot;attr_sf4tes_cod_tes&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sf4tes.cod_tes&quot;,&quot;title&quot;:&quot;Cod_Tes&quot;,&quot;prettyId&quot;:&quot;sf4tes__cod_tes&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C6_TES&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sf4tes.cod_tes&quot;,&quot;title&quot;:&quot;Cod_Tes&quot;,&quot;prettyId&quot;:&quot;sf4tes__cod_tes&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sztmotivodeperda.zt_cod&quot;,&quot;title&quot;:&quot;ZT_Cod&quot;,&quot;prettyId&quot;:&quot;attr_sztmotivodeperda_zt_cod&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sztmotivodeperda.zt_cod&quot;,&quot;title&quot;:&quot;ZT_Cod&quot;,&quot;prettyId&quot;:&quot;sztmotivodeperda__zt_cod&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C6_XMOTIVO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sztmotivodeperda.zt_cod&quot;,&quot;title&quot;:&quot;ZT_Cod&quot;,&quot;prettyId&quot;:&quot;sztmotivodeperda__zt_cod&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_EMISSAO_GERAL&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date&quot;,&quot;title&quot;:&quot;Date (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5&quot;,&quot;assignedMetadataField&quot;:&quot;C5_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafunil.date&quot;,&quot;title&quot;:&quot;Date (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_FUNIL&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_desconto&quot;,&quot;title&quot;:&quot;C6_DESCONTO&quot;,&quot;prettyId&quot;:&quot;c6_desconto&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_DESCONT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_lista&quot;,&quot;title&quot;:&quot;C6_LISTA&quot;,&quot;prettyId&quot;:&quot;c6_lista&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_LISTA&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_precodelista&quot;,&quot;title&quot;:&quot;C6_PRECO DE LISTA&quot;,&quot;prettyId&quot;:&quot;c6_precodelista&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_PRUNIT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_precounitario&quot;,&quot;title&quot;:&quot;C6_PRECO UNITARIO&quot;,&quot;prettyId&quot;:&quot;c6_precounitario&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_PRCVEN&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_qtde2unidade&quot;,&quot;title&quot;:&quot;C6_QTDE 2 UNIDADE&quot;,&quot;prettyId&quot;:&quot;c6_qtde2unidade&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_UNSVEN&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_qtdeempenhada&quot;,&quot;title&quot;:&quot;C6_QTDE EMPENHADA&quot;,&quot;prettyId&quot;:&quot;c6_qtdeempenhada&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_QTDEMP&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_qtdeentregue&quot;,&quot;title&quot;:&quot;C6_QTDE ENTREGUE&quot;,&quot;prettyId&quot;:&quot;c6_qtdeentregue&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_QTDENT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_qtdevendida&quot;,&quot;title&quot;:&quot;C6_QTDE VENDIDA&quot;,&quot;prettyId&quot;:&quot;c6_qtdevendida&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_QTDVEN&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_valordesconto&quot;,&quot;title&quot;:&quot;C6_VALOR DESCONTO&quot;,&quot;prettyId&quot;:&quot;c6_valordesconto&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_VALDESC&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.c6_valortotal&quot;,&quot;title&quot;:&quot;C6_VALOR TOTAL&quot;,&quot;prettyId&quot;:&quot;c6_valortotal&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C6_VALOR&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.sc6_custo_medio&quot;,&quot;title&quot;:&quot;SC6_CUSTO_MEDIO&quot;,&quot;prettyId&quot;:&quot;sc6_custo_medio&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;SC6_CUSTO_MEDIO&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.sc6pedidodevenda.sc6_imposto_medio&quot;,&quot;title&quot;:&quot;SC6_IMPOSTO_MEDIO&quot;,&quot;prettyId&quot;:&quot;sc6_imposto_medio&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;SC6_IMPOSTO_MEDIO&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD SC6 Itens do Pedido de Venda Writer" guiX="675" guiY="223" id="GD_SC6_ITENS_DO_PEDIDO_DE_VENDA_WRITER1" mode="INCREMENTAL" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

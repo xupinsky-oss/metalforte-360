@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Wed May 15 13:55:13 BRT 2024" guiVersion="3.4.4.P" id="1715827220087" licenseType="Commercial" modified="Mon Jun 02 18:22:19 BRT 2025" modifiedBy="Guilherme" name="GD_FATO_DIAS_UTEIS_POR_DIA_GH" revision="1.18" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="Fluxo_Dias_Uteis" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field format="yyyy-MM-dd" label="DATA_CALEND" name="DATA_CALEND" type="date"/>
+<Field format="excel:@" label="DIAS RESTANTES" name="DIAS_RESTANTES" type="string"/>
+<Field format="excel:0" label="DIAS_UTEIS" name="DIAS_UTEIS" type="long"/>
+<Field format="excel:@" label="E_DIA_UTIL" name="E_DIA_UTIL" type="string"/>
+<Field format="excel:0" label="CONTA_DIA_UTIL" name="CONTA_DIA_UTIL" type="long"/>
+<Field format="excel:@" label="RELACIONA" name="RELACIONA" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2">
+<Record fieldDelimiter="|" name="Fluxo_Fator_PV" recordDelimiter="\r\n" type="delimited">
+<Field format="excel:@" label="DIAS UTEIS" name="DIAS_UTEIS" type="string"/>
+<Field format="excel:0.00" label="histórico" name="historico" type="number"/>
+<Field format="excel:0.00" label="media 3 meses" name="media_3_meses" type="number"/>
+<Field format="excel:0.00" label="faturado" name="faturado" type="number"/>
+<Field format="excel:0.00" label="ORÇADO" name="ORCADO" type="number"/>
+<Field format="excel:0.00" label="TOTAL" name="TOTAL" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0">
+<Record fieldDelimiter=";" name="GD_DIM_SUBGRUPO_PRODUTOS_SB1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="PK_ESPESSURA" nullable="true" shift="0" size="56" type="string"/>
+<Field eofAsDelimiter="false" name="ESPESSURA" nullable="true" shift="0" size="56" type="string"/>
+<Field eofAsDelimiter="false" name="B1_ESPMM" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="B1_SUBESD" nullable="true" shift="0" size="30" type="string"/>
+<Field eofAsDelimiter="false" name="RELACIONA" nullable="true" shift="0" size="3" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3">
+<Record fieldDelimiter="|" name="recordName" recordDelimiter="\n" type="delimited">
+<Field eofAsDelimiter="false" format="yyyy-MM-dd" label="DATA_CALEND" name="DATA_CALEND" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" format="excel:@" label="DIAS RESTANTES" name="DIAS_RESTANTES" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="DIAS_UTEIS" name="DIAS_UTEIS" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="E_DIA_UTIL" name="E_DIA_UTIL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="CONTA_DIA_UTIL" name="CONTA_DIA_UTIL" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="RELACIONA" name="RELACIONA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="histórico" name="historico" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="media 3 meses" name="media_3_meses" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="faturado" name="faturado" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="ORÇADO" name="ORCADO" nullable="true" shift="0" size="0" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4">
+<Record fieldDelimiter="|" name="recordName" recordDelimiter="\n" type="delimited">
+<Field eofAsDelimiter="false" name="PK_ESPESSURA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyy-MM-dd" label="DATA_CALEND" name="DATA_CALEND" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" format="excel:@" label="DIAS RESTANTES" name="DIAS_RESTANTES" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="DIAS_UTEIS" name="DIAS_UTEIS" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="E_DIA_UTIL" name="E_DIA_UTIL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="CONTA_DIA_UTIL" name="CONTA_DIA_UTIL" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="RELACIONA" name="RELACIONA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="histórico" name="historico" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="media 3 meses" name="media_3_meses" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="faturado" name="faturado" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="ORÇADO" name="ORCADO" nullable="true" shift="0" size="0" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5">
+<Record fieldDelimiter="|" name="recordName" recordDelimiter="\n" type="delimited">
+<Field eofAsDelimiter="false" name="PK_ESPESSURA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="yyyy-MM-dd" label="DATA_CALEND" name="DATA_CALEND" nullable="true" shift="0" size="0" type="date"/>
+<Field eofAsDelimiter="false" format="excel:@" label="DIAS RESTANTES" name="DIAS_RESTANTES" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="DIAS_UTEIS" name="DIAS_UTEIS" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="E_DIA_UTIL" name="E_DIA_UTIL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0" label="CONTA_DIA_UTIL" name="CONTA_DIA_UTIL" nullable="true" shift="0" size="0" type="long"/>
+<Field eofAsDelimiter="false" format="excel:@" label="RELACIONA" name="RELACIONA" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="histórico" name="historico" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="media 3 meses" name="media_3_meses" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="faturado" name="faturado" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:0.00" label="ORÇADO" name="ORCADO" nullable="true" shift="0" size="0" type="number"/>
+<Field eofAsDelimiter="false" format="excel:@" label="DIAS RESTANTES" name="DIAS_RESTANTES_INT" nullable="true" shift="0" size="0" type="integer"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://metalforte.ntiamerica.inf.br:1433/sigaofc;appName=jive" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="26" guiY="25" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  PK_ESPESSURA,
+	  ESPESSURA,
+	  B1_ESPMM,
+	  B1_SUBESD,
+	  'SIM' AS RELACIONA
+
+FROM GD_DIM_SUBGRUPO_PRODUTOS_SB1]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="FAST_SORT3:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" fileURL="${DATA_SOURCE_DIR}/Fluxo.xlsx" guiName="SpreadsheetDataReader" guiX="26" guiY="142" id="SPREADSHEET_DATA_READER" sheet="Dias Uteis" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="SPREADSHEET_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (output)" toNode="FAST_SORT1:0"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" fileURL="${DATA_SOURCE_DIR}/Fluxo.xlsx" guiName="SpreadsheetDataReader" guiX="26" guiY="283" id="SPREADSHEET_DATA_READER1" sheet="Fator PV" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="SPREADSHEET_DATA_READER1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge2" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (output)" toNode="FAST_SORT:0"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" guiName="FastSort" guiX="257" guiY="155" id="FAST_SORT1" sortKey="DIAS_RESTANTES(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge3" inPort="Port 0 (driver)" metadata="Metadata1" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN:0"/>
+</Phase>
+<Phase number="5">
+<Node enabled="enabled" guiName="FastSort" guiX="257" guiY="290" id="FAST_SORT" sortKey="DIAS_UTEIS(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge4" inPort="Port 1 (slave)" metadata="Metadata2" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN:1"/>
+</Phase>
+<Phase number="6">
+<Node enabled="enabled" guiName="ExtMergeJoin" guiX="468" guiY="223" id="EXT_MERGE_JOIN" joinKey="$DIAS_RESTANTES(a)#$DIAS_UTEIS(a);" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.DATA_CALEND = $in.0.DATA_CALEND;
+	$out.0.DIAS_RESTANTES = $in.0.DIAS_RESTANTES;
+	$out.0.DIAS_UTEIS = $in.0.DIAS_UTEIS;
+	$out.0.E_DIA_UTIL = $in.0.E_DIA_UTIL;
+	$out.0.CONTA_DIA_UTIL = $in.0.CONTA_DIA_UTIL;
+	$out.0.RELACIONA = $in.0.RELACIONA;
+	$out.0.historico = $in.1.historico;
+	$out.0.media_3_meses = $in.1.media_3_meses;
+	$out.0.faturado = $in.1.faturado;
+	$out.0.ORCADO = $in.1.ORCADO;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="EXT_MERGE_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="FAST_SORT2:0"/>
+</Phase>
+<Phase number="7">
+<Node enabled="enabled" guiName="FastSort" guiX="657" guiY="236" id="FAST_SORT2" sortKey="DATA_CALEND(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (slave)" metadata="Metadata3" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN1:1"/>
+</Phase>
+<Phase number="8">
+<Node enabled="enabled" guiName="FastSort" guiX="651" guiY="25" id="FAST_SORT3" sortKey="RELACIONA(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT3:0" guiBendpoints="" guiRouter="Manhattan" id="Edge7" inPort="Port 0 (driver)" metadata="Metadata0" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN1:0"/>
+</Phase>
+<Phase number="9">
+<Node enabled="enabled" guiName="ExtMergeJoin" guiX="855" guiY="130" id="EXT_MERGE_JOIN1" joinKey="$RELACIONA(a)#$RELACIONA(a);" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.PK_ESPESSURA = $in.0.PK_ESPESSURA;
+	$out.0.DATA_CALEND = $in.1.DATA_CALEND;
+	$out.0.DIAS_RESTANTES = $in.1.DIAS_RESTANTES;
+	$out.0.DIAS_UTEIS = $in.1.DIAS_UTEIS;
+	$out.0.E_DIA_UTIL = $in.1.E_DIA_UTIL;
+	$out.0.CONTA_DIA_UTIL = $in.1.CONTA_DIA_UTIL;
+	$out.0.RELACIONA = $in.1.RELACIONA;
+	$out.0.historico = $in.1.historico;
+	$out.0.media_3_meses = $in.1.media_3_meses;
+	$out.0.faturado = $in.1.faturado;
+	$out.0.ORCADO = $in.1.ORCADO;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="EXT_MERGE_JOIN1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge8" inPort="Port 0 (in)" metadata="Metadata4" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="10">
+<Node enabled="enabled" guiName="Reformat" guiX="1034" guiY="222" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.PK_ESPESSURA = $in.0.PK_ESPESSURA;
+	$out.0.DATA_CALEND = $in.0.DATA_CALEND;
+	$out.0.DIAS_RESTANTES = $in.0.DIAS_RESTANTES;
+	$out.0.DIAS_UTEIS = $in.0.DIAS_UTEIS;
+	$out.0.E_DIA_UTIL = $in.0.E_DIA_UTIL;
+	$out.0.CONTA_DIA_UTIL = $in.0.CONTA_DIA_UTIL;
+	$out.0.RELACIONA = $in.0.RELACIONA;
+	$out.0.historico = $in.0.historico;
+	$out.0.media_3_meses = $in.0.media_3_meses;
+	$out.0.faturado = $in.0.faturado;
+	$out.0.ORCADO = $in.0.ORCADO;
+	$out.0.DIAS_RESTANTES_INT = str2integer($in.0.DIAS_RESTANTES);
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="11">
+<Node dataset="dataset.gd_fato_dias_uteis_por_dia_gh" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_fato_dias_uteis_por_dia_gh&quot;,&quot;datasetTitle&quot;:&quot;GD_FATO_DIAS_UTEIS_POR_DIA_GH&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_dias_uteis_por_dia_gh.diasrestantes_str&quot;,&quot;title&quot;:&quot;DIAS RESTANTES_STR&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_dias_uteis_por_dia_gh_diasrestantes_str&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_dias_uteis_por_dia_gh.diasrestantes_str&quot;,&quot;title&quot;:&quot;DIAS RESTANTES_STR&quot;,&quot;prettyId&quot;:&quot;diasrestantes_str&quot;,&quot;assignedMetadataField&quot;:&quot;DIAS_RESTANTES&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_dias_uteis_por_dia_gh.e_dia_util&quot;,&quot;title&quot;:&quot;E_DIA_UTIL&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_dias_uteis_por_dia_gh_e_dia_util&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_dias_uteis_por_dia_gh.e_dia_util&quot;,&quot;title&quot;:&quot;E_DIA_UTIL&quot;,&quot;prettyId&quot;:&quot;e_dia_util&quot;,&quot;assignedMetadataField&quot;:&quot;E_DIA_UTIL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_dias_uteis_por_dia_gh.e_dia_util&quot;,&quot;title&quot;:&quot;E_DIA_UTIL&quot;,&quot;prettyId&quot;:&quot;e_dia_util&quot;,&quot;assignedMetadataField&quot;:&quot;E_DIA_UTIL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_dias_uteis_por_dia_gh.relaciona&quot;,&quot;title&quot;:&quot;RELACIONA&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_dias_uteis_por_dia_gh_relaciona&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_dias_uteis_por_dia_gh.relaciona&quot;,&quot;title&quot;:&quot;RELACIONA&quot;,&quot;prettyId&quot;:&quot;relaciona&quot;,&quot;assignedMetadataField&quot;:&quot;RELACIONA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_dias_uteis_por_dia_gh.relaciona&quot;,&quot;title&quot;:&quot;RELACIONA&quot;,&quot;prettyId&quot;:&quot;relaciona&quot;,&quot;assignedMetadataField&quot;:&quot;RELACIONA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_subgrupo_produtos_sb1.pk_espessura&quot;,&quot;title&quot;:&quot;PK_ESPESSURA&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_subgrupo_produtos_sb1_pk_espessura&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_subgrupo_produtos_sb1.pk_espessura&quot;,&quot;title&quot;:&quot;PK_ESPESSURA&quot;,&quot;prettyId&quot;:&quot;gd_dim_subgrupo_produtos_sb1__pk_espessura&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;PK_ESPESSURA&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_subgrupo_produtos_sb1.pk_espessura&quot;,&quot;title&quot;:&quot;PK_ESPESSURA&quot;,&quot;prettyId&quot;:&quot;gd_dim_subgrupo_produtos_sb1__pk_espessura&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatasaldosestoque.date&quot;,&quot;title&quot;:&quot;Date (GD Data Saldos Estoque)&quot;,&quot;prettyId&quot;:&quot;gddatasaldosestoque&quot;,&quot;assignedMetadataField&quot;:&quot;DATA_CALEND&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatasaldosestoque.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Saldos Estoque)&quot;,&quot;prettyId&quot;:&quot;gddatasaldosestoque_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatasaldosestoque.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Saldos Estoque)&quot;,&quot;prettyId&quot;:&quot;gddatasaldosestoque_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.conta_dia_util&quot;,&quot;title&quot;:&quot;CONTA_DIA_UTIL&quot;,&quot;prettyId&quot;:&quot;conta_dia_util&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;CONTA_DIA_UTIL&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.diasrestantes_int&quot;,&quot;title&quot;:&quot;DIAS RESTANTES_INT&quot;,&quot;prettyId&quot;:&quot;diasrestantes_int&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;DIAS_RESTANTES_INT&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.dias_uteis&quot;,&quot;title&quot;:&quot;DIAS_UTEIS&quot;,&quot;prettyId&quot;:&quot;dias_uteis&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;DIAS_UTEIS&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.faturado&quot;,&quot;title&quot;:&quot;FATURADO&quot;,&quot;prettyId&quot;:&quot;faturado&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;faturado&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.historico&quot;,&quot;title&quot;:&quot;HISTORICO&quot;,&quot;prettyId&quot;:&quot;historico&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;historico&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.media_3_meses&quot;,&quot;title&quot;:&quot;MEDIA_3_MESES&quot;,&quot;prettyId&quot;:&quot;media_3_meses&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;media_3_meses&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_dias_uteis_por_dia_gh.orcado&quot;,&quot;title&quot;:&quot;ORCADO&quot;,&quot;prettyId&quot;:&quot;orcado&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;ORCADO&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="1234" guiY="275" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node enabled="disabled" guiName="Trash" guiX="1237" guiY="130" id="TRASH2" type="TRASH"/>
+</Phase>
+</Graph>

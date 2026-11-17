@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Mon Apr 10 13:57:53 BRT 2023" guiVersion="3.4.4.P" id="1681147094989" licenseType="Commercial" modified="Mon Jun 02 21:24:46 BRT 2025" modifiedBy="Guilherme" name="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" revision="1.24" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1">
+<Record fieldDelimiter="|" name="GD_FATO_CONFORMIDADE_ESTOQUE_Planilha1" recordDelimiter="\r\n" type="delimited">
+<Field format="excel:@" label="FILIAL" name="FILIAL" type="string"/>
+<Field format="excel:@" label="CODIGO_GRUPO" name="CODIGO_GRUPO" type="string"/>
+<Field format="excel:@" label="DESCRIÇÃO" name="DESCRICAO" type="string"/>
+<Field label="PERCENTUAL" name="PERCENTUAL" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="GD_FATO_CONFORMIDADE_ESTOQUE_Planilha1" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="FK_FILIAL_GRUPO" type="string"/>
+<Field format="excel:@" label="FILIAL" name="FILIAL" type="string"/>
+<Field format="excel:@" label="CODIGO_GRUPO" name="CODIGO_GRUPO" type="string"/>
+<Field format="excel:@" label="DESCRIÇÃO" name="DESCRICAO" type="string"/>
+<Field label="PERCENTUAL" name="PERCENTUAL" type="number"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="FK_FILIAL_GRUPO" type="string"/>
+<Field eofAsDelimiter="false" name="FK_SB1" nullable="true" shift="0" size="15" type="string"/>
+<Field eofAsDelimiter="false" name="FK_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="FK_GRUPO_PROD" nullable="true" shift="0" size="4" type="string"/>
+<Field name="FK_NNR" type="string"/>
+<Field eofAsDelimiter="false" name="B2_COD" nullable="true" shift="0" size="15" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata2" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="FK_FILIAL_GRUPO" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="FK_SB1" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="FK_FILIAL" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="FK_GRUPO_PROD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="FK_NNR" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="B2_COD" nullable="true" shift="0" size="0" type="string"/>
+<Field eofAsDelimiter="false" name="PERCENTUAL" nullable="true" shift="0" size="0" type="number"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="20" guiY="15" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  FK_FILIAL_GRUPO,
+	  FK_SB1,
+	  FK_FILIAL,
+	  FK_GRUPO_PROD,
+	  FK_NNR,
+	  B2_COD
+	 
+FROM GD_FATO_CONFORMIDADE_ESTOQUE_PROD]]></attr>
+</Node>
+<Node enabled="disabled" fileURL="zip:(https://${USER_PWD_SECURE_DI}@na1-di.gooddata.com/project-uploads/sltez8zoyskp9vazf6jomo5askrbntnl/today/Arquivos.zip)#GD_FATO_CONFORMIDADE_ESTOQUE.xlsx" guiName="SpreadsheetDataReader" guiX="20" guiY="342" id="SPREADSHEET_DATA_READER1" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="EXT_SORT1:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" fileURL="${DATA_SOURCE_DIR}/GD_FATO_CONFORMIDADE_ESTOQUE.xlsx" guiName="SpreadsheetDataReader" guiX="20" guiY="237" id="SPREADSHEET_DATA_READER" sheet="Planilha1" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="SPREADSHEET_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (output)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="Reformat" guiX="249" guiY="263" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FILIAL = $in.0.FILIAL;
+	$out.0.CODIGO_GRUPO = $in.0.CODIGO_GRUPO;
+	$out.0.DESCRICAO = $in.0.DESCRICAO;
+	$out.0.PERCENTUAL = $in.0.PERCENTUAL;
+	$out.0.FK_FILIAL_GRUPO = $in.0.FILIAL + $in.0.CODIGO_GRUPO;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata3" outPort="Port 0 (out)" toNode="EXT_SORT:0"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" guiName="ExtSort" guiX="441" guiY="250" id="EXT_SORT" sortKey="FK_FILIAL_GRUPO(a)" type="EXT_SORT"/>
+<Node enabled="enabled" guiName="ExtSort" guiX="431" guiY="63" id="EXT_SORT1" sortKey="FK_FILIAL_GRUPO(a)" type="EXT_SORT"/>
+<Edge debugMode="true" fromNode="EXT_SORT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 1 (slave)" metadata="Metadata3" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN:1"/>
+<Edge debugMode="true" fromNode="EXT_SORT1:0" guiBendpoints="" guiRouter="Manhattan" id="Edge16" inPort="Port 0 (driver)" metadata="Metadata0" outPort="Port 0 (out)" toNode="EXT_MERGE_JOIN:0"/>
+</Phase>
+<Phase number="4">
+<Node enabled="enabled" guiName="ExtMergeJoin" guiX="691" guiY="154" id="EXT_MERGE_JOIN" joinKey="$FK_FILIAL_GRUPO(a)#$FK_FILIAL_GRUPO(a);" type="EXT_MERGE_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FK_FILIAL_GRUPO = $in.0.FK_FILIAL_GRUPO;
+	$out.0.FK_SB1 = $in.0.FK_SB1;
+	$out.0.FK_FILIAL = $in.0.FK_FILIAL;
+	$out.0.FK_GRUPO_PROD = $in.0.FK_GRUPO_PROD;
+	$out.0.B2_COD = $in.0.B2_COD;
+	$out.0.PERCENTUAL = $in.1.PERCENTUAL;
+	$out.0.FK_NNR = $in.0.FK_NNR;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="EXT_MERGE_JOIN:0" guiBendpoints="" guiRouter="Manhattan" id="Edge17" inPort="Port 0 (in)" metadata="Metadata2" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="5">
+<Node dataset="dataset.gd_fato_conformidade_estoque_prod" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_fato_conformidade_estoque_prod&quot;,&quot;datasetTitle&quot;:&quot;GD_FATO_CONFORMIDADE_ESTOQUE_PROD&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_conformidade_estoque_prod.b2_cod&quot;,&quot;title&quot;:&quot;B2_COD&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_conformidade_estoque_prod_b2_cod&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_conformidade_estoque_prod.b2_cod&quot;,&quot;title&quot;:&quot;B2_COD&quot;,&quot;prettyId&quot;:&quot;b2_cod&quot;,&quot;assignedMetadataField&quot;:&quot;B2_COD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_conformidade_estoque_prod.b2_cod&quot;,&quot;title&quot;:&quot;B2_COD&quot;,&quot;prettyId&quot;:&quot;b2_cod&quot;,&quot;assignedMetadataField&quot;:&quot;B2_COD&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_fato_conformidade_estoque_prod.fk_filial_grupo&quot;,&quot;title&quot;:&quot;FK_FILIAL_GRUPO&quot;,&quot;prettyId&quot;:&quot;attr_gd_fato_conformidade_estoque_prod_fk_filial_grupo&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_conformidade_estoque_prod.fk_filial_grupo&quot;,&quot;title&quot;:&quot;FK_FILIAL_GRUPO&quot;,&quot;prettyId&quot;:&quot;fk_filial_grupo&quot;,&quot;assignedMetadataField&quot;:&quot;FK_FILIAL_GRUPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_fato_conformidade_estoque_prod.fk_filial_grupo&quot;,&quot;title&quot;:&quot;FK_FILIAL_GRUPO&quot;,&quot;prettyId&quot;:&quot;fk_filial_grupo&quot;,&quot;assignedMetadataField&quot;:&quot;FK_FILIAL_GRUPO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_armazem_nnr_chave_nnr&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;gd_dim_armazem_nnr__chave_nnr&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_NNR&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_armazem_nnr.chave_nnr&quot;,&quot;title&quot;:&quot;CHAVE_NNR&quot;,&quot;prettyId&quot;:&quot;gd_dim_armazem_nnr__chave_nnr&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_filial_gh_chave_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_FILIAL&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_filial_gh.chave_filial&quot;,&quot;title&quot;:&quot;CHAVE_FILIAL&quot;,&quot;prettyId&quot;:&quot;gd_dim_filial_gh__chave_filial&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_grupo_prod_gh_pk_grupo_prod_sbm&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_GRUPO_PROD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_grupo_prod_gh.pk_grupo_prod_sbm&quot;,&quot;title&quot;:&quot;PK_GRUPO_PROD_SBM&quot;,&quot;prettyId&quot;:&quot;gd_dim_grupo_prod_gh__pk_grupo_prod_sbm&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;FK_SB1&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.gd_fato_conformidade_estoque_prod.percentual&quot;,&quot;title&quot;:&quot;PERCENTUAL&quot;,&quot;prettyId&quot;:&quot;percentual&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;PERCENTUAL&quot;}}],&quot;dateFacts&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="888" guiY="167" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

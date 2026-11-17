@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561990533567" licenseType="Commercial" modified="Mon Jun 02 17:40:28 BRT 2025" modifiedBy="Guilherme" name="Clientes Efetivados - SA1 SD2" revision="1.16" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata18" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SA1_SD2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="XA1_INFO" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" name="XA1_QTDE" nullable="true" shift="0" size="10" type="integer"/>
+<Field eofAsDelimiter="false" name="A1_COD" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="A1_VEND" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_DTCAD" nullable="true" shift="0" size="0" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata19" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="SA1_SD2010" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="XA1_INFO" nullable="true" shift="0" size="10" type="string"/>
+<Field eofAsDelimiter="false" name="XA1_QTDE" nullable="true" shift="0" size="10" type="integer"/>
+<Field eofAsDelimiter="false" name="A1_COD" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="A1_VEND" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="A1_DTCAD" nullable="true" shift="0" size="0" type="date"/>
+<Field format="yyyyMMdd" name="SC5_EMISSAO" type="date"/>
+<Field format="yyyyMMdd" name="A1_DTCAD2" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="Clientes Cadastrados / Efetivados SA1/SD2 - Customizado" guiX="1" guiY="6" id="CLIENTES_CADASTRADOS_EFETIVADOS_SA1_SD2_CUSTOMIZADO" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  XA1_INFO, 
+	  XA1_QTDE, 
+	  A1_COD, 
+	  A1_VEND, 
+	  A1_DTCAD
+FROM dbo.GD_DIM_CLIENTES_CADASTRADO_EFETIVADO_SA1_SD2
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="CLIENTES_CADASTRADOS_EFETIVADOS_SA1_SD2_CUSTOMIZADO:0" guiBendpoints="" guiRouter="Manhattan" id="Edge9" inPort="Port 0 (in)" metadata="Metadata18" outPort="Port 0 (out)" toNode="REFORMAT5:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="410" guiY="72" id="REFORMAT5" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.XA1_INFO = $in.0.XA1_INFO;
+	$out.0.XA1_QTDE = $in.0.XA1_QTDE;
+	$out.0.A1_COD = $in.0.A1_COD;
+	$out.0.A1_VEND = $in.0.A1_VEND;
+	$out.0.A1_DTCAD = $in.0.A1_DTCAD;
+	$out.0.SC5_EMISSAO = $in.0.A1_DTCAD;
+	$out.0.A1_DTCAD2 = $in.0.A1_DTCAD;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT5:0" guiBendpoints="" guiRouter="Manhattan" id="Edge14" inPort="Port 0 (in)" metadata="Metadata19" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.clientescadastradosefetivadossd" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.clientescadastradosefetivadossd&quot;,&quot;datasetTitle&quot;:&quot;Clientes Cadastrados / Efetivados - SA1/SD2 - Customizado&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.clientescadastradosefetivadossd.xa1_info_cadastradoouefetivado&quot;,&quot;title&quot;:&quot;XA1_INFO_ Cadastrado ou Efetivado&quot;,&quot;prettyId&quot;:&quot;attr_clientescadastradosefetivadossd_xa1_info_cadastradoouefetivado&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.clientescadastradosefetivadossd.xa1_info_cadastradoouefetivado&quot;,&quot;title&quot;:&quot;XA1_INFO_ Cadastrado ou Efetivado&quot;,&quot;prettyId&quot;:&quot;xa1_info_cadastradoouefetivado&quot;,&quot;assignedMetadataField&quot;:&quot;XA1_INFO&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;attr_cliente_cod_cliente&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;A1_COD&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.cliente.cod_cliente&quot;,&quot;title&quot;:&quot;Cod_Cliente&quot;,&quot;prettyId&quot;:&quot;cliente__cod_cliente&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;attr_vendedor1_cod_vendedor&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;A1_VEND&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.vendedor1.cod_vendedor&quot;,&quot;title&quot;:&quot;Cod_Vendedor&quot;,&quot;prettyId&quot;:&quot;vendedor1__cod_vendedor&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;A1_DTCAD&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date&quot;,&quot;title&quot;:&quot;Date (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5&quot;,&quot;assignedMetadataField&quot;:&quot;SC5_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissaopedidosc5.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Emissao Pedido SC5)&quot;,&quot;prettyId&quot;:&quot;emissaopedidosc5_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}},{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafunil.date&quot;,&quot;title&quot;:&quot;Date (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil&quot;,&quot;assignedMetadataField&quot;:&quot;A1_DTCAD2&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafunil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Funil)&quot;,&quot;prettyId&quot;:&quot;gddatafunil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.clientescadastradosefetivadossd.xa1_qtde_quantidadedecadastro&quot;,&quot;title&quot;:&quot;XA1_QTDE_Quantidade de Cadastro&quot;,&quot;prettyId&quot;:&quot;xa1_qtde_quantidadedecadastro&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;XA1_QTDE&quot;}}],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="612" guiY="138" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Wed Nov 15 13:14:13 BRST 2023" guiVersion="3.4.4.P" id="1700115395072" licenseType="Commercial" modified="Thu Nov 16 04:17:13 BRST 2023" modifiedBy="Guilherme" name="Main Cargas " revision="1.1" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/DIM Cargas - DAK.grf" guiName="DIM Cargas - DAK" guiX="8" guiY="7" id="DIM_CARGAS_DAK" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Itens Carga - DAI.grf" guiName="FATO Itens Carga - DAI" guiX="159" guiY="7" id="FATO_ITENS_CARGA_DAI" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

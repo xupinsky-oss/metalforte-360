@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Mon Aug 07 14:52:01 BRT 2023" guiVersion="3.4.4.P" id="1691441409048" licenseType="Commercial" modified="Mon Jun 02 20:49:29 BRT 2025" modifiedBy="Guilherme" name="FATO Recuperação Frete" revision="1.24" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_FATO_PEDIDO_VENDA_LIBERADOS_SC9" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field name="C9_PRODUTO" type="string"/>
+<Field eofAsDelimiter="false" name="C9_PEDIDO" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" format="yyyyMMdd" name="D2_EMISSAO" nullable="true" shift="0" size="8" type="date"/>
+<Field eofAsDelimiter="false" length="14" name="C9_RECEITA_FRETE" nullable="true" scale="3" shift="0" size="0" type="decimal"/>
+<Field eofAsDelimiter="false" name="C9_VALOR" nullable="true" shift="0" size="15" type="number"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="15" guiY="9" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT
+	  C9_PRODUTO,
+	  C9_PEDIDO,
+	  D2_EMISSAO,
+	  C9_RECEITA_FRETE,
+	  C9_VALOR
+
+FROM dbo.GD_FATO_PEDIDO_VENDA_LIBERADOS_SC9
+WHERE ST_PEDIDO LIKE 'Fechado%']]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="1">
+<Node dataset="dataset.recuperacaocustomizado" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.recuperacaocustomizado&quot;,&quot;datasetTitle&quot;:&quot;Recuperação de Frete Customizado&quot;,&quot;attributes&quot;:[],&quot;referencedAttributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;attr_produto1_cod_produto&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C9_PRODUTO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.produto1.cod_produto&quot;,&quot;title&quot;:&quot;Cod_Produto&quot;,&quot;prettyId&quot;:&quot;produto1__cod_produto&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;attr_sc5pedidodevenda_pedido&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}],&quot;assignedMetadataField&quot;:&quot;C9_PEDIDO&quot;,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sc5pedidodevenda.pedido&quot;,&quot;title&quot;:&quot;C5_Pedido&quot;,&quot;prettyId&quot;:&quot;sc5pedidodevenda__pedido&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:false}}}}],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date&quot;,&quot;title&quot;:&quot;Date (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil&quot;,&quot;assignedMetadataField&quot;:&quot;D2_EMISSAO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;datalancamentocontabil.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Lançamento Contábil)&quot;,&quot;prettyId&quot;:&quot;datalancamentocontabil_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.recuperacaocustomizado.valordavendanarecuperacaodefrete&quot;,&quot;title&quot;:&quot;Valor da Venda na Recuperação de Frete&quot;,&quot;prettyId&quot;:&quot;valordavendanarecuperacaodefrete&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C9_VALOR&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.recuperacaocustomizado.valortotaldarecuperacaodefrete&quot;,&quot;title&quot;:&quot;Valor Total da Recuperação de Frete&quot;,&quot;prettyId&quot;:&quot;valortotaldarecuperacaodefrete&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;C9_RECEITA_FRETE&quot;}}],&quot;dateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="385" guiY="75" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

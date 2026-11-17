@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme.Santos" created="Mon Jul 01 10:09:53 BRT 2019" guiVersion="3.4.4.P" id="1561990301592" licenseType="Commercial" modified="Mon Jun 02 17:45:37 BRT 2025" modifiedBy="Guilherme" name="Tabelas - SX5" revision="1.14" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata11">
+<Record fieldDelimiter=";" name="SX5010" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="X5_CHAVE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="X5_DESCRI" nullable="true" shift="0" size="55" type="string"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="SX5 Tabelas" guiX="1" guiY="18" id="SX5_TABELAS" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  X5_CHAVE, 
+	  X5_DESCRI
+FROM dbo.GD_DIM_TABELAS_SX5
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="SX5_TABELAS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 0 (in)" metadata="Metadata11" outPort="Port 0 (out)" toNode="REFORMAT2:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="181" guiY="84" id="REFORMAT2" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.X5_CHAVE = $in.0.X5_CHAVE;
+	$out.0.X5_DESCRI = $in.0.X5_DESCRI;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata11" outPort="Port 0 (out)" toNode="FAST_SORT2:0"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" guiName="FastSort" guiX="362" guiY="78" id="FAST_SORT2" sortKey="X5_CHAVE(a)" type="FAST_SORT"/>
+<Edge debugMode="true" fromNode="FAST_SORT2:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (in)" metadata="Metadata11" outPort="Port 0 (out)" toNode="GD_SX5_WRITER:0"/>
+</Phase>
+<Phase number="3">
+<Node dataset="dataset.sx5" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.sx5&quot;,&quot;datasetTitle&quot;:&quot;SX5&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;attr_sx5_x5_chave&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;x5_chave&quot;,&quot;assignedMetadataField&quot;:&quot;X5_CHAVE&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sx5.x5_chave&quot;,&quot;title&quot;:&quot;X5_CHAVE&quot;,&quot;prettyId&quot;:&quot;x5_chave&quot;,&quot;assignedMetadataField&quot;:&quot;X5_CHAVE&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.sx5.x5_descricao&quot;,&quot;title&quot;:&quot;X5_DESCRICAO&quot;,&quot;prettyId&quot;:&quot;attr_sx5_x5_descricao&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.sx5.x5_descricao&quot;,&quot;title&quot;:&quot;X5_DESCRICAO&quot;,&quot;prettyId&quot;:&quot;x5_descricao&quot;,&quot;assignedMetadataField&quot;:&quot;X5_DESCRI&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:null}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[]}}" enabled="enabled" guiName="GD SX5 Writer" guiX="570" guiY="157" id="GD_SX5_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

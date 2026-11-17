@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		
+		<title>Getting started with Data Loads using GoodData CloudConnect</title>
+		
+		<link rel="stylesheet" href="assets/styles.css">
+	</head>
+	<body class="subpage">
+		<div class="header">
+			<h1><img src="images/gd_logo_icon.png" width="40"> GoodData CloudConnect</h1>
+			
+			<p class="welcome-help">To open this page again, choose <strong>Help &rarr; Welcome</strong> in the menu.</p>
+		</div>
+		<div class="content">
+			<p><a href="index.html">&lt; Back to the welcome page</a></p>
+			
+			<h2>Getting started with Data Loads</h2>
+			
+			<p>An Extract, Transform, Load (ETL) graph is a series of steps used to pull data from a source system, transform it into an appropriate format, and load it into the GoodData platform. These graphs are created in CloudConnect as a sequence of visual objects. They can be set up to gather data from nearly any enterprise source database, platform, messaging service, or file system.</p>
+
+			<p>A CloudConnect project may contain one or more ETL graphs, which are stored in the graph/*.grf files. CloudConnect provides a suite of pre-built components to manipulate data. You may also write custom transform functions as needed.</p>
+			<ul>
+				<li>Attributes are qualitative characteristics of your data (e.g. Region, Zip code).</li>
+				<li>Facts are numerical values that may be used in computation (e.g. Revenue, Cost).</li>
+				<li>Datasets are logical groupings of attributes and facts.</li>
+				<li>Date datasets, or date dimensions, are predefined collections of date-related attributes. Date datasets provide complex date filtering functionality without requiring additional effort.</li>
+			</ul>
+
+			<p style="margin-top: 1em;">LDMs are built using CloudConnect Designer, part of the GoodData Data Integration Service. A single logical data model may be applied to multiple GoodData projects.</p>
+		
+			<h3>Learn more about the Data Loads</h3>
+			
+			<ul>
+				<li><a href="http://developer.gooddata.com/docs/data-loading#tutorials?utm_source=cc&utm_campaign=dl-header&utm_medium=welcome-page">Data loading tutorials</a></li>
+				<li><a href="http://developer.gooddata.com/cloudconnect/usersGuide">CloudConnect User Manual (PDF)</a></li>
+			</ul>
+			
+			<hr>
+			
+			<div class="row">
+				<div class="main-content">
+					<h3>Creating the ETL graph</h3>
+					
+					<ul class="steps">
+						<li>
+							<h4><span>1</span> Create the graph</h4>
+							<p>Start with a graph. Go to the <strong>File → New menu</strong></p>
+						</li>
+						<li>
+							<h4><span>2</span> Add components</h4>
+							<img src="images/palette.png" style="float: right; margin: 0 0 1.25em 15px;">
+							<p>Populate the graph with components from the <strong>Palette</strong>. <strong>Properties</strong> panel enables you to quickly view properties of the selected entity. You can <strong>edit</strong> a component in the graph by double-clicking it.</p>
+							<p><a href="examples.html">Learn more in demo projects ></a></p>
+						</li> 
+						<li style="clear: both;">
+							<h4><span>2</span> Test the graph by running it locally and then deploy it to GoodData</h4>
+							<img src="images/toolbar.png" style="float: right; margin-left: 15px;">
+							<p>After a project is deployed, you will find it in the <strong>Server Explorer</strong> panel right next to the Navigator.</p>
+						</li>
+					</ul>
+					
+					<a href="https://developer.gooddata.com/getting-started/tutorial/preparing-data-loading-process?utm_source=cc&utm_campaign=dl-learn-more&utm_medium=welcome-page" class="btn btn-primary">Learn more</a>
+				</div>
+				<div class="sidebar">
+					<h3>Tips and tricks</h3>
+
+					<h4>Keyboard shortcuts</h4>
+
+					<table>
+						<thead>
+							<tr><th colspan="2">In ETL graph</th></tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>N</th>
+								<td>Creates a Note</td>
+							</tr>
+							<tr>
+								<th>Shift + Space</th>
+								<td>Add a Component by name</td>
+							</tr>
+							<tr>
+								<th>Control + O</th>
+								<td>Find a Component by name in the current graph</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h4>Productivity tips</h4>
+
+					<p style="margin: 1em 0 0;">Drag and drop CSV files onto the Graph canvas to create Readers.</p>
+					<img src="images/datareader.png">
+			
+					<p style="margin: 1.25em 0 0;">The same drag and drop approach works with other objects from the Navigator panel - e.g. Graphs.</p>
+					<img src="images/rungraph.png">
+				</div>
+			</div>
+		</div>
+		<footer>
+			<div class="row">
+				<div>
+					<h2>Learn more about CloudConnect</h2>
+					<p>The Developer Portal contains plenty of guides, tutorials, and recommended practices for using CloudConnect and other developer tools:</p>
+					<ul>
+						<li><a href="http://developer.gooddata.com/getting-started?utm_source=cc&utm_campaign=dl-footer&utm_medium=welcome-page">Basic concepts and user interface of CloudConnect</a></li>
+						<li><a href="http://developer.gooddata.com/cloudconnect/usersGuide">CloudConnect User Manual (PDF)</a></li>
+						<li><a href="http://support.gooddata.com/entries/23963471-CloudConnect-LDM-Modeler-Guide?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">Logical Data Model guide (PDF)</a></li>
+						<li><a href="http://developer.gooddata.com/docs/data-loading#tutorials?utm_source=cc&utm_campaign=dl-footer&utm_medium=welcome-page">Data loading tutorials</a></li>
+						<li><a href="http://developer.gooddata.com/docs/data-modeling#tutorials?utm_source=cc&utm_campaign=dl-footer&utm_medium=welcome-page">Data modeling tutorials</a></li>
+					</ul>
+				</div>
+				<div>
+					<h2>Need help?</h2>
+					<p>Please feel free to contact <a href="http://support.gooddata.com?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">GoodData Customer Support</a>.</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

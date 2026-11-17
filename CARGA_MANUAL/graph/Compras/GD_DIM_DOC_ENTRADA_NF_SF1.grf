@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Thu Jan 25 18:17:54 BRST 2024" guiVersion="3.4.4.P" id="1706580787276" licenseType="Commercial" modified="Wed Nov 05 09:34:45 CST 2025" modifiedBy="Guilherme" name="GD_DIM_DOC_ENTRADA_NF_SF1" revision="1.14" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_DIM_DOC_ENTRADA_NF_SF1_GH" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="FK_SF1" nullable="true" shift="0" size="24" type="string"/>
+<Field eofAsDelimiter="false" name="F1_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="F1_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="F1_SERIE" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="F1_FORNECE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="F1_LOJA" nullable="true" shift="0" size="4" type="string"/>
+<Field format="yyyyMMdd" name="F1_DTDIGIT" type="date"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" name="GD_DIM_DOC_ENTRADA_NF_SF1_GH" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\n" recordSize="-1" type="delimited">
+<Field eofAsDelimiter="false" name="FK_SF1" nullable="true" shift="0" size="24" type="string"/>
+<Field eofAsDelimiter="false" name="F1_FILIAL" nullable="true" shift="0" size="2" type="string"/>
+<Field eofAsDelimiter="false" name="F1_DOC" nullable="true" shift="0" size="9" type="string"/>
+<Field eofAsDelimiter="false" name="F1_SERIE" nullable="true" shift="0" size="3" type="string"/>
+<Field eofAsDelimiter="false" name="F1_FORNECE" nullable="true" shift="0" size="6" type="string"/>
+<Field eofAsDelimiter="false" name="F1_LOJA" nullable="true" shift="0" size="4" type="string"/>
+<Field format="yyyyMMdd" name="F1_DTDIGIT" type="date"/>
+</Record>
+</Metadata>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://192.168.177.140:1433/sigaofc" id="JDBC1" jdbcSpecific="MSSQL" name="Conexão Interna" password="metal@2019" type="JDBC" user="ubi"/>
+<Connection database="MSSQL" dbURL="jdbc:jtds:sqlserver://177.136.206.95:59025/sigaofc;appName=jive" id="JDBC0" jdbcSpecific="MSSQL" name="Protheus Metalforte " password="metal@2019" type="JDBC" user="ubi"/>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node dbConnection="JDBC0" enabled="enabled" guiName="DBInputTable" guiX="15" guiY="13" id="DBINPUT_TABLE" type="DB_INPUT_TABLE">
+<attr name="sqlQuery"><![CDATA[SELECT 
+	  FK_SF1,
+	  F1_FILIAL,
+	  F1_DOC,
+	  F1_SERIE,
+	  F1_FORNECE,
+	  F1_LOJA,
+
+	  F1_DTDIGIT
+
+FROM [dbo].[GD_DIM_DOC_ENTRADA_NF_SF1_GH]]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="DBINPUT_TABLE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (out)" toNode="REFORMAT:0"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" guiName="Reformat" guiX="280" guiY="79" id="REFORMAT" type="REFORMAT">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.FK_SF1 = $in.0.FK_SF1;
+	$out.0.F1_FILIAL = $in.0.F1_FILIAL;
+	$out.0.F1_DOC = $in.0.F1_DOC;
+	$out.0.F1_SERIE = $in.0.F1_SERIE;
+	$out.0.F1_FORNECE = $in.0.F1_FORNECE;
+	$out.0.F1_LOJA = $in.0.F1_LOJA;
+	$out.0.F1_DTDIGIT = $in.0.F1_DTDIGIT;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Edge debugMode="true" fromNode="REFORMAT:0" guiBendpoints="" guiRouter="Manhattan" id="Edge1" inPort="Port 0 (in)" metadata="Metadata1" outPort="Port 0 (out)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="2">
+<Node dataset="dataset.gd_dim_doc_entrada_nf_sf1" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.gd_dim_doc_entrada_nf_sf1&quot;,&quot;datasetTitle&quot;:&quot;GD_DIM_DOC_ENTRADA_NF_SF1&quot;,&quot;attributes&quot;:[{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.f1_doc&quot;,&quot;title&quot;:&quot;F1_DOC&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_f1_doc&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_doc&quot;,&quot;title&quot;:&quot;F1_DOC&quot;,&quot;prettyId&quot;:&quot;f1_doc&quot;,&quot;assignedMetadataField&quot;:&quot;F1_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_doc&quot;,&quot;title&quot;:&quot;F1_DOC&quot;,&quot;prettyId&quot;:&quot;f1_doc&quot;,&quot;assignedMetadataField&quot;:&quot;F1_DOC&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.f1_filial&quot;,&quot;title&quot;:&quot;F1_FILIAL&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_f1_filial&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_filial&quot;,&quot;title&quot;:&quot;F1_FILIAL&quot;,&quot;prettyId&quot;:&quot;f1_filial&quot;,&quot;assignedMetadataField&quot;:&quot;F1_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_filial&quot;,&quot;title&quot;:&quot;F1_FILIAL&quot;,&quot;prettyId&quot;:&quot;f1_filial&quot;,&quot;assignedMetadataField&quot;:&quot;F1_FILIAL&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.f1_fornece&quot;,&quot;title&quot;:&quot;F1_FORNECE&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_f1_fornece&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_fornece&quot;,&quot;title&quot;:&quot;F1_FORNECE&quot;,&quot;prettyId&quot;:&quot;f1_fornece&quot;,&quot;assignedMetadataField&quot;:&quot;F1_FORNECE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_fornece&quot;,&quot;title&quot;:&quot;F1_FORNECE&quot;,&quot;prettyId&quot;:&quot;f1_fornece&quot;,&quot;assignedMetadataField&quot;:&quot;F1_FORNECE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.f1_loja&quot;,&quot;title&quot;:&quot;F1_LOJA&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_f1_loja&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_loja&quot;,&quot;title&quot;:&quot;F1_LOJA&quot;,&quot;prettyId&quot;:&quot;f1_loja&quot;,&quot;assignedMetadataField&quot;:&quot;F1_LOJA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_loja&quot;,&quot;title&quot;:&quot;F1_LOJA&quot;,&quot;prettyId&quot;:&quot;f1_loja&quot;,&quot;assignedMetadataField&quot;:&quot;F1_LOJA&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.f1_serie&quot;,&quot;title&quot;:&quot;F1_SERIE&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_f1_serie&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_serie&quot;,&quot;title&quot;:&quot;F1_SERIE&quot;,&quot;prettyId&quot;:&quot;f1_serie&quot;,&quot;assignedMetadataField&quot;:&quot;F1_SERIE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.f1_serie&quot;,&quot;title&quot;:&quot;F1_SERIE&quot;,&quot;prettyId&quot;:&quot;f1_serie&quot;,&quot;assignedMetadataField&quot;:&quot;F1_SERIE&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}},{&quot;gd_dataset_attribute&quot;:{&quot;id&quot;:&quot;attr.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;attr_gd_dim_doc_entrada_nf_sf1_fk_sf1&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;fk_sf1&quot;,&quot;assignedMetadataField&quot;:&quot;FK_SF1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;assignedMetadataField&quot;:null,&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;label.gd_dim_doc_entrada_nf_sf1.fk_sf1&quot;,&quot;title&quot;:&quot;FK_SF1&quot;,&quot;prettyId&quot;:&quot;fk_sf1&quot;,&quot;assignedMetadataField&quot;:&quot;FK_SF1&quot;,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}}}],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;gddatafiscalentrada.date&quot;,&quot;title&quot;:&quot;Date (GD Data Fiscal Entrada)&quot;,&quot;prettyId&quot;:&quot;gddatafiscalentrada&quot;,&quot;assignedMetadataField&quot;:&quot;F1_DTDIGIT&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiscalentrada.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Fiscal Entrada)&quot;,&quot;prettyId&quot;:&quot;gddatafiscalentrada_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;gddatafiscalentrada.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (GD Data Fiscal Entrada)&quot;,&quot;prettyId&quot;:&quot;gddatafiscalentrada_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[],&quot;dateFacts&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;unassigneddateFacts&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="541" guiY="145" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+</Phase>
+</Graph>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		
+		<title>Getting started with GoodData Data Integration Console</title>
+		<link rel="stylesheet" href="assets/styles.css">
+	</head>
+	<body class="subpage">
+		<div class="header">
+			<h1><img src="images/gd_logo_icon.png" width="40"> GoodData CloudConnect</h1>
+			
+			<p class="welcome-help">To open this page again, choose <strong>Help &rarr; Welcome</strong> in the menu.</p>
+		</div>
+		<div class="content">
+			<p><a href="index.html">&lt; Back to the welcome page</a></p>
+			
+			<h2>Getting started with GoodData Data Integration Console</h2>
+			
+			<p>Periodically, you may wish to update the data in your project with new data captured by the ETL graph you have defined. Since this graph exists in two places, the CloudConnect project and the GoodData platform, you have multiple options for integrating fresh data.</p>
+
+			<p>When your ETL processes have been deployed to your GoodData projects, you can define the automation of data loading. This definition consists of two main components:</p>
+			<ul>
+				<li><strong>Schedule</strong> - a repeated execution of an ETL graph, specified to occur at regular intervals as short as every 15 minutes. You may define schedule parameters to pass into the schedule, so that the selected ETL graph is processed for a specified project or other variable.</li>
+				<li><strong>Notification</strong> - an email alert that informs stakeholders of specific events occurring in the ETL process. For example, you can configure a notification to alert stakeholders of a process failure. In this manner, project administrators and key users of the project can stay informed about ETL in their projects without having to login to the console.</li>
+			</ul>
+		
+			<h3>Learn more about GoodData Data Intergration Console</h3>
+			
+			<ul>
+				<li><a href="https://developer.gooddata.com/getting-started/tutorial/automate-data-loading-process?utm_source=cc&utm_campaign=dla-header&utm_medium=welcome-page">Data Integration Console simple tutorial</a></li>
+				<li><a href="http://help.gooddata.com/doc/public/pdf/DataIntegrationConsoleUserManual.pdf">GoodData Data Integration Console User Manual (PDF)</a></li>
+			</ul>
+			
+			<hr>
+			
+			<div>
+				<h3>Creating the automated data loading process</h3>
+				
+				<p>Suppose you have finished ETL development in CloudConnect and have deployed your project to the GoodData platform. When your CloudConnect project is deployed to your GoodData project, your ETL graphs in the project become a data loading process, for which you would like to set up a periodic run. Also, it would be nice to get notifications of when the scheduled run has succeeded or failed.</p>
+				
+				<ul class="steps" style="overflow: auto;">
+					<li>
+						<h4><span>1</span> Create a schedule</h4>
+						<img src="images/newschedule.png" width="440px" style="float: right; margin: 0 0 1.25em 15px;">
+						<p>Go to the Data Integration Console, select your project and click the New schedule button and select your process and graph you want to schedule. Select a frequency, add parameters, etc. and save the schedule.</p>
+					</li>
+					<li style="clear: both;">
+						<h4><span>2</span> Set up a notification for monitoring the data loading process</h4>
+						<div style="float: right; margin: 0 0 1.25em 15px;">
+							<img src="images/link.png" width="400px"><br><img src="images/rule.png" width="440px">
+						</div>
+						<p>We can notify you about your data loads via email notifications. Go to the project page, select the process and click the notification rules link. For adding a new notification rule, click the add notification link and set up your notification.</p>
+					</li>
+					<li style="clear: both;">
+						<h4><span>3</span> Track your data loads</h4>
+						<img src="images/history.png" width="440px" style="float: right; margin: 0 0 1.25em 15px;">
+						<p>As you will receive the notifications, you can track the history of execution for each schedule.</p>
+					</li>
+				</ul>
+					
+				<a href="https://developer.gooddata.com/getting-started/tutorial/automate-data-loading-process?utm_source=cc&utm_campaign=dla-learn-more&utm_medium=welcome-page" class="btn btn-primary">Learn more</a>
+			</div>
+		</div>
+		<footer>
+			<div class="row">
+				<div>
+					<h2>Learn more about CloudConnect</h2>
+					<p>The Developer Portal contains plenty of guides, tutorials, and recommended practices for using CloudConnect and other developer tools:</p>
+					<ul>
+						<li><a href="https://developer.gooddata.com/getting-started?utm_source=cc&utm_campaign=footer&utm_medium=welcomepage">Basic concepts and user interface of CloudConnect</a></li>
+						<li><a href="http://developer.gooddata.com/cloudconnect/usersGuide">CloudConnect User Manual (PDF)</a></li>
+						<li><a href="https://support.gooddata.com/entries/23963471-CloudConnect-LDM-Modeler-Guide?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">Logical Data Model guide (PDF)</a></li>
+						<li><a href="https://developer.gooddata.com/docs/data-loading#tutorials?utm_source=cc&utm_campaign=footer&utm_medium=welcomepage">Data loading tutorials</a></li>
+						<li><a href="https://developer.gooddata.com/docs/data-modeling#tutorials?utm_source=cc&utm_campaign=footer&utm_medium=welcomepage">Data modeling tutorials</a></li>
+					</ul>
+				</div>
+				<div>
+					<h2>Need help?</h2>
+					<p>Please feel free to contact <a href="http://support.gooddata.com?utm_source=cc&utm_campaign=footer&utm_medium=welcome-page">GoodData Customer Support</a>.</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

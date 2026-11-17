@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Wed Feb 24 15:41:25 BRT 2021" guiVersion="3.4.4.P" id="1614354974680" licenseType="Commercial" modified="Fri Dec 05 16:01:36 BRST 2025" modifiedBy="Guilherme" name="FATO Orçamento" revision="1.16" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata1" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="META_REAIS_MES_Plan1" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field format="yyyyMMdd" label="PERIODO" name="PERIODO" type="date"/>
+<Field format="excel:_-&quot;R$&quot;* #,##0.00_-;\-&quot;R$&quot;* #,##0.00_-;_-&quot;R$&quot;* &quot;-&quot;??_-;_-@_-" label="VLR_META" name="VLR_META" type="long"/>
+<Field label="VOLUME_TON" name="VOLUME_TON" type="long"/>
+<Field label="VLR_META_MARGEM" name="VLR_META_MARGEM" scale="4" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="META_REAIS_MES_Plan1" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field format="yyyy-MM-dd" label="PERIODO" name="PERIODO" type="date"/>
+<Field label="VLR_META" name="VLR_META" scale="3" type="decimal"/>
+<Field label="VOLUME_TON" name="VOLUME_TON" scale="3" type="decimal"/>
+<Field label="VLR_META_MARGEM2" name="VLR_META_MARGEM2" scale="3" type="decimal"/>
+<Field label="VLR_META_MARGEM" name="VLR_META_MARGEM" scale="5" type="decimal"/>
+</Record>
+</Metadata>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" fileURL="${DATA_DIR}/meta/META_REAIS_MES.xlsx" guiName="SpreadsheetDataReader" guiX="9" guiY="7" id="SPREADSHEET_DATA_READER" sheet="Plan1" type="SPREADSHEET_READER"/>
+<Edge debugMode="true" fromNode="SPREADSHEET_DATA_READER:0" guiBendpoints="" guiRouter="Manhattan" id="Edge0" inPort="Port 0 (in)" metadata="Metadata0" outPort="Port 0 (output)" toNode="GD_DATASET_WRITER:0"/>
+</Phase>
+<Phase number="1">
+<Node dataset="dataset.orcamento" datasetFieldMappings="{&quot;gd_dataset&quot;:{&quot;datasetId&quot;:&quot;dataset.orcamento&quot;,&quot;datasetTitle&quot;:&quot;Orçamento&quot;,&quot;attributes&quot;:[],&quot;referencedAttributes&quot;:[],&quot;dateAttributes&quot;:[{&quot;gd_dataset_date_attribute&quot;:{&quot;id&quot;:&quot;emissao_mc.date&quot;,&quot;title&quot;:&quot;Date (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc&quot;,&quot;assignedMetadataField&quot;:&quot;PERIODO&quot;,&quot;displayForms&quot;:[{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}}],&quot;selectedDisplayForm&quot;:{&quot;gd_dataset_attribute_display_form&quot;:{&quot;id&quot;:&quot;emissao_mc.date.yyyymmdd&quot;,&quot;title&quot;:&quot;yyyy-mm-dd (Data Emissão Geral)&quot;,&quot;prettyId&quot;:&quot;emissao_mc_date_yyyymmdd&quot;,&quot;assignedMetadataField&quot;:null,&quot;type&quot;:&quot;STRING&quot;,&quot;referenceKey&quot;:true}},&quot;associatedFact&quot;:null}}],&quot;simpleFacts&quot;:[{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.orcamento.vlr_meta&quot;,&quot;title&quot;:&quot;VLR_META&quot;,&quot;prettyId&quot;:&quot;vlr_meta&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;VLR_META&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.orcamento.vlr_meta_margem&quot;,&quot;title&quot;:&quot;VLR_META_MARGEM&quot;,&quot;prettyId&quot;:&quot;vlr_meta_margem&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;VLR_META_MARGEM&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.orcamento.vlr_meta_margem2&quot;,&quot;title&quot;:&quot;VLR_META_MARGEM2&quot;,&quot;prettyId&quot;:&quot;vlr_meta_margem2&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;VLR_META_MARGEM2&quot;}},{&quot;gd_dataset_fact&quot;:{&quot;id&quot;:&quot;fact.orcamento.volume_ton&quot;,&quot;title&quot;:&quot;VOLUME_TON&quot;,&quot;prettyId&quot;:&quot;volume_ton&quot;,&quot;type&quot;:&quot;DECIMAL&quot;,&quot;assignedMetadataField&quot;:&quot;VOLUME_TON&quot;}}],&quot;dateFacts&quot;:[],&quot;unassigneddateFacts&quot;:[],&quot;entitiesWithoutMetadata&quot;:[],&quot;datesWithFactConflict&quot;:[],&quot;entitiesWithoutValue&quot;:[],&quot;fieldsWithMetadataConflict&quot;:[]}}" enabled="enabled" guiName="GD Dataset Writer" guiX="555" guiY="33" id="GD_DATASET_WRITER" retriesInterval="60" retriesNumber="5" type="GD_DATASET_WRITER"/>
+<Node enabled="disabled" guiName="Trash" guiX="381" guiY="33" id="TRASH" type="TRASH"/>
+</Phase>
+</Graph>

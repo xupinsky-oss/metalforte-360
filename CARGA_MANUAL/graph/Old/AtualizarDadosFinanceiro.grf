@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Administrador" created="Thu Nov 24 08:15:20 BRST 2016" guiVersion="3.4.4.P" id="1480002863670" licenseType="Commercial" modified="Thu Aug 23 13:29:26 MDT 2018" modifiedBy="Administrador" name="Atualizar Dados " revision="1.14" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Financeiro.grf" guiName="RunGraph Financeiro" guiX="32" guiY="34" id="RUN_GRAPH_FINANCEIRO" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Planejamento e Controle de Producao.grf" guiName="RunGraph PCP" guiX="313" guiY="42" id="RUN_GRAPH_PCP" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

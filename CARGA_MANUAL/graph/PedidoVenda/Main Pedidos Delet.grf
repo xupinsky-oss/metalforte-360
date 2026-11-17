@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Mon May 11 13:02:21 BRT 2026" guiVersion="3.4.4.P" id="1778541599751" licenseType="Commercial" modified="Tue May 12 00:07:29 BRT 2026" modifiedBy="Guilherme" name="Main Pedidos Delet" revision="1.2" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Pedidos de Vendas - SC5 - Delet.grf" guiName="FATO Pedidos de Vendas - SC5 - Delet" guiX="9" guiY="10" id="FATO_PEDIDOS_DE_VENDAS_SC5_DELET" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Itens Pedidos Vendas - SC6 - Delet.grf" guiName="FATO Itens Pedidos Vendas - SC6 - Delet" guiX="9" guiY="121" id="FATO_ITENS_PEDIDOS_VENDAS_SC6_DELET" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="2">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/FATO Pedidos Liberados - SC9 - Delet.grf" guiName="FATO Pedidos Liberados - SC9 - Delet" guiX="9" guiY="237" id="FATO_PEDIDOS_LIBERADOS_SC9_DELET" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/PedidoVenda/DIM Pedidos de Venda Delet.grf" guiName="DIM Pedidos de Venda Delet" guiX="9" guiY="358" id="DIM_PEDIDOS_DE_VENDA_DELET" type="RUN_GRAPH"/>
+</Phase>
+</Graph>

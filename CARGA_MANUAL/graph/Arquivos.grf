@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><Graph author="Guilherme" created="Wed Oct 11 07:58:57 BRT 2023" guiVersion="3.4.4.P" id="1697054102472" licenseType="Commercial" modified="Sun Nov 23 23:24:04 BRST 2025" modifiedBy="Guilherme" name="Arquivos" revision="1.4" showComponentDetails="true">
+<Global>
+<Property fileURL="workspace.prm" id="GraphParameter0"/>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_CONFORMIDADE_ESTOQUE_PROD.grf" guiName="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" guiX="16" guiY="43" id="GD_FATO_CONFORMIDADE_ESTOQUE_PROD" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="1">
+<Node enabled="disabled" graphName="${GRAPH_DIR}/Estoque/GD_FATO_CONFORMIDADE_ESTOQUE.grf" guiName="GD_FATO_CONFORMIDADE_ESTOQUE" guiX="308" guiY="43" id="GD_FATO_CONFORMIDADE_ESTOQUE" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+<Phase number="3">
+<Node enabled="enabled" graphName="${GRAPH_DIR}/Produção/FATO Plano Mestre de Produção.grf" guiName="FATO Plano Mestre de Produção" guiX="559" guiY="43" id="FATO_PLANO_MESTRE_DE_PRODUCAO" ignoreGraphFail="true" type="RUN_GRAPH"/>
+</Phase>
+</Graph>
